@@ -16,13 +16,16 @@ load_dotenv()
 if not os.path.isdir("data"):
     os.mkdir("data")
 
+if not os.path.isdir("data/groups"):
+    os.mkdir("data/groups")
+
 admins = os.environ.get("ADMINS").split(",")
 token = os.environ.get("BOT_TOKEN")
 
 bot = atelebot(token, parse_mode=None)
 
 def GetLinkedGroup(chat_id):
-    links = dict(ReadData("links", 0))
+    links = ReadData("links", 0) or {}
     try:
         return links[chat_id]
     except:
@@ -50,7 +53,18 @@ async def Greeting(message):
             GetChatGroup(message).saveSelf()
     
     await bot.send_message(message.chat.id, greeting)
-    
+
+@bot.message_handler(content_types=['new_chat_members'])
+async def JoinGroup(message):
+    if bot.username in message.new_chat_members:
+        if message.chat.type == "group" or message.chat.type == "supergroup":
+            if GetChatGroup(message) is None:
+                new_group = types.Group(name = message.chat.title, id = message.chat.id)
+                new_group.saveSelf()
+            elif GetChatGroup(message).name != message.chat.title:
+                GetChatGroup(message).name = message.chat.title
+                GetChatGroup(message).saveSelf()
+
 @bot.message_handler(commands=['help'])
 async def Help(message):
     reply = GetHelp()
