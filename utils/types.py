@@ -492,44 +492,11 @@ class Group:
         file_path = f'{self.id}/group_info'
         SaveData(file_path, self, 1)
 
-    # Rest of the methods...
-class Group:
-    """
-    Represents a group with various attributes and methods.
-    """
-
-    def __init__(self, name, gifs=None, stickers=None, id=None, majors=None, groups=None, people=None, activities=None, requests=None):
-        """
-        Initializes a new instance of the Group class.
-
-        Args:
-            name (str): The name of the group.
-            gifs (dict, optional): A dictionary of GIFs associated with the group. Defaults to None.
-            stickers (dict, optional): A dictionary of stickers associated with the group. Defaults to None.
-            id (int, optional): The ID of the group. Defaults to None.
-            majors (list, optional): A list of majors associated with the group. Defaults to None.
-            groups (list, optional): A list of groups associated with the group. Defaults to None.
-            people (dict, optional): A dictionary of people associated with the group. Defaults to None.
-            activities (list, optional): A list of activities associated with the group. Defaults to None.
-            requests (dict, optional): A dictionary of requests associated with the group. Defaults to None.
-        """
-        self.id = id
-        self.name = name
-        self.gifs = gifs or {}
-        self.stickers = stickers or {}
-        self.majors = majors or []
-        self.groups = groups or []
-        self.people = people or {}
-        self.activities = activities or []
-        self.requests = requests or {}
-
-    def saveSelf(self):
-        """
-        Saves the group information to a file.
-        """
-        file_path = f'{self.id}/group_info'
-        SaveData(file_path, self, 1)
-
+    def link(self, group_id):
+        links = ReadData(f'{self.id}/links', 0) or {}
+        links[self.id] = group_id
+        SaveData(f'links', links, 0)
+    
     def addMajors(self, names):
         """
         Adds majors to the group.
@@ -706,7 +673,7 @@ class Group:
         try:
             thing_to_show = params[1]
         except IndexError:
-            return "What am I supposed to show? (groups/people/activities)", None
+            return "What am I supposed to show? (groups/people/activities/plan)", None
 
         arrows = None
         if thing_to_show == "majors":

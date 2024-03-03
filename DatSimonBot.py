@@ -36,8 +36,8 @@ def GetChatGroup(message) -> Group:
     group = ReadData(f"{group_id}/group_info", 1)
     
     if not isinstance(group, Group):
-        group = Group("", group_id)
-
+        group = Group("", id=group_id)
+    
     return group
 
 @bot.message_handler(commands=['start'])
@@ -46,7 +46,7 @@ async def Greeting(message):
     
     if message.chat.type == "group" or message.chat.type == "supergroup":
         if GetChatGroup(message) is None:
-            new_group = types.Group(name = message.chat.title, id = message.chat.id)
+            new_group = types.Group(name=message.chat.title, id=message.chat.id)
             new_group.saveSelf()
         elif GetChatGroup(message).name != message.chat.title:
             GetChatGroup(message).name = message.chat.title
@@ -59,7 +59,7 @@ async def JoinGroup(message):
     if bot.username in message.new_chat_members:
         if message.chat.type == "group" or message.chat.type == "supergroup":
             if GetChatGroup(message) is None:
-                new_group = types.Group(name = message.chat.title, id = message.chat.id)
+                new_group = types.Group(name=message.chat.title, id=message.chat.id)
                 new_group.saveSelf()
             elif GetChatGroup(message).name != message.chat.title:
                 GetChatGroup(message).name = message.chat.title
@@ -135,6 +135,22 @@ async def Edit(message):
     
     await bot.reply_to(message, reply, reply_markup=keyboard)
 
+@bot.message_handler(commands=['link'])
+async def Link(message):
+    group = GetChatGroup(message)
+    if message.chat.type != "group" and message.chat.type != "supergroup":
+        params = message.text.split()
+
+        if len(params) == 1:
+            await bot.reply_to(message, "Please provide the group id")
+            return
+
+        group.link(params[1])
+
+        await bot.reply_to(message, "Group linked")
+    else:
+        await bot.reply_to(message, f"Sent this to me in private chat:\n`/link {group.id}`", parse_mode="MarkdownV2")
+
 @bot.message_handler(commands=['plan'])
 async def Plan(message):
     group = GetChatGroup(message)
@@ -151,7 +167,10 @@ async def Status(message):
     
     reply = group.status()
     
-    await bot.reply_to(message, reply)
+    if reply is None:
+        await bot.reply_to(message, "No status")
+    else:
+        await bot.reply_to(message, reply)
 
 @bot.message_handler(commands=['add_lesson'])
 async def AddLesson(message):
@@ -566,7 +585,11 @@ async def ChangeActivity(x):
 async def StickerAlias(x):
     group = GetChatGroup(x)
     
-    sticker = group.stickers[x.text[1:]]
+    try:
+        sticker = group.stickers[x.text[1:]]
+    except KeyError:
+        await bot.reply_to(x, "Sticker not found")
+        return
     
     await bot.delete_message(x.chat.id, x.id)
     await bot.send_sticker(x.chat.id, sticker)
@@ -575,8 +598,12 @@ async def StickerAlias(x):
 async def GifAlias(x):
     group = GetChatGroup(x)
     
-    gif = group.gifs[x.text[1:]]
-    
+    try:
+        gif = group.gifs[x.text[1:]]
+    except KeyError:
+        await bot.reply_to(x, "Gif not found")
+        return
+
     await bot.delete_message(x.chat.id, x.id)
     await bot.send_animation(x.chat.id, gif)
 

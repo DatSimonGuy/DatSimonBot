@@ -4,7 +4,7 @@ import jsonpickle
 def SaveData(file_path, object, mode: int = 0):
     if mode == 1:
         file_path = f"data/groups/{file_path}"
-    else:
+    elif mode != 2:
         file_path = f"data/{file_path}"
 
     if mode != 2:
