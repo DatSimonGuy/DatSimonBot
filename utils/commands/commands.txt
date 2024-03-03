@@ -1,0 +1,11 @@
+help - displays all commands
+add - /add <parameter> <optional data> just follow instructions
+remove - /remove <parameter> <optional data> same as above
+edit - /edit <parameter> <optional data> same as above
+show - /show <parameter> - shows chosen data
+join - /join <group_name> - joins a group or major
+poll - /poll Cats or dogs -o cats -o dogs -c both (creates a quiz poll with both as correct asnwer)
+`<sticker name> - sends saved sticker that was added with /add
+&<gif name> - sends saved gif that was added with /add
+
+
