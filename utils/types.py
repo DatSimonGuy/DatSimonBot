@@ -1,4 +1,3 @@
-import re
 import time
 from telebot.types import InlineKeyboardMarkup
 from utils.fileHandler import SaveData, Delete, ReadData
@@ -755,7 +754,7 @@ class Group:
                 person = CreatePersonFromUser(message.reply_to_message.from_user)
             else:
                 return "You didn't reply to anyone"
-            return self.addPeople([person])
+            self.addPeople([person])
         elif thing_to_add == "gif":
             try:
                 name = params[2]
@@ -775,9 +774,12 @@ class Group:
             except IndexError:
                 return "Please provide the name for the sticker"
         elif thing_to_add == "activity":
-            pattern = r'"[^"]*"'
-            name = re.findall(pattern, message.text)[0].replace('"', '')
             params = params[2:]
+            name = ""
+
+            while ToDate(params[0]) is None:
+                name = f"{name} {params[0]}"
+                params.pop(0)
 
             if len(params) >= 3:
                 date = ToDate(params[0])
