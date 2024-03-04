@@ -101,8 +101,14 @@ class Lesson:
     """
 
     def __init__(self, beginning: time, ending: time, subject: str, type: str, classroom: str, repeat_in: int = 1, active: bool = True, once_in_weeks: int = 1):
-        self.beginning = beginning
-        self.ending = ending
+        if isinstance(beginning, str):
+            self.beginning = ToTime(beginning)
+        else:
+            self.beginning = beginning
+        if isinstance(ending, str):
+            self.ending = ToTime(ending)
+        else:
+            self.ending = ending
         self.subject = subject
         self.type = type
         self.classroom = classroom
@@ -705,6 +711,8 @@ class Group:
 
     def status(self):
         statuses = "\n".join(Major.Load(f'{self.id}/majors/{major}').status(self.people) for major in self.majors)
+        if len(statuses) == 0:
+            return "No statuses available"
         return statuses
     
     def addSubjects(self, major_name, subjects: list):
@@ -841,7 +849,7 @@ class Group:
         else:
             return "(major/activity/lesson)", None
 
-    def join(self, group, user, sub_group=None, index=None, caller_id = None):
+    def join(self, group, user, sub_group=None, index=None):
         if group in self.majors:
             if sub_group is None:
                 keyboard = ToKeyboard([(f"{group}", group) for group in Major.Load(f'{self.id}/majors/{group}').groups], f"JOIN/{group}")
@@ -850,5 +858,5 @@ class Group:
             if user.id not in major.students:
                 major.addStudents([user.id])
             self.people[user.id] = CreateStudentFromUser(user, group, sub_group, index)
-            return "Done"
+            return "Done", None
 

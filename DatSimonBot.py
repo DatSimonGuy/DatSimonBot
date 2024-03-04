@@ -327,6 +327,8 @@ async def Joingroup(message):
             await bot.reply_to(message, reply)
             return
     
+    group.saveSelf()
+    
     await bot.reply_to(message, reply, reply_markup=keyboard)
 
 @bot.callback_query_handler(func=lambda x: "-" in x.data or "+" in x.data)
