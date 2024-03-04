@@ -758,7 +758,7 @@ class Group:
                 if len(params) == 5:
                     return self.join(params[2], message.reply_to_message.from_user, params[3], params[4])
                 elif len(params) == 3:
-                    return self.join(params[2], message.reply_to_message.from_user, caller_id=message.from_user.id)
+                    return self.join(params[2], message.reply_to_message.from_user)
                 person = CreatePersonFromUser(message.reply_to_message.from_user)
             else:
                 return "You didn't reply to anyone"

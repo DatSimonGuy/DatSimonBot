@@ -89,7 +89,8 @@ async def Add(message):
     params = message.text.split()
 
     reply = group.add(params, message)
-    
+    group.saveSelf()
+
     if isinstance(reply, tuple):
         if reply[1] is None:
             await bot.send_message(message.chat.id, reply[0])
@@ -105,7 +106,6 @@ async def Add(message):
         await bot.reply_to(message, reply)
     else:
         await bot.set_message_reaction(message.chat.id, message.id, [ReactionTypeEmoji("👍")])
-        group.saveSelf()
 
 @bot.message_handler(commands=['remove'])
 async def Remove(message):
@@ -171,6 +171,12 @@ async def Status(message):
         await bot.reply_to(message, "No status")
     else:
         await bot.reply_to(message, reply)
+
+@bot.message_handler(commands=['kys'])
+async def TurnOff(message):
+    if str(message.from_user.username) in admins:
+        await bot.send_message(message.chat.id, "Shutting down")
+        exit()
 
 @bot.message_handler(commands=['add_lesson'])
 async def AddLesson(message):
