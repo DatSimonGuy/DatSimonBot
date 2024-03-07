@@ -10,6 +10,7 @@ from telebot.types import ReactionTypeEmoji
 from utils.converter import ToPollParams
 import math
 from utils.types import Group
+from utils.games import ContextoGame
 
 load_dotenv()
 
@@ -71,6 +72,45 @@ async def Help(message):
 
     if len(reply):
         await bot.reply_to(message, reply)
+
+@bot.message_handler(commands=['new_contexto'])
+async def Contexto(message):
+    group = GetChatGroup(message)
+    
+    group.removeCurrentContextoGame()
+    group.addGame(ContextoGame.InitGame())
+    
+    group.saveSelf()
+    await bot.reply_to(message, "Contexto game started")
+
+@bot.message_handler(commands=['c'])
+async def Guess(message):
+    group = GetChatGroup(message)
+    
+    if group.getCurrentContextoGame is None:
+        await bot.reply_to(message, "No game started")
+        return
+    
+    params = message.text.split()
+    game = group.getCurrentContextoGame()
+    try:
+        score = game.GetScore(params[1])
+    except:
+        await bot.reply_to(message, "Unfunny")
+        return
+    if score == 0:
+        await bot.reply_to(message, f"You won it was {params[1]}")
+        group.removeCurrentContextoGame()
+        group.saveSelf()
+        return
+    await bot.reply_to(message, score)
+    if message.chat.type != "private":
+        if game.last_message is not None:
+            await bot.delete_message(group.id, game.last_message)
+        game.last_message = await bot.reply_to(message, game)
+    else:
+        await bot.reply_to(message, game)
+    group.saveSelf()
 
 @bot.message_handler(commands=['show'])
 async def Show(message):
