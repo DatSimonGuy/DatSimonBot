@@ -78,38 +78,51 @@ async def Contexto(message):
     group = GetChatGroup(message)
     
     group.removeCurrentContextoGame()
-    group.addGame(ContextoGame.InitGame())
+    group.addGame(ContextoGame.initGame())
     
     group.saveSelf()
     await bot.reply_to(message, "Contexto game started")
 
 @bot.message_handler(commands=['c'])
 async def Guess(message):
+    await bot.delete_message(message.chat.id, message.id)
+    
     group = GetChatGroup(message)
     
     if group.getCurrentContextoGame is None:
         await bot.reply_to(message, "No game started")
         return
-    
+
     params = message.text.split()
     game = group.getCurrentContextoGame()
+    
+    if game is None:
+        await bot.reply_to(message, "No game started")
+        return
+
     try:
-        score = game.GetScore(params[1])
-    except:
-        await bot.reply_to(message, "Unfunny")
-        return
-    if score == 0:
-        await bot.reply_to(message, f"You won it was {params[1]}")
-        group.removeCurrentContextoGame()
-        group.saveSelf()
-        return
-    await bot.reply_to(message, score)
-    if message.chat.type != "private":
-        if game.last_message is not None:
-            await bot.delete_message(group.id, game.last_message)
-        game.last_message = await bot.reply_to(message, game)
-    else:
-        await bot.reply_to(message, game)
+        score = game.getScore(params[1])
+        await bot.send_message(message.chat.id, f"{params[1]}: {score}")
+    except Exception as e:
+        if e == "WON":
+            await bot.reply_to(message, "You won")
+            group.removeCurrentContextoGame()
+            group.saveSelf()
+            return
+        await bot.send_message(message.chat.id, f"@{message.from_user.username} {e}")
+    
+    sent = await bot.send_message(message.chat.id, game)
+    
+    while len(game.last_messages):
+        if game.last_messages[0] is not None:
+            try:
+                await bot.delete_message(message.chat.id, game.last_messages[0])
+            except:
+                pass
+        game.last_messages.pop(0)
+    
+    game.last_messages.append(sent.id)
+    
     group.saveSelf()
 
 @bot.message_handler(commands=['show'])
