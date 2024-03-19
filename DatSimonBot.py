@@ -247,6 +247,20 @@ async def RemoveLesson(message):
     
     await bot.reply_to(message, reply, reply_markup=keyboard)
 
+@bot.message_handler(commands=['gurasay'])
+async def GuraSay(message):
+    text = message.text.split()[1]
+    if(len(text) > 10):
+        await bot.reply_to(message, "Max 10 characters")
+        return
+    else:
+        alphabet = ReadData("sticker_alphabet")
+        for letter in str(text).upper():
+            if letter == " ":
+                continue
+            else:
+                await bot.send_sticker(message.chat.id, alphabet[letter])
+
 @bot.message_handler(commands=['add_gif'])
 async def AddGif(message):
     group = GetChatGroup(message)

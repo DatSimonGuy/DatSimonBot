@@ -1,10 +1,8 @@
-# DatSimonBot v1.1.0
+# DatSimonBot v1.1.1
 A telegram bot that makes  student life easier
 
 ## Changelog:
-- Added contexto (working)
-- fixed lesson sorting
-- fixed polls that aren't a quiz
+- Added gura_say command
 
 ## Bot functions and features:
 ### University plan management

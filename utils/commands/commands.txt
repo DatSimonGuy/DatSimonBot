@@ -11,3 +11,4 @@ send_gif - /send_gif <tag> will send a tagged gif, you can also use &<tag> inste
 poll - /poll [-o <option>] [-c <correct_option> quiz only] [-m multiple answers] [-a anonymous]
 new_contexto - start new contexto game
 c  - c <word> use this to guess the word
+gura_say - /gura_say <word> she will say the thing. Max 10 words
