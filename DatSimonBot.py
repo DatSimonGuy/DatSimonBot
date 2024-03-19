@@ -73,57 +73,53 @@ async def Help(message):
     if len(reply):
         await bot.reply_to(message, reply)
 
+current_games = {}
+
 @bot.message_handler(commands=['new_contexto'])
 async def Contexto(message):
     group = GetChatGroup(message)
     
-    group.removeCurrentContextoGame()
-    group.addGame(ContextoGame.initGame())
-    
-    group.saveSelf()
+    current_games[group.id] = ContextoGame.initGame()
+
     await bot.reply_to(message, "Contexto game started")
 
 @bot.message_handler(commands=['c'])
 async def Guess(message):
-    await bot.delete_message(message.chat.id, message.id)
-    
     group = GetChatGroup(message)
-    
-    if group.getCurrentContextoGame is None:
-        await bot.reply_to(message, "No game started")
-        return
-
-    params = message.text.split()
-    game = group.getCurrentContextoGame()
-    
-    if game is None:
-        await bot.reply_to(message, "No game started")
-        return
 
     try:
-        score = game.getScore(params[1])
-        await bot.send_message(message.chat.id, f"{params[1]}: {score}")
-    except Exception as e:
-        if e == "WON":
-            await bot.reply_to(message, "You won")
-            group.removeCurrentContextoGame()
-            group.saveSelf()
-            return
-        await bot.send_message(message.chat.id, f"@{message.from_user.username} {e}")
-    
-    sent = await bot.send_message(message.chat.id, game)
-    
-    while len(game.last_messages):
-        if game.last_messages[0] is not None:
+        word = message.text.replace("/c ", "")
+
+        try:
+            score = current_games[group.id].getScore(word)
+        except KeyError:
+                await bot.send_message(message.chat.id, "No game currently")
+                return
+        except Exception as e:
+            if str(e) == "Unfunny":
+                await bot.send_message(message.chat.id, f"@{message.from_user.username} Unfunny")
+                return
+            if str(e) == "WON":
+                await bot.send_message(message.chat.id, f"@{message.from_user.username} You won it was {word}")
+                del current_games[group.id]
+                return
+            else:
+                print(f"Exception occured during contexto game: {e}")
+                return
+
+        await bot.delete_message(message.chat.id, message.id)
+        await bot.send_message(message.chat.id, f"{word}: {score}")
+
+        for message_id in current_games[group.id].last_messages:
             try:
-                await bot.delete_message(message.chat.id, game.last_messages[0])
+                await bot.delete_message(message.chat.id, message_id)
             except:
                 pass
-        game.last_messages.pop(0)
-    
-    game.last_messages.append(sent.id)
-    
-    group.saveSelf()
+
+        sent_message = await bot.send_message(message.chat.id, str(current_games[group.id]))
+        current_games[group.id].last_messages.append(sent_message.id)
+    except KeyError:
+        await bot.reply_to(message, "No game currently started")
 
 @bot.message_handler(commands=['show'])
 async def Show(message):
@@ -362,6 +358,7 @@ async def CreatePoll(message):
         poll_parameters, quiz, multichoice, correct, anonymous = ToPollParams(params[1:])
     except IndexError:
         await bot.reply_to(message, "Please provide question and answers")
+        return
 
     poll_parameters[0] = poll_parameters[0]
 

@@ -1,5 +1,11 @@
-# DatSimonBot v1.0.0
+# DatSimonBot v1.1.0
 A telegram bot that makes  student life easier
+
+## Changelog:
+- Added contexto (working)
+- fixed lesson sorting
+- fixed polls that aren't a quiz
+
 ## Bot functions and features:
 ### University plan management
 - The bot is able to save your plan and display it. Additionally you can make changes to these plans with simple button mechanics.
@@ -14,4 +20,6 @@ A telegram bot that makes  student life easier
 - Same as the gifs but with stickers
 ### Group anti fellony
 - The bot will prevent someone from reposting the same thing as someone before. (beta)
+### Contexto game
+- Allows you to play contexto with friends on a groupchat
 ### More features coming soon

@@ -20,7 +20,7 @@ class ContextoGame:
         global request_url
         request_url = f"https://api.contexto.me/machado/en/game/{random_game}/"
         return ContextoGame(request_url, random_game)
-
+    
     def getScore(self, word):
         word = str(word).lower()
         response = requests.get(self.url + word)

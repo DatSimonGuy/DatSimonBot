@@ -160,11 +160,11 @@ class Day:
         Args:
             new_lesson (Lesson): The Lesson object to be added.
         """
-        for i, lesson in enumerate(self.lessons):
+        for i, lesson in enumerate(reversed(self.lessons)):
             if lesson.beginning < new_lesson.beginning:
                 self.lessons.insert(i + 1, new_lesson)
                 return
-        self.lessons.append(new_lesson)
+        self.lessons.insert(0, new_lesson)
         
     def removeLesson(self, idx: int):
         """
@@ -466,7 +466,7 @@ class Group:
     Represents a group with various attributes and methods.
     """
 
-    def __init__(self, name, gifs=None, stickers=None, id=None, majors=None, groups=None, people=None, activities=None, requests=None, games=None):
+    def __init__(self, name, gifs=None, stickers=None, id=None, majors=None, groups=None, people=None, activities=None, requests=None):
         """
         Initializes a new instance of the Group class.
 
@@ -490,22 +490,6 @@ class Group:
         self.people = people or {}
         self.activities = activities or []
         self.requests = requests or {}
-        self.games = games or []
-
-    def addGame(self, game):
-        self.games.append(game)
-    
-    def getCurrentContextoGame(self):
-        for i in self.games:
-            if isinstance(i, ContextoGame):
-                return i
-        return None
-    
-    def removeCurrentContextoGame(self):
-        for i in self.games:
-            if isinstance(i, ContextoGame):
-                self.games.remove(i)
-                return
     
     def saveSelf(self):
         """

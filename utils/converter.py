@@ -54,6 +54,7 @@ def ToPollParams(params: list) -> list:
     quiz = False
     multichoice = False
     anonymous = False
+    correct = None
     
     for param in params:
         if param[0] != "-":

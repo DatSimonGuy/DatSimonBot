@@ -1,11 +1,13 @@
-help - displays all commands
-add - /add <parameter> <optional data> just follow instructions
-remove - /remove <parameter> <optional data> same as above
-edit - /edit <parameter> <optional data> same as above
-show - /show <parameter> - shows chosen data
-join - /join <group_name> - joins a group or major
-poll - /poll Cats or dogs -o cats -o dogs -c both (creates a quiz poll with both as correct asnwer)
-`<sticker name> - sends saved sticker that was added with /add
-&<gif name> - sends saved gif that was added with /add
-
-
+add - /add <param> used to add gifs, stickers, lessons, majors and whatnot
+remove - /remove <param> removes a thing of your choice
+show - /show <param> shows you chosen data
+edit - /edit <param> edits chosen data
+plan - shows all available plans
+join - /join <major> will join a major
+link - use this to link private chats to the main group to share data
+status - shows who is on a break right now
+send_sticker - /send_sticker <tag> will send a tagged sticker, you can also use `<tag> instead
+send_gif - /send_gif <tag> will send a tagged gif, you can also use &<tag> instead
+poll - /poll [-o <option>] [-c <correct_option> quiz only] [-m multiple answers] [-a anonymous]
+new_contexto - start new contexto game
+c  - c <word> use this to guess the word
