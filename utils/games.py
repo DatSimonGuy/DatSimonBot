@@ -21,9 +21,7 @@ class ContextoGame:
         request_url = f"https://api.contexto.me/machado/en/game/{random_game}/"
         return ContextoGame(request_url, random_game)
     
-    def getScore(self, word):
-        word = str(word).lower()
-        response = requests.get(self.url + word)
+    def evaluate(self, word, response):
         try:
             score = int(response.json()['distance'])
         except KeyError:
@@ -34,6 +32,14 @@ class ContextoGame:
             self.guesses[word] = (f"{score}", "🟡")
         else:
             self.guesses[word] = (f"{score}", "🔴")
+        
+        return score
+    
+    def getScore(self, word):
+        word = str(word).lower()
+        response = requests.get(self.url + word)
+
+        score = self.evaluate(word, response)
             
         self.guesses = dict(sorted(self.guesses.items(), key=lambda x: int(x[1][0])))
         
@@ -41,3 +47,23 @@ class ContextoGame:
             raise Exception("WON")
         
         return score
+
+    def getHint(self):
+        if len(self.guesses) == 0:
+            raise Exception("CANT")
+
+        last = int(self.guesses[-1][0])
+
+        if last == 1:
+            raise Exception("CANT")
+
+        response = requests.get(self.url + f"tip/{last + 1}")
+        word = response.json()['word']
+
+        self.evaluate(word, response)
+        
+        return word
+        
+        
+        
+        

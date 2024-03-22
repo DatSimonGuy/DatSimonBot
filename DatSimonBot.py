@@ -121,6 +121,26 @@ async def Guess(message):
     except KeyError:
         await bot.reply_to(message, "No game currently started")
 
+@bot.message_handler(commands=['hint'])
+async def GetContextoHint(message):
+    group = GetChatGroup(message)
+
+    try:
+        hint = current_games[group.id].getHint()
+    except KeyError:
+        await bot.reply_to(message, "No game currently started")
+        return
+    except Exception as e:
+        if str(e) == "CANT":
+            await bot.reply_to(message, "Can't get hint")
+            return
+        else:
+            print(f"Exception occured during contexto game: {e}")
+            return
+
+    await bot.delete_message(message.chat.id, message.id)
+    await bot.send_message(message.chat.id, f"The hint is: {hint}")
+
 @bot.message_handler(commands=['show'])
 async def Show(message):
     group = GetChatGroup(message)
@@ -260,6 +280,16 @@ async def GuraSay(message):
                 continue
             else:
                 await bot.send_sticker(message.chat.id, alphabet[letter])
+
+@bot.message_handler(commands=['everyone'])
+async def PingEveryone(message):
+    group = GetChatGroup(message)
+    
+    people = group.people
+    
+    reply = "\n".join([f"@{person.nick}" for person in people.values()])
+    
+    await bot.send_message(message.chat.id, reply)
 
 @bot.message_handler(commands=['add_gif'])
 async def AddGif(message):
@@ -678,6 +708,11 @@ async def GifAlias(x):
 
     await bot.delete_message(x.chat.id, x.id)
     await bot.send_animation(x.chat.id, gif)
+    
+@bot.message_handler(content_types=['text'], func=lambda x: x.text[0] == '@')
+async def AtEveryone(message):
+    if(message.text.replace("@", "") == "everyone"):
+        await PingEveryone(message)
 
 @bot.message_handler(content_types=['document', 'video', 'photo', 'text'])
 async def SaveFile(message):
