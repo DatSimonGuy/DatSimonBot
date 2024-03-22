@@ -269,7 +269,7 @@ async def RemoveLesson(message):
 
 @bot.message_handler(commands=['gurasay'])
 async def GuraSay(message):
-    text = message.text.split()[1]
+    text = " ".join(word for word in message.text.split()[1:])
     if(len(text) > 10):
         await bot.reply_to(message, "Max 10 characters")
         return
@@ -279,13 +279,17 @@ async def GuraSay(message):
             if letter == " ":
                 continue
             else:
-                await bot.send_sticker(message.chat.id, alphabet[letter])
+                await bot.send_sticker(message.chat.id, alphabet[str(letter)])
 
 @bot.message_handler(commands=['everyone'])
 async def PingEveryone(message):
     group = GetChatGroup(message)
     
     people = group.people
+    
+    if len(people) == 0:
+        await bot.reply_to(message, "Only added people are pinged add using /add them or /add me")
+        return
     
     reply = "\n".join([f"@{person.nick}" for person in people.values()])
     
@@ -708,14 +712,11 @@ async def GifAlias(x):
 
     await bot.delete_message(x.chat.id, x.id)
     await bot.send_animation(x.chat.id, gif)
-    
-@bot.message_handler(content_types=['text'], func=lambda x: x.text[0] == '@')
-async def AtEveryone(message):
-    if(message.text.replace("@", "") == "everyone"):
-        await PingEveryone(message)
 
 @bot.message_handler(content_types=['document', 'video', 'photo', 'text'])
 async def SaveFile(message):
+    if "@everyone" in message.text or "@e" in message.text:
+        await PingEveryone(message)
     if message.forward_date is not None and message.chat.type == "group" or message.chat.type == "supergroup":
         unique_id = None
         
@@ -737,6 +738,24 @@ async def SaveFile(message):
             return
         last_files[unique_id] = f"https://t.me/c/{str(message.chat.id)[4:]}/{message.message_id}"
         SaveData(f"{group.id}/last_files", last_files, 1)
+
+@bot.message_handler(content_types=['new_chat_members'])
+async def AddPeople(message):
+    group = GetChatGroup(message)
+    
+    for user in message.new_chat_members:
+        person = types.CreatePersonFromUser(user)
+        group.addPerson(person)
+    
+    group.saveSelf()
+
+@bot.message_handler(content_types=['left_chat_member'])
+async def RemovePeople(message):
+    group = GetChatGroup(message)
+    
+    group.removePeople([message.left_chat_member.id])
+    
+    group.saveSelf()
 
 @bot.message_handler(content_types=['new_chat_title'])
 async def ChangegroupName(message):

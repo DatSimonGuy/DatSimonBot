@@ -831,6 +831,18 @@ class Group:
                 return "Please state the index of the activity"
         elif thing_to_remove == "lesson":
             return self.removeLesson()
+        elif thing_to_remove == "sticker":
+            try:
+                name = params[2]
+                del self.stickers[name]
+            except IndexError:
+                return "Please provide the tag of the sticker"
+        elif thing_to_remove == "gif":
+            try:
+                name = params[2]
+                del self.gifs[name]
+            except IndexError:
+                return "Please provide the tag of the gif"
         else:
             return "(me/them/majors/activity/lesson)"
         return "Done"

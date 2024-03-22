@@ -11,5 +11,6 @@ send_gif - /send_gif <tag> will send a tagged gif, you can also use &<tag> inste
 poll - /poll [-o <option>] [-c <correct_option> quiz only] [-m multiple answers] [-a anonymous]
 new_contexto - start new contexto game
 c  - c <word> use this to guess the word
+hint - gives a hint for contexto game
 gura_say - /gura_say <word> she will say the thing. Max 10 words
 everyone - /everyone will ping everyone added to the bot. Can also be done with @everyone
