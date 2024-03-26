@@ -358,7 +358,7 @@ async def PingRole(message):
         for role in roles:
             if hasattr(person, "roles"):
                 if role.replace("@", "") in person.roles:
-                    reply = f"@{person.nick}\n"
+                    reply = f"{reply}@{person.nick}\n"
             else:
                 person.roles = []
     await bot.send_message(message.chat.id, reply)
@@ -395,9 +395,9 @@ async def AddGif(message):
 async def ShowGifs(message):
     group = GetChatGroup(message)
 
-    gifs = group.show(["/show", "gifs"])[0]
+    gifs, arrows = group.show(["/show", "gifs"])
 
-    await bot.send_message(message.chat.id, gifs)
+    await bot.send_message(message.chat.id, gifs, reply_markup=arrows)
 
 @bot.message_handler(commands=['remove_gif'])
 async def RemoveGif(message):
@@ -447,9 +447,9 @@ async def AddSticker(message):
 async def ShowStickers(message):
     group = GetChatGroup(message)
 
-    stickers = group.show(["/show", "stickers"])[0]
+    stickers, arrows = group.show(["/show", "stickers"])
 
-    await bot.send_message(message.chat.id, stickers)
+    await bot.send_message(message.chat.id, stickers, reply_markup=arrows)
 
 @bot.message_handler(commands=['remove_sticker'])
 async def RemoveSticker(message):
@@ -521,14 +521,17 @@ async def Joingroup(message):
 async def TurnPage(x):
     group = GetChatGroup(x.message)
     
-    params = ["/show", "activities"]
+    params = ["/show"]
     
-    page_before = int(x.data[1:])
-    page = (int(x.data[1:]) + 1 if x.data[0] == "+" else -1) % math.ceil(len(group.activities)/6)
-    
-    if page == page_before:
-        return
-    
+    if x.data[1] == "g":
+        params.append("gifs")
+    elif x.data[1] == "s":
+        params.append("stickers")
+    elif x.data[1] == "a":
+        params.append("activities")
+
+    page = int(x.data[2:]) + (1 if x.data[0] == "+" else -1)
+        
     content, arrows = group.show(params, page)
     
     await bot.edit_message_text(content, x.message.chat.id, x.message.id, reply_markup=arrows)

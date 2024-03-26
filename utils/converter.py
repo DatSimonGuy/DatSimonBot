@@ -35,12 +35,12 @@ def ToKeyboard(lst: list, previous_data: str) -> list:
     return keyboard
 
 
-def PageArrows(page: int) -> InlineKeyboardMarkup:
+def PageArrows(max_pages: int, page: int, symbol: chr) -> InlineKeyboardMarkup:
     buttons = []
     if page > 0:
-        buttons.append(InlineKeyboardButton("⬅️", callback_data=f"-{page}"))
-    if page < 2:
-        buttons.append(InlineKeyboardButton("➡️", callback_data=f"+{page}"))
+        buttons.append(InlineKeyboardButton("⬅️", callback_data=f"-{symbol}{page}"))
+    if page < max_pages:
+        buttons.append(InlineKeyboardButton("➡️", callback_data=f"+{symbol}{page}"))
     
     keyboard = InlineKeyboardMarkup()
     keyboard.add(*buttons)

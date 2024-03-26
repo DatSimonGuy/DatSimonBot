@@ -165,7 +165,7 @@ class Day:
         """
         for i, lesson in enumerate(reversed(self.lessons)):
             if lesson.beginning < new_lesson.beginning:
-                self.lessons.insert(i + 1, new_lesson)
+                self.lessons.insert(len(self.lessons) + 1 - i, new_lesson)
                 return
         self.lessons.insert(0, new_lesson)
         
@@ -674,6 +674,18 @@ class Group:
         activities = self.activities[start_idx:end_idx]
         return "Activities:\n" + "\n".join(f"{i + start_idx}. {activity}" for i, activity in enumerate(activities))
 
+    def listStickers(self, page):
+        start_idx = page * 25
+        end_idx = start_idx + 25
+        stickers = list(self.stickers.keys())[start_idx:end_idx]
+        return "Stickers:\n" + "\n".join(f"{i + start_idx}. {sticker}" for i, sticker in enumerate(stickers))
+
+    def listGifs(self, page):
+        start_idx = page * 25
+        end_idx = start_idx + 25
+        gifs = list(self.gifs.keys())[start_idx:end_idx]
+        return "Gifs:\n" + "\n".join(f"{i + start_idx}. {gif}" for i, gif in enumerate(gifs))
+
     def addSubGroups(self, major, sub_groups):
         major = Major.Load(f'{self.id}/majors/{major}')
         for group in sub_groups:
@@ -692,7 +704,7 @@ class Group:
         try:
             thing_to_show = params[1]
         except IndexError:
-            return "What am I supposed to show? (groups/people/activities/plan)", None
+            return "What am I supposed to show? (groups/people/activities/plan/stickers/gifs)", None
 
         arrows = None
         if thing_to_show == "majors":
@@ -701,11 +713,13 @@ class Group:
             reply = self.listPeople()
         elif thing_to_show == "activities":
             reply = self.listActivities(page)
-            arrows = PageArrows(page)
+            arrows = PageArrows(len(self.activities)//6, page, "a")
         elif thing_to_show == "gifs":
-            reply = "Gifs:\n" + "\n".join(f"{i}. {gif}" for i, gif in enumerate(self.gifs.keys()))
+            reply = self.listGifs(page)
+            arrows = PageArrows(len(self.gifs)//25, page, "g")
         elif thing_to_show == "stickers":
-            reply = "Stickers:\n" + "\n".join(f"{i}. {sticker}" for i, sticker in enumerate(self.stickers.keys()))
+            reply = self.listStickers(page)
+            arrows = PageArrows(len(self.stickers)//25, page, "s")
         elif thing_to_show == "students":
             if len(params) == 2:
                 reply = "Students:\n" + "\n".join(f"{i}. {student}" for i, student in enumerate(self.people.values()) if isinstance(student, Student))

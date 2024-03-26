@@ -5,6 +5,7 @@ A telegram bot that makes  student life easier
 - Fixed some errors
 - ` and & now display all stickers/gifs
 - ` and & used as replies now actually reply to the same person
+- Added paging to gifs and stickers
 
 ## Bot functions and features:
 ### University plan management
