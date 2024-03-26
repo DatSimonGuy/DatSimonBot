@@ -1,10 +1,10 @@
-# DatSimonBot v1.2.0
+# DatSimonBot v1.2.1
 A telegram bot that makes  student life easier
 
 ## Changelog:
-- Added ways to move data around
-- Added roles
-- Fixed minor issues
+- Fixed some errors
+- ` and & now display all stickers/gifs
+- ` and & used as replies now actually reply to the same person
 
 ## Bot functions and features:
 ### University plan management

@@ -349,6 +349,7 @@ async def RemoveRole(message):
 @bot.message_handler(commands=['ping'])
 async def PingRole(message):
     group = GetChatGroup(message)
+    reply = ""
     if "/ping" in message.text:
         roles = [message.text.split()[1]]
     else:
@@ -357,9 +358,10 @@ async def PingRole(message):
         for role in roles:
             if hasattr(person, "roles"):
                 if role.replace("@", "") in person.roles:
-                    await bot.send_message(message.chat.id, f"@{person.nick}")
+                    reply = f"@{person.nick}\n"
             else:
                 person.roles = []
+    await bot.send_message(message.chat.id, reply)
 
 @bot.message_handler(commands=['everyone'])
 async def PingEveryone(message):
@@ -588,7 +590,7 @@ async def Join(x):
     group.saveSelf()
 
     await bot.delete_message(x.message.chat.id, x.message.id)
-    await bot.send_message(x.message.chat.id, "Please tell me your school index in []")
+    await bot.send_message(x.message.chat.id, "Please tell me the school index in []")
   
 @bot.callback_query_handler(func=lambda x: "EDIT_ACTIVITY" in x.data)
 async def EditActivity(x):
@@ -806,27 +808,47 @@ async def ChangeActivity(x):
 async def StickerAlias(x):
     group = GetChatGroup(x)
     
+    reply_to = None
+    if x.reply_to_message is not None:
+        reply_to = x.reply_to_message
+    
     try:
+        if len(x.text[1:]) == 0:
+            await ShowStickers(x)
+            return
         sticker = group.stickers[x.text[1:]]
     except KeyError:
         await bot.reply_to(x, "Sticker not found")
         return
     
     await bot.delete_message(x.chat.id, x.id)
-    await bot.send_sticker(x.chat.id, sticker)
+    if reply_to is not None:
+        await bot.send_sticker(x.chat.id, sticker, reply_to_message_id=reply_to.id)
+    else:
+        await bot.send_sticker(x.chat.id, sticker)
 
 @bot.message_handler(content_types=['text'], func=lambda x: x.text[0] == '&')
 async def GifAlias(x):
     group = GetChatGroup(x)
     
+    reply_to = None
+    if x.reply_to_message is not None:
+        reply_to = x.reply_to_message
+    
     try:
+        if len(x.text[1:]) == 0:
+            await ShowGifs(x)
+            return
         gif = group.gifs[x.text[1:]]
     except KeyError:
         await bot.reply_to(x, "Gif not found")
         return
 
     await bot.delete_message(x.chat.id, x.id)
-    await bot.send_animation(x.chat.id, gif)
+    if reply_to is not None:
+        await bot.send_animation(x.chat.id, gif, reply_to_message_id=reply_to.id)
+    else:
+        await bot.send_animation(x.chat.id, gif)
 
 @bot.message_handler(content_types=['document', 'video', 'photo', 'text'])
 async def SaveFile(message):
