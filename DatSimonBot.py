@@ -11,6 +11,8 @@ from utils.converter import ToPollParams
 import math
 from utils.types import Group
 from utils.games import ContextoGame
+import re
+import shutil
 
 load_dotenv()
 
@@ -247,6 +249,39 @@ async def TurnOff(message):
         await bot.send_message(message.chat.id, "Shutting down")
         exit()
 
+@bot.message_handler(commands=['export_data'])
+async def Export(message):
+    if str(message.from_user.username) in admins:
+        shutil.copyfile(".env", "data/.env")
+        data = shutil.make_archive("temp/data_export", "zip", "data")
+        with open(data, "rb") as data:
+            await bot.send_document(message.chat.id, data)
+        os.unlink("data/.env")
+        os.unlink("temp/data_export.zip")
+
+@bot.message_handler(commands=['import_data'])
+async def Import(message):
+    if not os.path.isdir("temp"):
+        os.mkdir("temp")
+    if str(message.from_user.username) in admins:
+        if message.reply_to_message is not None:
+            if message.reply_to_message.document is not None:
+                file_id = message.reply_to_message.document.file_id
+                file = await bot.get_file(file_id)
+                file_path = file.file_path
+                with open("temp/data_import.zip", "wb") as data:
+                    data.write(await bot.download_file(file_path))
+                if os.path.isdir("data"):
+                    shutil.rmtree("data")
+                shutil.unpack_archive("temp/data_import.zip", "data")
+                shutil.move("data/.env", ".env")
+                await bot.reply_to(message, "Data imported")
+                os.unlink("temp/data_import.zip")
+            else:
+                await bot.reply_to(message, "Please reply to a document")
+        else:
+            await bot.reply_to(message, "Please reply to a document")
+
 @bot.message_handler(commands=['add_lesson'])
 async def AddLesson(message):
     group = GetChatGroup(message)
@@ -270,7 +305,9 @@ async def RemoveLesson(message):
 @bot.message_handler(commands=['gurasay'])
 async def GuraSay(message):
     text = " ".join(word for word in message.text.split()[1:])
-    if(len(text) > 10):
+    if len(text) == 0:
+        await bot.reply_to(message, "Please provide text")
+    if len(text) > 10:
         await bot.reply_to(message, "Max 10 characters")
         return
     else:
@@ -279,7 +316,50 @@ async def GuraSay(message):
             if letter == " ":
                 continue
             else:
-                await bot.send_sticker(message.chat.id, alphabet[str(letter)])
+                await bot.send_sticker(message.chat.id, alphabet[letter])
+
+@bot.message_handler(commands=['append_role'])
+async def AppendRole(message):
+    group = GetChatGroup(message)
+
+    params = message.text.split()
+    
+    reply, keyboard = group.appendRole(params[1])
+    
+    if keyboard is None:
+        await bot.reply_to(message, reply)
+        return
+    
+    await bot.reply_to(message, reply, reply_markup=keyboard)
+
+@bot.message_handler(commands=['remove_role'])
+async def RemoveRole(message):
+    group = GetChatGroup(message)
+
+    params = message.text.split()
+    
+    reply, keyboard = group.removeRole(params[1])
+    
+    if keyboard is None:
+        await bot.reply_to(message, reply)
+        return
+    
+    await bot.reply_to(message, reply, reply_markup=keyboard)
+
+@bot.message_handler(commands=['ping'])
+async def PingRole(message):
+    group = GetChatGroup(message)
+    if "/ping" in message.text:
+        roles = [message.text.split()[1]]
+    else:
+        roles = re.findall(r"@.*", message.text)
+    for person in group.people.values():
+        for role in roles:
+            if hasattr(person, "roles"):
+                if role.replace("@", "") in person.roles:
+                    await bot.send_message(message.chat.id, f"@{person.nick}")
+            else:
+                person.roles = []
 
 @bot.message_handler(commands=['everyone'])
 async def PingEveryone(message):
@@ -636,6 +716,41 @@ async def ShowPlan(x):
         
         await bot.edit_message_text(reply, x.message.chat.id, x.message.id, reply_markup=buttons)
 
+@bot.callback_query_handler(func=lambda x: "ADD_ROLE" in x.data)
+async def AddRole(x):
+    group = GetChatGroup(x.message)
+    
+    params = x.data.split("/")
+    
+    role = params[2]
+    
+    person_id = int(params[1])
+    
+    if not hasattr(group.people[person_id], "roles"):
+        group.people[person_id].roles = []
+    
+    group.people[person_id].roles.append(role)
+    
+    await bot.delete_message(x.message.chat.id, x.message.id)
+    await bot.send_message(x.message.chat.id, f"Role {role} added to {group.people[person_id].nick}")
+    group.saveSelf()
+
+@bot.callback_query_handler(func=lambda x: "REMOVE_ROLE" in x.data)
+async def RemoveRole(x):
+    group = GetChatGroup(x.message)
+    
+    params = x.data.split("/")
+    
+    role = params[2]
+    
+    person_id = int(params[1])
+    
+    group.people[person_id].roles.remove(role)
+    
+    await bot.delete_message(x.message.chat.id, x.message.id)
+    await bot.send_message(x.message.chat.id, f"Role {role} added to {group.people[person_id].nick}")
+    group.saveSelf()
+
 @bot.callback_query_handler(func=lambda x: "CANCEL" in x.data)
 async def DeleteMessage(x):
     await bot.delete_message(x.message.chat.id, x.message.id)
@@ -715,8 +830,11 @@ async def GifAlias(x):
 
 @bot.message_handler(content_types=['document', 'video', 'photo', 'text'])
 async def SaveFile(message):
-    if "@everyone" in message.text or "@e" in message.text:
-        await PingEveryone(message)
+    if message.text is not None:
+        if "@everyone" in message.text or "@e" in message.text:
+            await PingEveryone(message)
+        if "@" in message.text:
+            await PingRole(message)
     if message.forward_date is not None and message.chat.type == "group" or message.chat.type == "supergroup":
         unique_id = None
         

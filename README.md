@@ -1,11 +1,10 @@
-# DatSimonBot v1.1.3
+# DatSimonBot v1.2.0
 A telegram bot that makes  student life easier
 
 ## Changelog:
-- Added other option for @everyone
-- Added option to remove stickers and gifs through /remove
-- Fixed inability to say multiple words for /gurasay
-- Added handlers for new chat members and leaving chat members
+- Added ways to move data around
+- Added roles
+- Fixed minor issues
 
 ## Bot functions and features:
 ### University plan management

@@ -17,12 +17,13 @@ class Person:
         birthdate (date, optional): The person's birthdate. Defaults to None.
     """
 
-    def __init__(self, name: str, last_name: str, nick: str, id: int, birthdate: date = None):
+    def __init__(self, name: str, last_name: str, nick: str, id: int, birthdate: date = None, role: list = []):
         self.name = name
         self.last_name = last_name
         self.birthdate = birthdate
         self.id = id
         self.nick = nick
+        self.role = role
 
     def __str__(self) -> str:
         return f"{self.nick}"
@@ -42,8 +43,10 @@ class Student(Person):
         birthdate (date, optional): The student's birthdate. Defaults to None.
     """
 
-    def __init__(self, name: str, last_name: str, nick: str, id: int, major: str, group: str, index: int = 0, birthdate: date = None):
-        super().__init__(name, last_name, nick, id, birthdate)
+    def __init__(self, name: str, last_name: str, nick: str, id: int, major: str, group: str, index: int = 0, birthdate: date = None, roles: list = ["student"]):
+        if "student" not in roles:
+            roles.append("student")
+        super().__init__(name, last_name, nick, id, birthdate, roles)
         self.major = major
         self.group = group
         self.index = index
@@ -461,12 +464,20 @@ class Major:
         return status
             
 
+class Role:
+    def __init__(self, name, permissions):
+        self.name = name
+        self.permissions = permissions
+    
+    def can(self, permission):
+        return permission in self.permissions
+
 class Group:
     """
     Represents a group with various attributes and methods.
     """
 
-    def __init__(self, name, gifs=None, stickers=None, id=None, majors=None, groups=None, people=None, activities=None, requests=None):
+    def __init__(self, name, gifs=None, stickers=None, id=None, majors=None, groups=None, people=None, activities=None, requests=None, roles=None):
         """
         Initializes a new instance of the Group class.
 
@@ -480,6 +491,7 @@ class Group:
             people (dict, optional): A dictionary of people associated with the group. Defaults to None.
             activities (list, optional): A list of activities associated with the group. Defaults to None.
             requests (dict, optional): A dictionary of requests associated with the group. Defaults to None.
+            roles (list, optional): A list of roles associated with the group. Defaults to None.
         """
         self.id = id
         self.name = name
@@ -490,6 +502,7 @@ class Group:
         self.people = people or {}
         self.activities = activities or []
         self.requests = requests or {}
+        self.roles = roles or {}
     
     def saveSelf(self):
         """
@@ -728,11 +741,29 @@ class Group:
         major.removeSubjects(subjects)
         major.saveSelf()
 
+    def appendRole(self, person_name):
+        if not hasattr(self, "roles"):
+            self.roles = {}
+        if len(self.roles) == 0:
+            return "Please add a role first", None
+        for person in self.people.values():
+            if person.nick == person_name.replace("@", ""):
+                return "Please choose the role", ToKeyboard([(f"{role.name}", role.name) for role in self.roles.values()], f"ADD_ROLE/{person.id}")
+        return "Person not found", None
+    
+    def removeRole(self, person_name):
+        for person in self.people.values():
+            if person.nick == person_name.replace("@", ""):
+                if len(person.roles) == 0:
+                    return "Person has no roles", None
+                return "Please choose the role", ToKeyboard([(f"{role}", role) for role in person.roles], f"REMOVE_ROLE/{person.id}")
+        return "Person not found", None
+
     def add(self, params, message):
         try:
             thing_to_add = params[1]
         except IndexError:
-            return "What am I supposed to add? (me/them/majors/activity/lesson/groups/subjects)"
+            return "What am I supposed to add? (me/them/majors/activity/lesson/groups/subjects/role)"
 
         if thing_to_add == "majors":
             self.addMajors(params[2:])
@@ -801,8 +832,17 @@ class Group:
                     return "Please state name, date (dd.mm.yyyy), time (00:00), and optionally description"
             else:
                 return "Please state name, date (dd.mm.yyyy), time (00:00), and optionally description"
+        elif thing_to_add == "role":
+            if not hasattr(self, "roles"):
+                self.roles = {}
+            try:
+                name = params[2]
+                role = Role(name, [])
+                self.roles[name] = role
+            except IndexError:
+                return "Please provide the name for the role"
         else:
-            return "(me/them/majors/activity/lesson/groups/subjects)"
+            return "(me/them/majors/activity/lesson/groups/subjects/role)"
 
         return "Done"
 
@@ -810,7 +850,7 @@ class Group:
         try:
             thing_to_remove = params[1]
         except IndexError:
-            return "What am I supposed to remove? (me/them/majors/activity/lesson)"
+            return "What am I supposed to remove? (me/them/majors/activity/lesson/sticker/gif/role)"
 
         if thing_to_remove == "majors":
             self.removeMajors(params[2:])
@@ -843,8 +883,14 @@ class Group:
                 del self.gifs[name]
             except IndexError:
                 return "Please provide the tag of the gif"
+        elif thing_to_remove == "role":
+            try:
+                name = params[2]
+                del self.roles[name]
+            except IndexError:
+                return "Please provide the name of the role"
         else:
-            return "(me/them/majors/activity/lesson)"
+            return "(me/them/majors/activity/lesson/sticker/gif/role)"
         return "Done"
 
     def edit(self, params):
@@ -872,4 +918,4 @@ class Group:
                 major.addStudents([user.id])
             self.people[user.id] = CreateStudentFromUser(user, group, sub_group, index)
             return "Done", None
-
+    
