@@ -1,11 +1,11 @@
-# DatSimonBot v1.2.1
+# DatSimonBot v1.3.0
 A telegram bot that makes  student life easier
 
 ## Changelog:
 - Fixed some errors
-- ` and & now display all stickers/gifs
-- ` and & used as replies now actually reply to the same person
-- Added paging to gifs and stickers
+- Added new morning functionality
+- Will now show weather
+- Set up schedule for further use later
 
 ## Bot functions and features:
 ### University plan management
@@ -23,4 +23,6 @@ A telegram bot that makes  student life easier
 - The bot will prevent someone from reposting the same thing as someone before. (beta)
 ### Contexto game
 - Allows you to play contexto with friends on a groupchat
+### Weather
+- Has ability to check weather in given cities
 ### More features coming soon

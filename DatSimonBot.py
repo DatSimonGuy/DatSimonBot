@@ -8,11 +8,13 @@ import utils.types as types
 import asyncio
 from telebot.types import ReactionTypeEmoji
 from utils.converter import ToPollParams
-import math
 from utils.types import Group
 from utils.games import ContextoGame
 import re
 import shutil
+import schedule
+import threading
+from utils.scheduled import MorningMessage, GetWeather
 
 load_dotenv()
 
@@ -221,6 +223,24 @@ async def Link(message):
         await bot.reply_to(message, "Group linked")
     else:
         await bot.reply_to(message, f"Sent this to me in private chat:\n`/link {group.id}`", parse_mode="MarkdownV2")
+
+@bot.message_handler(commands=['reset_day'])
+async def ResetDay(message):
+    group = GetChatGroup(message)
+    group.resetDay()
+    await bot.reply_to(message, "Day reset")
+
+@bot.message_handler(commands=['weather'])
+async def Weather(message):
+    group = GetChatGroup(message)
+    
+    if not group.weather_cities:
+        await bot.reply_to(message, "No weather cities added in group")
+        return
+    
+    weather_message = await GetWeather(group.weather_cities)
+    
+    await bot.reply_to(message, weather_message)
 
 @bot.message_handler(commands=['plan'])
 async def Plan(message):
@@ -860,6 +880,12 @@ async def SaveFile(message):
             await PingEveryone(message)
         if "@" in message.text:
             await PingRole(message)
+        if "gm" in message.text.lower():
+            group = GetChatGroup(message)
+            if group.morning_message_sent == True:
+                return
+            await bot.reply_to(message, f"{await MorningMessage(group)}")
+            group.saveSelf()
     if message.forward_date is not None and message.chat.type == "group" or message.chat.type == "supergroup":
         unique_id = None
         

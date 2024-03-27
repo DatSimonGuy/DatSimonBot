@@ -3,7 +3,6 @@ from telebot.types import InlineKeyboardMarkup
 from utils.fileHandler import SaveData, Delete, ReadData
 from utils.converter import ToDate, ToTime, PageArrows, ToKeyboard
 from datetime import datetime, date, time
-from utils.games import ContextoGame
 
 class Person:
     """
@@ -121,7 +120,7 @@ class Lesson:
         self.active = active
     
     def __str__(self):
-        return f'{self.subject} | {str(self.beginning)[:5]} | {str(self.ending)[:5]} | {self.classroom}\n'
+        return f'{self.subject} | {self.type} | {str(self.beginning)[:5]} | {str(self.ending)[:5]} | {self.classroom}\n'
 
 
 class Day:
@@ -477,7 +476,7 @@ class Group:
     Represents a group with various attributes and methods.
     """
 
-    def __init__(self, name, gifs=None, stickers=None, id=None, majors=None, groups=None, people=None, activities=None, requests=None, roles=None):
+    def __init__(self, name, gifs=None, stickers=None, id=None, majors=None, groups=None, people=None, activities=None, requests=None, roles=None, weather_cities=None, morning_message_sent=False):
         """
         Initializes a new instance of the Group class.
 
@@ -503,6 +502,11 @@ class Group:
         self.activities = activities or []
         self.requests = requests or {}
         self.roles = roles or {}
+        self.weather_cities = weather_cities or []
+        self.morning_message_sent = morning_message_sent
+    
+    def LoadGroup(self, id):
+        return ReadData(f'{id}/group_info', 1)
     
     def saveSelf(self):
         """
@@ -510,6 +514,13 @@ class Group:
         """
         file_path = f'{self.id}/group_info'
         SaveData(file_path, self, 1)
+    
+    def resetDay(self):
+        """
+        Resets the morning message status for the day.
+        """
+        self.morning_message_sent = False
+        self.saveSelf()
 
     def link(self, group_id):
         links = ReadData(f'links', 0) or {}
@@ -777,7 +788,7 @@ class Group:
         try:
             thing_to_add = params[1]
         except IndexError:
-            return "What am I supposed to add? (me/them/majors/activity/lesson/groups/subjects/role)"
+            return "What am I supposed to add? (me/them/majors/activity/lesson/groups/subjects/role/city)"
 
         if thing_to_add == "majors":
             self.addMajors(params[2:])
@@ -855,8 +866,14 @@ class Group:
                 self.roles[name] = role
             except IndexError:
                 return "Please provide the name for the role"
+        elif thing_to_add == "city":
+            try:
+                city = params[2]
+                self.weather_cities.append(city)
+            except IndexError:
+                return "Please provide the name of the city"
         else:
-            return "(me/them/majors/activity/lesson/groups/subjects/role)"
+            return "(me/them/majors/activity/lesson/groups/subjects/role/city)"
 
         return "Done"
 
@@ -864,7 +881,7 @@ class Group:
         try:
             thing_to_remove = params[1]
         except IndexError:
-            return "What am I supposed to remove? (me/them/majors/activity/lesson/sticker/gif/role)"
+            return "What am I supposed to remove? (me/them/majors/activity/lesson/sticker/gif/role/city)"
 
         if thing_to_remove == "majors":
             self.removeMajors(params[2:])
@@ -903,8 +920,14 @@ class Group:
                 del self.roles[name]
             except IndexError:
                 return "Please provide the name of the role"
+        elif thing_to_remove == "city":
+            try:
+                city = params[2]
+                self.weather_cities.remove(city)
+            except IndexError:
+                return "Please provide the name of the city"
         else:
-            return "(me/them/majors/activity/lesson/sticker/gif/role)"
+            return "(me/them/majors/activity/lesson/sticker/gif/role/city)"
         return "Done"
 
     def edit(self, params):
