@@ -38,4 +38,4 @@ async def MorningMessage(group: Group):
 
 thread = threading.Thread(target=AwaitSchedule)
 thread.start()
-schedule.every().day.at("00:00").do(ClearMorningMessage)
+schedule.every().day.at("00:00").do(asyncio.run(ClearMorningMessage()))

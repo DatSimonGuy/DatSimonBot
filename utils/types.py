@@ -505,7 +505,7 @@ class Group:
         self.weather_cities = weather_cities or []
         self.morning_message_sent = morning_message_sent
     
-    def LoadGroup(self, id):
+    def LoadGroup(id):
         return ReadData(f'{id}/group_info', 1)
     
     def saveSelf(self):
