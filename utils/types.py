@@ -476,7 +476,7 @@ class Group:
     Represents a group with various attributes and methods.
     """
 
-    def __init__(self, name, gifs=None, stickers=None, id=None, majors=None, groups=None, people=None, activities=None, requests=None, roles=None, weather_cities=None, morning_message_sent=False):
+    def __init__(self, name, gifs=None, stickers=None, id=None, majors=None, groups=None, people=None, activities=None, requests=None, roles=None, weather_cities=None, morning_message_sent=False, cringe_messages=None):
         """
         Initializes a new instance of the Group class.
 
@@ -504,6 +504,7 @@ class Group:
         self.roles = roles or {}
         self.weather_cities = weather_cities or []
         self.morning_message_sent = morning_message_sent
+        self.cringe_messages = cringe_messages or {}
     
     def LoadGroup(id):
         return ReadData(f'{id}/group_info', 1)

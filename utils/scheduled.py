@@ -11,7 +11,7 @@ def AwaitSchedule():
         asyncio.run(asyncio.sleep(1))
 
 async def GetWeather(cities: list):
-    weather_message = ""
+    weather_message = "Weather:"
     weather = python_weather.Client(unit=python_weather.METRIC)
     for city in cities:
         city_weather = await weather.get(city)
@@ -22,8 +22,8 @@ async def GetWeather(cities: list):
     await weather.close()
     return weather_message
 
-async def ClearMorningMessage():
-    for folder in os.listdir("data"):
+def ClearMorningMessage():
+    for folder in os.listdir("data/groups"):
         group = Group.LoadGroup(folder)
         group.resetDay()
 
@@ -38,4 +38,4 @@ async def MorningMessage(group: Group):
 
 thread = threading.Thread(target=AwaitSchedule)
 thread.start()
-schedule.every().day.at("00:00").do(asyncio.run(ClearMorningMessage()))
+schedule.every().day.at("00:00").do(ClearMorningMessage)

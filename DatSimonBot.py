@@ -12,8 +12,6 @@ from utils.types import Group
 from utils.games import ContextoGame
 import re
 import shutil
-import schedule
-import threading
 from utils.scheduled import MorningMessage, GetWeather
 
 load_dotenv()
@@ -78,6 +76,31 @@ async def Help(message):
         await bot.reply_to(message, reply)
 
 current_games = {}
+
+@bot.message_handler(commands=['cringe'])
+async def CringeCouncil(message):
+    if message.reply_to_message is not None:
+        group = GetChatGroup(message)    
+        if hasattr(group, "cringe_messages"):
+            try:
+                if message.from_user.id in group.cringe_messages[message.reply_to_message.id][0]:
+                    await bot.reply_to(message, "You already voted")
+                    return
+                group.cringe_messages[message.reply_to_message.id][1] += 1
+                group.cringe_messages[message.reply_to_message.id][0].append(message.from_user.id)
+            except KeyError:
+                group.cringe_messages[message.reply_to_message.id] = [[message.from_user.id], 1]
+        else:
+            group.cringe_messages = {message.reply_to_message.id: [[message.from_user.id], 1]}
+        
+        if group.cringe_messages[message.reply_to_message.id][1] == 3:
+            await bot.reply_to(message.reply_to_message, "The cringe council has deemed this message cringe and has decided to remove it")
+            await bot.delete_message(message.chat.id, message.reply_to_message.id)
+            del group.cringe_messages[message.reply_to_message.id]
+            return
+
+        group.saveSelf()
+        await bot.reply_to(message, f"This message was deemed cringe {group.cringe_messages[message.reply_to_message.id][1]}/3 times")
 
 @bot.message_handler(commands=['new_contexto'])
 async def Contexto(message):
