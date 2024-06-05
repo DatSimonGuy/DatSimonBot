@@ -1,6 +1,7 @@
 from .lesson import Lesson
 from .day import Day
 from telebot.types import User
+import datetime
 
 class Plan():
     def __init__(self) -> None:
@@ -85,6 +86,9 @@ class Plan():
             person (telebot.types.User): person to add
             
         """
+        if person.id in self.people:
+            raise ValueError("You are already in this plan.")
+        
         person_id = person.id
 
         self.people[person_id] = person
@@ -100,6 +104,21 @@ class Plan():
         
         """
         del self.people[person_id]
+    
+    def free_now(self) -> list[User]:
+        """ returns a list of people who are free now
+
+        Returns:
+            list[User]: list of people who are free now
+
+        """
+        lessons = self.get_lessons(datetime.datetime.today().weekday())
+        
+        for lesson in lessons:
+            if lesson.start_time <= datetime.datetime.now() <= lesson.end_time:
+                return []
+        
+        return list(self.people.values())
     
     def __str__(self) -> str:
         day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]

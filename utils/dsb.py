@@ -11,10 +11,16 @@ class DSB:
             import utils.modules.planingModule as planingModule
 
             self._planing_module = planingModule.PlaningModule(self._bot)
+
         if not args.get("no_stickers", False):
             import utils.modules.stickerModule as stickerModule
 
             self._sticker_module = stickerModule.StickerModule(self._bot)
+        
+        if not args.get("no_gifs", False):
+            import utils.modules.gifModule as gifModule
+
+            self._gif_module = gifModule.GifModule(self._bot)
     
     async def run(self) -> None:
         """ runs the bot

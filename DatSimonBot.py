@@ -10,6 +10,7 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--no-planing", help="disable the planing module", action="store_true")
     argparser.add_argument("--no-stickers", help="disable the sticker module", action="store_true")
+    argparser.add_argument("--no-gifs", help="disable the gif module", action="store_true")
     
     args = vars(argparser.parse_args())
 

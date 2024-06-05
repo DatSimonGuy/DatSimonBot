@@ -2,6 +2,7 @@ from ..plan import Plan
 from ..lesson import Lesson
 from telebot.types import User
 from .database import Database
+import datetime
 
 class PlansDatabase(Database):
     def __init__(self, path: str) -> None:
@@ -80,7 +81,7 @@ class PlansDatabase(Database):
         try:
             self._data[group_id][plan_name].add_person(person)
             self.save()
-        except:
+        except KeyError:
             raise ValueError(f"Plan {plan_name} does not exist for group {group_id}.")
 
     def remove_person(self, group_id: int, plan_name: str, person_id: int) -> None:
@@ -163,3 +164,19 @@ class PlansDatabase(Database):
             return self._data[group_id][plan_name].get_lesson(day, idx)
         except ValueError or IndexError:
             raise ValueError(f"Lesson {idx} does not exist in the plan {plan_name} for group {group_id}.")
+    
+    def who_is_free(self, group_id: int) -> list[User]:
+        """ returns a list of people who are free now
+
+        Args:
+            group_id (int): group id
+
+        Returns:
+            list[User]: list of people who are free at the specified time
+
+        """
+        people = []
+        for plan in self._data[group_id].values():
+            people += plan.free_now()
+        
+        return people

@@ -45,9 +45,13 @@ class DsbModule:
 
         if message.reply_to_message:
             reply_to_message = message.reply_to_message
-            parsed['sticker_id'] = reply_to_message.sticker.file_id if reply_to_message.sticker else None
-            parsed['document_file_id'] = reply_to_message.document.file_id if reply_to_message.document else None
-        
+
+            if reply_to_message.sticker:
+                parsed['sticker_id'] = reply_to_message.sticker.file_id
+
+            if reply_to_message.document and reply_to_message.document.mime_type == "video/mp4":
+                parsed['document_id'] = reply_to_message.document.file_id
+
         for arg in arguments:
             if arg.startswith("—"):
                 last_arg_name = arg.split("—")[1]

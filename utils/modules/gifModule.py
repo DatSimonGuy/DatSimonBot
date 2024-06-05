@@ -3,18 +3,18 @@ from .tagModule import TagModule
 import telebot.async_telebot as async_telebot
 from telebot.types import Message
 
-class StickerModule(TagModule):
+class GifModule(TagModule):
     def __init__(self, bot):
-        super().__init__(bot, "stickers")
+        super().__init__(bot, "gifs")
     
     def _add_handlers(self, bot):
-        bot.register_message_handler(self.add_tag, commands=["add_sticker_tag"], pass_bot=True)
-        bot.register_message_handler(self.remove_tag, commands=["remove_sticker_tag"], pass_bot=True)
-        bot.register_message_handler(self.add_sticker, commands=["add_sticker"], pass_bot=True)
-        bot.register_message_handler(self.remove_sticker, commands=["remove_sticker"], pass_bot=True)
-        bot.register_message_handler(self.sticker, commands=["sticker"], pass_bot=True)
+        bot.register_message_handler(self.add_tag, commands=["add_gif_tag"], pass_bot=True)
+        bot.register_message_handler(self.remove_tag, commands=["remove_gif_tag"], pass_bot=True)
+        bot.register_message_handler(self.add_gif, commands=["add_gif"], pass_bot=True)
+        bot.register_message_handler(self.remove_gif, commands=["remove_gif"], pass_bot=True)
+        bot.register_message_handler(self.gif, commands=["gif"], pass_bot=True)
     
-    async def add_sticker(self, message: Message, bot: async_telebot.AsyncTeleBot):
+    async def add_gif(self, message: Message, bot: async_telebot.AsyncTeleBot):
         try:
             atributes = self._parse_input(message, "tag")
 
@@ -24,16 +24,16 @@ class StickerModule(TagModule):
             if atributes["tag"] not in self._database.get_tags(message.chat.id):
                 self._database.add_tag(message.chat.id, atributes["tag"])
             
-            if atributes.get("sticker_id", None) is None:
-                raise ValueError("You need to reply to a sticker.")
+            if atributes.get("document_id", None) is None:
+                raise ValueError("You need to reply to a gif.")
             
-            self._database.add_element(message.chat.id, atributes["tag"], atributes["sticker_id"])
+            self._database.add_element(message.chat.id, atributes["tag"], atributes["document_id"])
             await self._confirm(message, bot)
         except ValueError as e:
             await bot.send_message(message.chat.id, str(e))
             return
     
-    async def remove_sticker(self, message: Message, bot: async_telebot.AsyncTeleBot):
+    async def remove_gif(self, message: Message, bot: async_telebot.AsyncTeleBot):
         try:
             atributes = self._parse_input(message, "tag")
 
@@ -46,13 +46,13 @@ class StickerModule(TagModule):
             await bot.send_message(message.chat.id, str(e))
             return
 
-    async def sticker(self, message: Message, bot: async_telebot.AsyncTeleBot):
+    async def gif(self, message: Message, bot: async_telebot.AsyncTeleBot):
         try:
-            sticker = self.random_element(message)
+            gif = self.random_element(message)
             if message.reply_to_message:
-                await bot.send_sticker(message.chat.id, reply_to_message_id=message.reply_to_message.id, sticker=sticker)
+                await bot.send_document(message.chat.id, gif, reply_to_message_id=message.reply_to_message.message_id)
             else:
-                await bot.send_sticker(message.chat.id, sticker)
+                await bot.send_document(message.chat.id, gif)
         except ValueError as e:
             await bot.send_message(message.chat.id, str(e))
             return

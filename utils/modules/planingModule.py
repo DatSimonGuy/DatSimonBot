@@ -1,8 +1,9 @@
 from utils.types import lesson
 import telebot.async_telebot as async_telebot
-from telebot.types import Message, ReactionTypeEmoji
+from telebot.types import Message
 from ..types.databases.plansDatabase import PlansDatabase
 from .dsbModule import DsbModule
+import datetime
 
 class PlaningModule(DsbModule):
     def __init__(self, bot: async_telebot.AsyncTeleBot) -> None:
@@ -20,6 +21,7 @@ class PlaningModule(DsbModule):
         bot.register_message_handler(self._remove_lesson, commands=["remove_lesson"], pass_bot=True)
         bot.register_message_handler(self._edit_lesson, commands=["edit_lesson"], pass_bot=True)
         bot.register_message_handler(self._move_lesson, commands=["move_lesson"], pass_bot=True)
+        bot.register_message_handler(self._who_is_free, commands=["free_rn"], pass_bot=True)
 
     async def _new_plan(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
         """ creates a new plan with the specified name
@@ -239,5 +241,19 @@ class PlaningModule(DsbModule):
         except ValueError as e:
             await bot.send_message(message.chat.id, str(e))
             return
+    
+    async def _who_is_free(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
+        """ returns the people that are free at the specified time
+
+        Args:
+            message (Message): message with the time arguments
+            bot (async_telebot.AsyncTeleBot): bot to send messages with
+
+        """
+        free_people = self._database.who_is_free(message.chat.id)
+        response = "People that are free now:\n"
+        for person in free_people:
+            response += f"{person.username}\n"
+        await bot.send_message(message.chat.id, response)
     
     

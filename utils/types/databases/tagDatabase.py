@@ -15,6 +15,7 @@ class TagDatabase(Database):
     def remove_tag(self, group_id: int, tag: str):
         if group_id not in self._data:
             self._data[group_id] = {}
+
         try:
             del self._data[group_id][tag]
             self.save()
@@ -54,4 +55,7 @@ class TagDatabase(Database):
         return self._data[group_id][tag]
     
     def get_tags(self, group_id: int):
+        if group_id not in self._data:
+            self._data[group_id] = {}
+
         return list(self._data[group_id].keys())
