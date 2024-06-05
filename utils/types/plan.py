@@ -102,9 +102,18 @@ class Plan():
         del self.people[person_id]
     
     def __str__(self) -> str:
+        day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         result = ""
         for i, day in enumerate(self.days):
-            result += f"Day {i}:\n"
+            result += f"{day_names[i]}:\n"
+            for lesson in day.get_lessons():
+                result += str(lesson)
+        return result
+    
+    def retarded_str(self) -> str:
+        result = ""
+        for i, day in enumerate(self.days):
+            result += f"Day {i + 1}:\n"
             for lesson in day.get_lessons():
                 result += str(lesson)
         return result

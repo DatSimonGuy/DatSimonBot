@@ -7,10 +7,14 @@ class DSB:
         self.activate_modules(start_args)
 
     def activate_modules(self, args: dict[str, bool]) -> None:
-        if not args.get("no-planing", False):
-            import utils.planingModule as planingModule
+        if not args.get("no_planing", False):
+            import utils.modules.planingModule as planingModule
 
             self._planing_module = planingModule.PlaningModule(self._bot)
+        if not args.get("no_stickers", False):
+            import utils.modules.stickerModule as stickerModule
+
+            self._sticker_module = stickerModule.StickerModule(self._bot)
     
     async def run(self) -> None:
         """ runs the bot
