@@ -1,27 +1,26 @@
 from utils.types import lesson
 import telebot.async_telebot as async_telebot
 from telebot.types import Message, ReactionTypeEmoji
-import datetime
 from .types import database
 
 class PlaningModule:
     def __init__(self, bot: async_telebot.AsyncTeleBot) -> None:
         self._database: database.Database = database.Database("plans")
-        self.load() # load plans from file if they already exist
-        self.add_handlers(bot)
+        self.__load() # load plans from file if they already exist
+        self.__add_handlers(bot)
     
-    def add_handlers(self, bot: async_telebot.AsyncTeleBot) -> None:
-        bot.register_message_handler(self.new_plan, commands=["new_plan"], pass_bot=True)
-        bot.register_message_handler(self.remove_plan, commands=["remove_plan"], pass_bot=True)
-        bot.register_message_handler(self.get_plan, commands=["get_plan"], pass_bot=True)
-        bot.register_message_handler(self.join_plan, commands=["join_plan"], pass_bot=True)
-        bot.register_message_handler(self.leave_plan, commands=["leave_plan"], pass_bot=True)
-        bot.register_message_handler(self.add_lesson, commands=["add_lesson"], pass_bot=True)
-        bot.register_message_handler(self.remove_lesson, commands=["remove_lesson"], pass_bot=True)
-        bot.register_message_handler(self.edit_lesson, commands=["edit_lesson"], pass_bot=True)
-        bot.register_message_handler(self.move_lesson, commands=["move_lesson"], pass_bot=True)
+    def __add_handlers(self, bot: async_telebot.AsyncTeleBot) -> None:
+        bot.register_message_handler(self.__new_plan, commands=["new_plan"], pass_bot=True)
+        bot.register_message_handler(self.__remove_plan, commands=["remove_plan"], pass_bot=True)
+        bot.register_message_handler(self.__get_plan, commands=["get_plan"], pass_bot=True)
+        bot.register_message_handler(self.__join_plan, commands=["join_plan"], pass_bot=True)
+        bot.register_message_handler(self.__leave_plan, commands=["leave_plan"], pass_bot=True)
+        bot.register_message_handler(self.__add_lesson, commands=["add_lesson"], pass_bot=True)
+        bot.register_message_handler(self.__remove_lesson, commands=["remove_lesson"], pass_bot=True)
+        bot.register_message_handler(self.__edit_lesson, commands=["edit_lesson"], pass_bot=True)
+        bot.register_message_handler(self.__move_lesson, commands=["move_lesson"], pass_bot=True)
 
-    async def confirm(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
+    async def __confirm(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
         """ will react to the message with a thumbs up emoji to confirm the action
 
         Args:
@@ -31,7 +30,7 @@ class PlaningModule:
         """
         await bot.set_message_reaction(message.chat.id, message.message_id, [ReactionTypeEmoji("👍")])
 
-    def parse_input(self, message: Message) -> dict[str, str]:
+    def __parse_input(self, message: Message) -> dict[str, str]:
         """ parses the input message and returns a dictionary with the arguments and their values
 
         Args:
@@ -64,7 +63,7 @@ class PlaningModule:
         
         return parsed
 
-    async def new_plan(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
+    async def __new_plan(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
         """ creates a new plan with the specified name
 
         Args:
@@ -76,18 +75,18 @@ class PlaningModule:
 
         """
         try:
-            arguments = self.parse_input(message)
+            arguments = self.__parse_input(message)
 
             if "plan_name" not in arguments:
                 raise ValueError("You need to specify a name for the plan.")
 
             self._database.new_plan(message.chat.id, arguments["plan_name"])
-            await self.confirm(message, bot)
+            await self.__confirm(message, bot)
         except ValueError as e:
             await bot.send_message(message.chat.id, str(e))
             return
     
-    async def remove_plan(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
+    async def __remove_plan(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
         """ removes a plan with the specified name
 
         Args:
@@ -99,18 +98,18 @@ class PlaningModule:
 
         """
         try:
-            arguments = self.parse_input(message)
+            arguments = self.__parse_input(message)
             
             if "plan_name" not in arguments:
                 raise ValueError("You need to specify a name for the plan.")
             
             self._database.remove_plan(message.chat.id, arguments["plan_name"])
-            await self.confirm(message, bot)
+            await self.__confirm(message, bot)
         except ValueError as e:
             await bot.send_message(message.chat.id, str(e))
             return
 
-    async def get_plan(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
+    async def __get_plan(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
         """ returns the plan with the specified name
 
         Args:
@@ -122,7 +121,7 @@ class PlaningModule:
 
         """
         try:
-            arguments = self.parse_input(message)
+            arguments = self.__parse_input(message)
             
             if "plan_name" not in arguments:
                 raise ValueError("You need to specify a name for the plan.")
@@ -135,7 +134,7 @@ class PlaningModule:
             await bot.send_message(message.chat.id, str(e))
             return
     
-    async def join_plan(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
+    async def __join_plan(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
         """ allows user to join the plan with the specified name
 
         Args:
@@ -147,19 +146,19 @@ class PlaningModule:
 
         """
         try:
-            arguments = self.parse_input(message)
+            arguments = self.__parse_input(message)
 
             if "plan_name" not in arguments:
                 raise ValueError("You need to specify a name for the plan you want to join.")
 
             self._database.add_person(message.chat.id, arguments["plan_name"], message.from_user)
 
-            await self.confirm(message, bot)
+            await self.__confirm(message, bot)
         except ValueError as e:
             await bot.send_message(message.chat.id, str(e))
             return
     
-    async def leave_plan(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
+    async def __leave_plan(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
         """ allows user to leave the plan with the specified name
 
         Args:
@@ -171,19 +170,19 @@ class PlaningModule:
 
         """
         try:
-            arguments = self.parse_input(message)
+            arguments = self.__parse_input(message)
 
             if "plan_name" not in arguments:
                 raise ValueError("You need to specify a name for the plan you want to leave.")
 
             self._database.remove_person(message.chat.id, arguments["plan_name"], message.from_user.id)
 
-            await self.confirm(message, bot)
+            await self.__confirm(message, bot)
         except ValueError as e:
             await bot.send_message(message.chat.id, str(e))
             return
     
-    async def add_lesson(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
+    async def __add_lesson(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
         """ adds a lesson to the plan with the specified name
 
         Args:
@@ -195,7 +194,7 @@ class PlaningModule:
 
         """
         try:
-            arguments = self.parse_input(message)
+            arguments = self.__parse_input(message)
             
             if "plan_name" not in arguments:
                 raise ValueError("You need to specify a plan for the lesson.")
@@ -207,7 +206,7 @@ class PlaningModule:
             await bot.send_message(message.chat.id, str(e))
             return
 
-    async def remove_lesson(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
+    async def __remove_lesson(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
         """ removes a lesson from the plan with the specified name
 
         Args:
@@ -219,7 +218,7 @@ class PlaningModule:
 
         """
         try:
-            arguments = self.parse_input(message)
+            arguments = self.__parse_input(message)
             
             if "plan_name" not in arguments:
                 raise ValueError("You need to specify a plan for the lesson.")
@@ -229,7 +228,7 @@ class PlaningModule:
             await bot.send_message(message.chat.id, str(e))
             return
     
-    async def edit_lesson(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
+    async def __edit_lesson(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
         """ edits a lesson in the plan with the specified name
 
         Args:
@@ -241,7 +240,7 @@ class PlaningModule:
 
         """
         try:
-            arguments = self.parse_input(message)
+            arguments = self.__parse_input(message)
             
             if "plan_name" not in arguments:
                 raise ValueError("You need to specify a plan for the lesson.")
@@ -253,7 +252,7 @@ class PlaningModule:
             await bot.send_message(message.chat.id, str(e))
             return
     
-    async def move_lesson(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
+    async def __move_lesson(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
         """ moves a lesson in the plan with the specified name
 
         Args:
@@ -265,21 +264,22 @@ class PlaningModule:
 
         """
         try:
-            arguments = self.parse_input(message)
+            arguments = self.__parse_input(message)
             
             if "plan_name" not in arguments:
                 raise ValueError("You need to specify a plan for the lesson.")
             
+            lesson = self._database.get_lesson(message.chat.id, arguments["plan_name"], arguments.get("from-day", 0), arguments.get("from-idx", 0))
             self._database.remove_lesson(message.chat.id, arguments["plan_name"], arguments.get("from-day", 0), arguments.get("from-idx", 0))
-            self._database.add_lesson(message.chat.id, arguments["plan_name"], arguments.get("to-day", 0), arguments.get("to-idx", 0))
+            self._database.add_lesson(message.chat.id, arguments["plan_name"], arguments.get("to-day", 0), lesson)
         except ValueError as e:
             await bot.send_message(message.chat.id, str(e))
             return
 
-    def save(self) -> None:
+    def __save(self) -> None:
         self._database.save()
     
-    def load(self) -> None:
+    def __load(self) -> None:
         self._database.load()
     
     

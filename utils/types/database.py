@@ -6,9 +6,9 @@ from telebot.types import User
 
 class Database():
     def __init__(self, path: str) -> None:
-        self.path = path
-        self.plans: dict[int, dict[str, Plan]] = {}
-        os.makedirs(self.path, exist_ok=True)
+        self._path = path
+        self._plans: dict[int, dict[str, Plan]] = {}
+        os.makedirs(self._path, exist_ok=True)
     
     def new_plan(self, group_id: int, plan_name: str) -> None:
         """ creates a new plan with the specified name for the specified group id
@@ -21,14 +21,14 @@ class Database():
             ValueError: if plan already exists
 
         """
-        if plan_name in self.plans[group_id]:
+        if plan_name in self._plans[group_id]:
             raise ValueError("Plan already exists.")
 
         try:
-            self.plans[group_id][plan_name] = Plan()
+            self._plans[group_id][plan_name] = Plan()
             self.save()
         except KeyError:
-            self.plans[group_id] = {plan_name: Plan()}
+            self._plans[group_id] = {plan_name: Plan()}
         
     
     def remove_plan(self, group_id: int, plan_name: str) -> None:
@@ -43,7 +43,7 @@ class Database():
 
         """
         try:
-            del self.plans[group_id][plan_name]
+            del self._plans[group_id][plan_name]
             self.save()
         except KeyError:
             raise ValueError(f"Plan {plan_name} does not exist.")
@@ -63,7 +63,7 @@ class Database():
 
         """
         try:
-            return self.plans[group_id][plan_name]
+            return self._plans[group_id][plan_name]
         except KeyError:
             raise ValueError(f"Plan {plan_name} does not exist.")
 
@@ -80,7 +80,7 @@ class Database():
 
         """
         try:
-            self.plans[group_id][plan_name].add_person(person)
+            self._plans[group_id][plan_name].add_person(person)
             self.save()
         except:
             raise ValueError(f"Plan {plan_name} does not exist for group {group_id}.")
@@ -98,7 +98,7 @@ class Database():
 
         """
         try:
-            self.plans[group_id][plan_name].remove_person(person_id)
+            self._plans[group_id][plan_name].remove_person(person_id)
             self.save()
         except KeyError:
             raise ValueError(f"Person {person_id} is not in the plan {plan_name} for group {group_id}.")
@@ -118,7 +118,7 @@ class Database():
 
         """
         try:
-            self.plans[group_id][plan_name].add_lesson(day, lesson)
+            self._plans[group_id][plan_name].add_lesson(day, lesson)
             self.save()
         except KeyError:
             raise ValueError(f"Plan {plan_name} does not exist for group {group_id}.")
@@ -138,7 +138,7 @@ class Database():
 
         """
         try:
-            self.plans[group_id][plan_name].remove_lesson(day, idx)
+            self._plans[group_id][plan_name].remove_lesson(day, idx)
             self.save()
         except KeyError or IndexError:
             raise ValueError(f"Plan {plan_name} does not exist for group {group_id}.")
@@ -162,21 +162,21 @@ class Database():
         
         """
         try:
-            return self.plans[group_id][plan_name].get_lesson(day, idx)
+            return self._plans[group_id][plan_name].get_lesson(day, idx)
         except ValueError or IndexError:
             raise ValueError(f"Lesson {idx} does not exist in the plan {plan_name} for group {group_id}.")
     
     def save(self) -> None:
         """ saves the database to a file located at self.path/database.json
         """
-        with open(self.path + "/database.json", "w") as f:
-            f.write(jsonpickle.encode(self.plans, indent=1, keys=True))
+        with open(self._path + "/database.json", "w") as f:
+            f.write(jsonpickle.encode(self._plans, indent=1, keys=True))
     
     def load(self) -> None:
         """ loads the database from a file located at self.path/database.json if it exists
         """
         try:
-            with open(self.path + "/database.json", "r") as f:
-                self.plans = jsonpickle.decode(f.read(), keys=True)
+            with open(self._path + "/database.json", "r") as f:
+                self._plans = jsonpickle.decode(f.read(), keys=True)
         except FileNotFoundError:
             return
