@@ -4,12 +4,15 @@ import argparse
 from utils.dsb import DSB
 import asyncio
 
-argparser = argparse.ArgumentParser()
-
 if __name__ == "__main__":
     load_dotenv()
 
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("--no-planing", help="disable the planing module", action="store_true")
+    
+    args = vars(argparser.parse_args())
+
     token = os.getenv('BOT_TOKEN')
 
-    dsb = DSB(token)
+    dsb = DSB(token, args)
     asyncio.run(dsb.run())
