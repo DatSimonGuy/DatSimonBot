@@ -1,10 +1,10 @@
 from ..types.databases.tagDatabase import TagDatabase
-from .dsbModule import DsbModule
+from .databaseModule import DatabaseModule
 import telebot.async_telebot as async_telebot
 from telebot.types import Message
 import random
 
-class TagModule(DsbModule):
+class TagModule(DatabaseModule):
     def __init__(self, bot, elements_type: str):
         super().__init__(bot)
         self._database: TagDatabase = TagDatabase(f"data/{elements_type}")

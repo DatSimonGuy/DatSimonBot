@@ -5,10 +5,13 @@ from ..types.databases.database import Database
 class DsbModule:
     def __init__(self, bot: async_telebot.AsyncTeleBot) -> None:
         self._add_handlers(bot)
-        self._database: Database = None
+        self._commands = {
+
+        }
 
     def _add_handlers(self, bot: async_telebot.AsyncTeleBot) -> None:
-        pass
+        for command, function in self._commands:
+            bot.register_message_handler(function, commands=[command], pass_bot=True)
     
     async def _confirm(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
         """ will react to the message with a thumbs up emoji to confirm the action
@@ -63,11 +66,5 @@ class DsbModule:
                     parsed[last_arg_name] += " " + arg
         
         return parsed
-
-    def _save(self) -> None:
-        self._database.save()
-    
-    def _load(self) -> None:
-        self._database.load()
     
     

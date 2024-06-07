@@ -6,13 +6,13 @@ from telebot.types import Message
 class StickerModule(TagModule):
     def __init__(self, bot):
         super().__init__(bot, "stickers")
-    
-    def _add_handlers(self, bot):
-        bot.register_message_handler(self.add_tag, commands=["add_sticker_tag"], pass_bot=True)
-        bot.register_message_handler(self.remove_tag, commands=["remove_sticker_tag"], pass_bot=True)
-        bot.register_message_handler(self.add_sticker, commands=["add_sticker"], pass_bot=True)
-        bot.register_message_handler(self.remove_sticker, commands=["remove_sticker"], pass_bot=True)
-        bot.register_message_handler(self.sticker, commands=["sticker"], pass_bot=True)
+        self._commands = {
+            "add_sticker_tag": self.add_tag,
+            "remove_sticker_tag": self.remove_tag,
+            "add_sticker": self.add_sticker,
+            "remove_sticker": self.remove_sticker,
+            "sticker": self.sticker
+        }
     
     async def add_sticker(self, message: Message, bot: async_telebot.AsyncTeleBot):
         try:

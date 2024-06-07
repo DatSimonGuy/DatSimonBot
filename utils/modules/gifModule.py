@@ -1,4 +1,3 @@
-from ..types.databases.tagDatabase import TagDatabase
 from .tagModule import TagModule
 import telebot.async_telebot as async_telebot
 from telebot.types import Message
@@ -6,13 +5,13 @@ from telebot.types import Message
 class GifModule(TagModule):
     def __init__(self, bot):
         super().__init__(bot, "gifs")
-    
-    def _add_handlers(self, bot):
-        bot.register_message_handler(self.add_tag, commands=["add_gif_tag"], pass_bot=True)
-        bot.register_message_handler(self.remove_tag, commands=["remove_gif_tag"], pass_bot=True)
-        bot.register_message_handler(self.add_gif, commands=["add_gif"], pass_bot=True)
-        bot.register_message_handler(self.remove_gif, commands=["remove_gif"], pass_bot=True)
-        bot.register_message_handler(self.gif, commands=["gif"], pass_bot=True)
+        self._commands = {
+            "add_gif_tag": self.add_tag,
+            "remove_gif_tag": self.remove_tag,
+            "add_gif": self.add_gif,
+            "remove_gif": self.remove_gif,
+            "gif": self.gif
+        }
     
     async def add_gif(self, message: Message, bot: async_telebot.AsyncTeleBot):
         try:

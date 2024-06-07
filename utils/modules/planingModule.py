@@ -2,26 +2,30 @@ from utils.types import lesson
 import telebot.async_telebot as async_telebot
 from telebot.types import Message
 from ..types.databases.plansDatabase import PlansDatabase
-from .dsbModule import DsbModule
+from .databaseModule import DatabaseModule
 import datetime
 
-class PlaningModule(DsbModule):
+class PlaningModule(DatabaseModule):
     def __init__(self, bot: async_telebot.AsyncTeleBot) -> None:
         super().__init__(bot)
         self._database: PlansDatabase = PlansDatabase("data/plans")
         self._load() # load plans from file if they already exist
+        self._commands = {
+            "new_plan": self._new_plan,
+            "remove_plan": self._remove_plan,
+            "plan": self._get_plan,
+            "join_plan": self._join_plan,
+            "leave_plan": self._join_plan,
+            "add_lesson": self._add_lesson,
+            "remove_lesson": self._remove_lesson,
+            "edit_lesson": self._edit_lesson,
+            "move_lesson": self._move_lesson,
+            "free_rn": self._who_is_free
+        }
     
     def _add_handlers(self, bot: async_telebot.AsyncTeleBot) -> None:
-        bot.register_message_handler(self._new_plan, commands=["new_plan"], pass_bot=True)
-        bot.register_message_handler(self._remove_plan, commands=["remove_plan"], pass_bot=True)
-        bot.register_message_handler(self._get_plan, commands=["get_plan"], pass_bot=True)
-        bot.register_message_handler(self._join_plan, commands=["join_plan"], pass_bot=True)
-        bot.register_message_handler(self._leave_plan, commands=["leave_plan"], pass_bot=True)
-        bot.register_message_handler(self._add_lesson, commands=["add_lesson"], pass_bot=True)
-        bot.register_message_handler(self._remove_lesson, commands=["remove_lesson"], pass_bot=True)
-        bot.register_message_handler(self._edit_lesson, commands=["edit_lesson"], pass_bot=True)
-        bot.register_message_handler(self._move_lesson, commands=["move_lesson"], pass_bot=True)
-        bot.register_message_handler(self._who_is_free, commands=["free_rn"], pass_bot=True)
+        for command, function in self._commands:
+            bot.register_message_handler(function, commands=[command], pass_bot=True)
 
     async def _new_plan(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
         """ creates a new plan with the specified name
