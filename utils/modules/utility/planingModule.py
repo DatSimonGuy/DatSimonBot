@@ -3,13 +3,9 @@ import telebot.async_telebot as async_telebot
 from telebot.types import Message
 from ..types.databases.plansDatabase import PlansDatabase
 from .databaseModule import DatabaseModule
-import datetime
 
 class PlaningModule(DatabaseModule):
     def __init__(self, bot: async_telebot.AsyncTeleBot) -> None:
-        super().__init__(bot)
-        self._database: PlansDatabase = PlansDatabase("data/plans")
-        self._load() # load plans from file if they already exist
         self._commands = {
             "new_plan": self._new_plan,
             "remove_plan": self._remove_plan,
@@ -20,12 +16,12 @@ class PlaningModule(DatabaseModule):
             "remove_lesson": self._remove_lesson,
             "edit_lesson": self._edit_lesson,
             "move_lesson": self._move_lesson,
-            "free_rn": self._who_is_free
+            "free": self._who_is_free
         }
-    
-    def _add_handlers(self, bot: async_telebot.AsyncTeleBot) -> None:
-        for command, function in self._commands:
-            bot.register_message_handler(function, commands=[command], pass_bot=True)
+        super().__init__(bot, self._commands)
+        self._database: PlansDatabase = PlansDatabase("data/plans")
+        self._load() # load plans from file if they already exist
+        
 
     async def _new_plan(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
         """ creates a new plan with the specified name
@@ -171,7 +167,8 @@ class PlaningModule(DatabaseModule):
             
             new_lesson = lesson.Lesson(arguments)
             
-            self._database.add_lesson(message.chat.id, arguments["plan_name"], arguments.get("day", 0), new_lesson)
+            self._database.add_lesson(message.chat.id, arguments["plan_name"], int(arguments.get("day", 0)), new_lesson)
+            await self._confirm(message, bot)
         except ValueError as e:
             await bot.send_message(message.chat.id, str(e))
             return
@@ -193,7 +190,8 @@ class PlaningModule(DatabaseModule):
             if "plan_name" not in arguments:
                 raise ValueError("You need to specify a plan for the lesson.")
             
-            self._database.remove_lesson(message.chat.id, arguments["plan_name"], arguments.get("day", 0), arguments.get("idx", 0))
+            self._database.remove_lesson(message.chat.id, arguments["plan_name"], int(arguments.get("day", 0)), int(arguments.get("idx", 0)))
+            await self._confirm(message, bot)
         except ValueError as e:
             await bot.send_message(message.chat.id, str(e))
             return
@@ -215,9 +213,10 @@ class PlaningModule(DatabaseModule):
             if "plan_name" not in arguments:
                 raise ValueError("You need to specify a plan for the lesson.")
 
-            lesson_to_edit = self._database.get_lesson(message.chat.id, arguments["plan_name"], arguments.get("day", 0), arguments.get("idx", 0))
+            lesson_to_edit = self._database.get_lesson(message.chat.id, arguments["plan_name"], int(arguments.get("day", 0)), int(arguments.get("idx", 0)))
             
             lesson_to_edit.read_args(arguments)
+            await self._confirm(message, bot)
         except ValueError as e:
             await bot.send_message(message.chat.id, str(e))
             return
@@ -239,9 +238,10 @@ class PlaningModule(DatabaseModule):
             if "plan_name" not in arguments:
                 raise ValueError("You need to specify a plan for the lesson.")
             
-            lesson = self._database.get_lesson(message.chat.id, arguments["plan_name"], arguments.get("from-day", 0), arguments.get("from-idx", 0))
-            self._database.remove_lesson(message.chat.id, arguments["plan_name"], arguments.get("from-day", 0), arguments.get("from-idx", 0))
-            self._database.add_lesson(message.chat.id, arguments["plan_name"], arguments.get("to-day", 0), lesson)
+            lesson = self._database.get_lesson(message.chat.id, arguments["plan_name"], int(arguments.get("from-day", 0)), int(arguments.get("from-idx", 0)))
+            self._database.remove_lesson(message.chat.id, arguments["plan_name"], int(arguments.get("from-day", 0)), int(arguments.get("from-idx", 0)))
+            self._database.add_lesson(message.chat.id, arguments["plan_name"], int(arguments.get("to-day", 0)), lesson)
+            await self._confirm(message, bot)
         except ValueError as e:
             await bot.send_message(message.chat.id, str(e))
             return

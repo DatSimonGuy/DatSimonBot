@@ -5,8 +5,8 @@ from telebot.types import Message
 import random
 
 class TagModule(DatabaseModule):
-    def __init__(self, bot, elements_type: str):
-        super().__init__(bot)
+    def __init__(self, bot, commands: dict, elements_type: str):
+        super().__init__(bot, commands)
         self._database: TagDatabase = TagDatabase(f"data/{elements_type}")
         self._load()
 

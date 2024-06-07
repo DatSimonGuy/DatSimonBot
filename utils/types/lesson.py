@@ -52,14 +52,17 @@ class Lesson():
         self._room = arguments.get("room", self._room)
         self._type = LessonType.from_str(arguments.get("type", self._type.value))
         try:
-            self._start = datetime.datetime.strptime(arguments.get("start", ":"), "%H:%M")
+            self._start = datetime.datetime.strptime(arguments.get("start", ":"), "%H:%M").time()
         except ValueError:
             pass
         try:  
-            self._end = datetime.datetime.strptime(arguments.get("end", ":"), "%H:%M")
+            self._end = datetime.datetime.strptime(arguments.get("end", ":"), "%H:%M").time()
         except ValueError:
             pass
-    
+
+    def is_now(self) -> bool:
+        return self._start <= datetime.datetime.now().time() <= self._end
+        
     def __str__(self) -> str:
         start_time = self._start.strftime("%H:%M")
         end_time = self._end.strftime("%H:%M")

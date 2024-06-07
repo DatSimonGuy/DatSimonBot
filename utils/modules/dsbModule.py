@@ -3,15 +3,12 @@ from telebot.types import Message, ReactionTypeEmoji
 from ..types.databases.database import Database
 
 class DsbModule:
-    def __init__(self, bot: async_telebot.AsyncTeleBot) -> None:
-        self._add_handlers(bot)
-        self._commands = {
+    def __init__(self, bot: async_telebot.AsyncTeleBot, commands: dict) -> None:
+        self._add_handlers(bot, commands)
 
-        }
-
-    def _add_handlers(self, bot: async_telebot.AsyncTeleBot) -> None:
-        for command, function in self._commands:
-            bot.register_message_handler(function, commands=[command], pass_bot=True)
+    def _add_handlers(self, bot: async_telebot.AsyncTeleBot, commands: dict) -> None:
+        for command in commands:
+            bot.register_message_handler(commands[command], commands=[command], pass_bot=True)
     
     async def _confirm(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
         """ will react to the message with a thumbs up emoji to confirm the action

@@ -115,7 +115,7 @@ class Plan():
         lessons = self.get_lessons(datetime.datetime.today().weekday())
         
         for lesson in lessons:
-            if lesson.start_time <= datetime.datetime.now() <= lesson.end_time:
+            if lesson.is_now():
                 return []
         
         return list(self.people.values())
