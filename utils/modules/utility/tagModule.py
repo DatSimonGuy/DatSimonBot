@@ -1,4 +1,4 @@
-from ..types.databases.tagDatabase import TagDatabase
+from ...types.databases.tagDatabase import TagDatabase
 from .databaseModule import DatabaseModule
 import telebot.async_telebot as async_telebot
 from telebot.types import Message

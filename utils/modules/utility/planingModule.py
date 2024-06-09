@@ -1,7 +1,7 @@
 from utils.types import lesson
 import telebot.async_telebot as async_telebot
 from telebot.types import Message
-from ..types.databases.plansDatabase import PlansDatabase
+from ...types.databases.plansDatabase import PlansDatabase
 from .databaseModule import DatabaseModule
 
 class PlaningModule(DatabaseModule):
