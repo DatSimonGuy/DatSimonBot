@@ -5,15 +5,15 @@ from telebot.types import Message
 class GifModule(TagModule):
     def __init__(self, bot):
         self._commands = {
-            "add_gif_tag": self.add_tag,
-            "remove_gif_tag": self.remove_tag,
-            "add_gif": self.add_gif,
-            "remove_gif": self.remove_gif,
-            "gif": self.gif
+            "add_gif_tag": self._add_tag,
+            "remove_gif_tag": self._remove_tag,
+            "add_gif": self._add_gif,
+            "remove_gif": self._remove_gif,
+            "gif": self._gif
         }
         super().__init__(bot, self._commands, "gifs")
     
-    async def add_gif(self, message: Message, bot: async_telebot.AsyncTeleBot):
+    async def _add_gif(self, message: Message, bot: async_telebot.AsyncTeleBot):
         try:
             atributes = self._parse_input(message, "tag")
 
@@ -32,7 +32,7 @@ class GifModule(TagModule):
             await bot.send_message(message.chat.id, str(e))
             return
     
-    async def remove_gif(self, message: Message, bot: async_telebot.AsyncTeleBot):
+    async def _remove_gif(self, message: Message, bot: async_telebot.AsyncTeleBot):
         try:
             atributes = self._parse_input(message, "tag")
 
@@ -45,7 +45,7 @@ class GifModule(TagModule):
             await bot.send_message(message.chat.id, str(e))
             return
 
-    async def gif(self, message: Message, bot: async_telebot.AsyncTeleBot):
+    async def _gif(self, message: Message, bot: async_telebot.AsyncTeleBot):
         try:
             gif = self.random_element(message)
             if message.reply_to_message:

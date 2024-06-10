@@ -15,6 +15,15 @@ class ContextoGame(Game):
             raise ValueError("Invalid game idx")
     
     def guess(self, word: str) -> bool:
+        """ Guess a word in the game and update the scores
+
+        Args:
+            word (str): word to guess
+
+        Returns:
+            bool: True if the word is correct, False otherwise
+
+        """
         if not self.game_running:
             return
 

@@ -26,6 +26,9 @@ class DSB:
             import utils.modules.games.contextoModule as contextoModule
 
             self._contexto_module = contextoModule.ContextoModule(self._bot)
+        import utils.modules.utility.adminToolsModule as adminToolsModule
+        
+        self._admin_module = adminToolsModule.AdminTools(self._bot)
     
     async def run(self) -> None:
         """ runs the bot

@@ -6,15 +6,15 @@ from telebot.types import Message
 class StickerModule(TagModule):
     def __init__(self, bot):
         self._commands = {
-            "add_sticker_tag": self.add_tag,
-            "remove_sticker_tag": self.remove_tag,
-            "add_sticker": self.add_sticker,
-            "remove_sticker": self.remove_sticker,
-            "sticker": self.sticker
+            "add_sticker_tag": self._add_tag,
+            "remove_sticker_tag": self._remove_tag,
+            "add_sticker": self._add_sticker,
+            "remove_sticker": self._remove_sticker,
+            "sticker": self._sticker
         }
         super().__init__(bot, self._commands, "stickers")
     
-    async def add_sticker(self, message: Message, bot: async_telebot.AsyncTeleBot):
+    async def _add_sticker(self, message: Message, bot: async_telebot.AsyncTeleBot):
         try:
             atributes = self._parse_input(message, "tag")
 
@@ -33,7 +33,7 @@ class StickerModule(TagModule):
             await bot.send_message(message.chat.id, str(e))
             return
     
-    async def remove_sticker(self, message: Message, bot: async_telebot.AsyncTeleBot):
+    async def _remove_sticker(self, message: Message, bot: async_telebot.AsyncTeleBot):
         try:
             atributes = self._parse_input(message, "tag")
 
@@ -46,9 +46,9 @@ class StickerModule(TagModule):
             await bot.send_message(message.chat.id, str(e))
             return
 
-    async def sticker(self, message: Message, bot: async_telebot.AsyncTeleBot):
+    async def _sticker(self, message: Message, bot: async_telebot.AsyncTeleBot):
         try:
-            sticker = self.random_element(message)
+            sticker = self._random_element(message)
             if message.reply_to_message:
                 await bot.send_sticker(message.chat.id, reply_to_message_id=message.reply_to_message.id, sticker=sticker)
             else:

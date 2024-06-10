@@ -10,7 +10,7 @@ class TagModule(DatabaseModule):
         self._database: TagDatabase = TagDatabase(f"data/{elements_type}")
         self._load()
 
-    async def add_tag(self, message: Message, bot: async_telebot.AsyncTeleBot):
+    async def _add_tag(self, message: Message, bot: async_telebot.AsyncTeleBot):
         try:
             atributes = self._parse_input(message, "tag")
 
@@ -23,7 +23,7 @@ class TagModule(DatabaseModule):
             await bot.send_message(message.chat.id, str(e))
             return
     
-    async def remove_tag(self, message: Message, bot: async_telebot.AsyncTeleBot):
+    async def _remove_tag(self, message: Message, bot: async_telebot.AsyncTeleBot):
         try:
             atributes = self._parse_input(message, "tag")
 
@@ -37,6 +37,19 @@ class TagModule(DatabaseModule):
             return
     
     def random_element(self, message: Message) -> str:
+        """ Get a random element from the database at the specified tag
+
+        Args:
+            message (Message): message containing the tag
+
+        Raises:
+            ValueError: when no tag is specified
+            ValueError: when no elements are found
+
+        Returns:
+            str: random element
+
+        """
         atributes = self._parse_input(message, "tag")
         
         if "tag" not in atributes:

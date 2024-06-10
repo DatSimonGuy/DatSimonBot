@@ -9,11 +9,11 @@ class ContextoModule(GameModule):
     def __init__(self, bot):
         commands = {
             "contexto": self._start_game,
-            "end_contexto": self._end_game,
+            "c_end": self._end_game,
             "c": self.guess,
-            "join_contexto": self._join_game,
-            "leave_contexto": self._leave_game,
-            "instant_start": self._instant_start,
+            "c_join": self._join_game,
+            "c_leave": self._leave_game,
+            "c_instant": self._instant_start,
         }
         super().__init__(bot, commands)
         os.makedirs("data/games/contexto", exist_ok=True)
@@ -27,16 +27,23 @@ class ContextoModule(GameModule):
     async def _new_game(self, message: Message) -> None:
         self._games[message.chat.id] = self._game_class(max(self._played_games.get(message.chat.id, [0])) + 1)
     
-    async def _start_game(self, message: Message, bot: AsyncTeleBot):
+    async def _start_game(self, message: Message, bot: AsyncTeleBot) -> None:
         await super()._start_game(message, bot)
     
-    async def _end_game(self, message: Message, bot: AsyncTeleBot):
+    async def _end_game(self, message: Message, bot: AsyncTeleBot) -> None:
         await super()._end_game(message, bot)
         self._played_games[message.chat.id] = self._played_games.get(message.chat.id, []) + [self._games[message.chat.id].game_num]
         with open("data/games/contexto/save.json", "w") as f:
             f.write(jsonpickle.encode(self._played_games, keys=True))
     
     async def guess(self, message: Message, bot: AsyncTeleBot) -> None:
+        """ Guess a word in the game
+
+        Args:
+            message (Message): message containing the guess
+            bot (AsyncTeleBot): bot to send messages
+
+        """
         if message.chat.id not in self._games:
             await bot.send_message(message.chat.id, "No game started!")
             return
@@ -45,7 +52,7 @@ class ContextoModule(GameModule):
             await bot.send_message(message.chat.id, "Game has ended!")
             return
         
-        guess = message.text.split()[1]
+        guess = self._parse_input(message.text, "word")["word"]
         if self._games[message.chat.id].guess(guess):
             await bot.send_message(message.chat.id, "Game won! The word was {}".format(guess))
             await self._end_game(message, bot)
