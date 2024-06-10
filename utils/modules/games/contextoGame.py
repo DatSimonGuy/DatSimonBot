@@ -2,23 +2,23 @@ import requests
 from .game import Game
 
 class ContextoGame(Game):
-    def __init__(self, game_number) -> None:
+    def __init__(self, game_num: int) -> None:
         super().__init__()
-        self.game_num = game_number
+        self.game_num = game_num
         self._guesses = set()
         self._last_guess = None
         self._scores = []
-        self._request_url = f"https://api.contexto.me/machado/en/game/{game_number}/"
+        self._request_url = f"https://api.contexto.me/machado/en/game/{self.game_num}/"
         self._max_scores = 20
-        self._game_text = "Contexto, use /join_contexto to join."
-
         validity_check = dict(requests.get(self._request_url + "hi").json())
         if validity_check.get('error', False):
             raise ValueError("Invalid game idx")
     
     def guess(self, word: str) -> bool:
-        if not self.game_started:
+        if not self.game_running:
             return
+
+        self._current_player_idx = (self._current_player_idx + 1) % len(self._players)
 
         if word in self._guesses:
             self._last_guess = ("Already guessed", None, None)
@@ -42,21 +42,20 @@ class ContextoGame(Game):
             color = "🔴"
         
         self._last_guess = (word, distance + 1, color)
-
         self._scores.append(self._last_guess)
-
         self._scores.sort(key=lambda x: x[1])
 
         if len(self._scores) > self._max_scores:
             self._scores.pop(self._max_scores)
-
-        self._current_player_idx = (self._current_player_idx + 1) % len(self._players)
-
         if distance == 0:
-            self.game_started = False
+            self.game_running = False
             return True
 
         return False
     
-    def get_top_list(self) -> list[tuple[str, int, str]]:
-        return self._scores + [self._last_guess]
+    def get_top_list(self) -> str:
+        list = "\n".join([f"{score[0]}: {score[1]} {score[2]}" for score in self._scores])
+        list += f"\n\nLast guess: {self._last_guess[0]}: {self._last_guess[1]} {self._last_guess[2]}"
+        list += f"\n\nCurrent player: {self._players[self._current_player_idx].username}"
+        
+        return list
