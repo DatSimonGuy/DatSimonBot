@@ -7,25 +7,63 @@ import os
 import random
 from pytube import YouTube
 import schedule
+from ...types.databases.booleanDatabase import BooleanDatabase
 
 load_dotenv()
 
 class YoutubeModule(DsbModule):
-    def __init__(self, bot: AsyncTeleBot) -> None:
+    def __init__(self, bot: AsyncTeleBot, data_saving: bool = False) -> None:
         commands = {
-            "mission": self._todays_mission
+            "mission": self._todays_mission,
+            "auto_download": self._allow_auto_download,
+            "no_auto_download": self._disallow_auto_download
         }
+        bot.register_message_handler(callback=self._auto_download, content_types=["text"], regexp=r"https?://(?:www\.)?youtu(?:\.be|be\.com)/\S+", pass_bot=True)
         super().__init__(bot, commands)
         schedule.every().day.at("00:00").do(self._remove_mission)
         self._last_mission = None
+        self._auto_download_enabled = BooleanDatabase("data/youtube/auto_download")
+        self._auto_download_enabled.load()
+        self._data_saving = data_saving
 
     def _remove_mission(self) -> None:
         if os.path.exists("data/todays_mission/mission.mp4"):
             os.remove("data/todays_mission/mission.mp4")
+    
+    async def _allow_auto_download(self, message: Message, bot: AsyncTeleBot) -> None:
+        self._auto_download_enabled.setArg(message.chat.id, "auto_download", True)
+        await bot.send_message(message.chat.id, "Auto download enabled.")
+    
+    async def _disallow_auto_download(self, message: Message, bot: AsyncTeleBot) -> None:
+        self._auto_download_enabled.setArg(message.chat.id, "auto_download", False)
+        await bot.send_message(message.chat.id, "Auto download disabled.")
+    
+    async def _auto_download(self, message: Message, bot: AsyncTeleBot) -> None:
+        if self._data_saving:
+            await bot.send_message(message.chat.id, "Data saving is enabled by the developer. Can't download videos.")
+            return
+        
+        if self._auto_download_enabled.getArg(message.chat.id, "auto_download"):
+            os.makedirs("data/youtube/videos", exist_ok=True)
+            video_url = message.text
+            
+            video = YouTube(video_url)
+
+            if video.length > 60:
+                await bot.send_message(message.chat.id, "Can't download videos longer than 1 minute.")
+                return
+            
+            video.streams.filter(progressive=True, file_extension='mp4').first().download(output_path="data/youtube/videos/", filename="video.mp4")
+            await bot.send_video(message.chat.id, open("data/youtube/videos/video.mp4", "rb"))
+            os.remove("data/youtube/videos/video.mp4")
+            if message.chat.type != "private" and (await bot.get_me()).id in (await bot.get_chat_administrators(message.chat.id)):
+                await bot.delete_message(message.chat.id, message.id)
 
     async def _todays_mission(self, message: Message, bot: AsyncTeleBot) -> None:
         if not os.path.exists("data/todays_mission/mission.mp4"):
+
             os.makedirs("data/todays_mission", exist_ok=True)
+
             chanel_id = os.getenv('MISSION_CHANNEL_ID')
             videos = scrapetube.get_channel(chanel_id, content_type="shorts")
             found_videos = []

@@ -8,10 +8,18 @@ if __name__ == "__main__":
     load_dotenv()
 
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("--no-planing", help="disable the planing module", action="store_true")
-    argparser.add_argument("--no-stickers", help="disable the sticker module", action="store_true")
-    argparser.add_argument("--no-gifs", help="disable the gif module", action="store_true")    
-    argparser.add_argument("--no-contexto", help="disable the contexto module", action="store_true")
+
+    opts = [
+        ("--no-planing", "disable the planing module"),
+        ("--no-stickers", "disable the sticker module"),
+        ("--no-gifs", "disable the gif module"),
+        ("--no-contexto", "disable the contexto module"),
+        ("--no-youtube", "disable the youtube module"),
+        ("--data-saving", "decrease data usage")
+    ]
+
+    for opt in opts:
+        argparser.add_argument(opt[0], help=opt[1], action="store_true")
 
     args = vars(argparser.parse_args())
 

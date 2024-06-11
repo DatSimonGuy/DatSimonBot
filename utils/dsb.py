@@ -7,34 +7,19 @@ class DSB:
         self.activate_modules(start_args)
 
     def activate_modules(self, args: dict[str, bool]) -> None:
-        if not args.get("no_planing", False):
-            import utils.modules.utility.planingModule as planingModule
+        modules = [
+            ("no_planing", "utils.modules.utility.planingModule", "PlaningModule"),
+            ("no_stickers", "utils.modules.utility.stickerModule", "StickerModule"),
+            ("no_gifs", "utils.modules.utility.gifModule", "GifModule"),
+            ("no_contexto", "utils.modules.games.contextoModule", "ContextoModule"),
+            ("no_youtube", "utils.modules.utility.youtubeModule", "YoutubeModule"),
+            ("", "utils.modules.utility.adminToolsModule", "AdminTools")
+        ]
 
-            self._planing_module = planingModule.PlaningModule(self._bot)
-
-        if not args.get("no_stickers", False):
-            import utils.modules.utility.stickerModule as stickerModule
-
-            self._sticker_module = stickerModule.StickerModule(self._bot)
-        
-        if not args.get("no_gifs", False):
-            import utils.modules.utility.gifModule as gifModule
-
-            self._gif_module = gifModule.GifModule(self._bot)
-        
-        if not args.get("no_contexto", False):
-            import utils.modules.games.contextoModule as contextoModule
-
-            self._contexto_module = contextoModule.ContextoModule(self._bot)
-        
-        if not args.get("no_youtube", False):
-            import utils.modules.utility.youtubeModule as youtubeModule
-
-            self._youtube_module = youtubeModule.YoutubeModule(self._bot)
-        
-        import utils.modules.utility.adminToolsModule as adminToolsModule
-        
-        self._admin_module = adminToolsModule.AdminTools(self._bot)
+        for arg, module_path, module_name in modules:
+            if not args.get(arg, False):
+                module = getattr(__import__(module_path, fromlist=[module_name]), module_name)
+                setattr(self, f"_{module_name.lower()}_module", module(self._bot))
     
     async def run(self) -> None:
         """ runs the bot
