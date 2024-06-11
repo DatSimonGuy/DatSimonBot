@@ -39,10 +39,10 @@ class GameModule(DsbModule):
         if self._games[message.chat.id].game_running:
             return
         
-        self._games[message.chat.id].add_player(message.from_user)
         self._games[message.chat.id].start_game()
 
         await bot.send_message(message.chat.id, "Game started!")
+        await bot.send_message(message.chat.id, f"Next player: {self._games[message.chat.id].current_player().username}")
     
     async def _end_game(self, message: Message, bot: AsyncTeleBot) -> None:
         if message.chat.id not in self._games:
@@ -64,9 +64,9 @@ class GameModule(DsbModule):
             await bot.send_message(message.chat.id, "Only the owner can start the game!")
             return
         
-        self._games[message.chat.id].add_player(message.from_user)
         self._games[message.chat.id].start_game()
         await bot.send_message(message.chat.id, "Game started!")
+        await bot.send_message(message.chat.id, f"Next player: {self._games[message.chat.id].current_player().username}")
     
     async def _join_game(self, message: Message, bot: AsyncTeleBot) -> None:
         if message.chat.id not in self._games:

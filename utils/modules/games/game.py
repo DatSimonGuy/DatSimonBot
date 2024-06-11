@@ -19,3 +19,6 @@ class Game:
     
     def is_owner(self, user_id: int) -> bool:
         return user_id == self._owner
+    
+    def current_player(self) -> int:
+        return self._players[self._current_player_idx]

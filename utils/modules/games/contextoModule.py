@@ -11,6 +11,7 @@ class ContextoModule(GameModule):
             "contexto": self._start_game,
             "c_end": self._end_game,
             "c": self.guess,
+            "join_contexto": self._join_game,
             "c_join": self._join_game,
             "c_leave": self._leave_game,
             "c_instant": self._instant_start,
@@ -52,7 +53,11 @@ class ContextoModule(GameModule):
             await bot.send_message(message.chat.id, "Game has ended!")
             return
         
-        guess = self._parse_input(message.text, "word")["word"]
+        if not self._games[message.chat.id].current_player().id == message.from_user.id:
+            await bot.send_message(message.chat.id, "Not your turn")
+            return
+        
+        guess = self._parse_input(message, "word")["word"]
         if self._games[message.chat.id].guess(guess):
             await bot.send_message(message.chat.id, "Game won! The word was {}".format(guess))
             await self._end_game(message, bot)
