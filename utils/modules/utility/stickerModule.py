@@ -48,7 +48,7 @@ class StickerModule(TagModule):
 
     async def _sticker(self, message: Message, bot: async_telebot.AsyncTeleBot):
         try:
-            sticker = self._random_element(message)
+            sticker = self.random_element(message)
             if message.reply_to_message:
                 await bot.send_sticker(message.chat.id, reply_to_message_id=message.reply_to_message.id, sticker=sticker)
             else:

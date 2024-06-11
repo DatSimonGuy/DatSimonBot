@@ -26,6 +26,12 @@ class DSB:
             import utils.modules.games.contextoModule as contextoModule
 
             self._contexto_module = contextoModule.ContextoModule(self._bot)
+        
+        if not args.get("no_youtube", False):
+            import utils.modules.utility.youtubeModule as youtubeModule
+
+            self._youtube_module = youtubeModule.YoutubeModule(self._bot)
+        
         import utils.modules.utility.adminToolsModule as adminToolsModule
         
         self._admin_module = adminToolsModule.AdminTools(self._bot)
