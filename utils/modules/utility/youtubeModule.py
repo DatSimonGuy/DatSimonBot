@@ -1,5 +1,5 @@
 from telebot.async_telebot import AsyncTeleBot
-from ..dsbModule import DsbModule
+from .databaseModule import DatabaseModule
 from telebot.types import Message
 import scrapetube
 from dotenv import load_dotenv
@@ -7,23 +7,27 @@ import os
 import random
 from pytube import YouTube
 import schedule
-from ...types.databases.booleanDatabase import BooleanDatabase
+from ...types.databases.keyDatabase import KeyDatabase
 
 load_dotenv()
 
-class YoutubeModule(DsbModule):
+class YoutubeModule(DatabaseModule):
     def __init__(self, bot: AsyncTeleBot, data_saving: bool = False) -> None:
         commands = {
             "mission": self._todays_mission,
             "auto_download": self._allow_auto_download,
             "no_auto_download": self._disallow_auto_download
         }
-        bot.register_message_handler(callback=self._auto_download, content_types=["text"], regexp=r"https?://(?:www\.)?youtu(?:\.be|be\.com)/\S+", pass_bot=True)
+
         super().__init__(bot, commands)
+
+        bot.register_message_handler(callback=self._auto_download, content_types=["text"], regexp=r"https?://(?:www\.)?youtu(?:\.be|be\.com)/\S+", pass_bot=True)
+
         schedule.every().day.at("00:00").do(self._remove_mission)
+
         self._last_mission = None
-        self._auto_download_enabled = BooleanDatabase("data/youtube/auto_download")
-        self._auto_download_enabled.load()
+        self._database: KeyDatabase = KeyDatabase("data/youtube/auto_download")
+        self._database.load()
         self._data_saving = data_saving
 
     def _remove_mission(self) -> None:
@@ -31,11 +35,11 @@ class YoutubeModule(DsbModule):
             os.remove("data/todays_mission/mission.mp4")
     
     async def _allow_auto_download(self, message: Message, bot: AsyncTeleBot) -> None:
-        self._auto_download_enabled.setArg(message.chat.id, "auto_download", True)
+        self._database.setArg(message.chat.id, "auto_download", True)
         await bot.send_message(message.chat.id, "Auto download enabled.")
     
     async def _disallow_auto_download(self, message: Message, bot: AsyncTeleBot) -> None:
-        self._auto_download_enabled.setArg(message.chat.id, "auto_download", False)
+        self._database.setArg(message.chat.id, "auto_download", False)
         await bot.send_message(message.chat.id, "Auto download disabled.")
     
     async def _auto_download(self, message: Message, bot: AsyncTeleBot) -> None:
@@ -43,7 +47,7 @@ class YoutubeModule(DsbModule):
             await bot.send_message(message.chat.id, "Data saving is enabled by the developer. Can't download videos.")
             return
         
-        if self._auto_download_enabled.getArg(message.chat.id, "auto_download"):
+        if self._database.getArg(message.chat.id, "auto_download"):
             os.makedirs("data/youtube/videos", exist_ok=True)
             video_url = message.text
             
