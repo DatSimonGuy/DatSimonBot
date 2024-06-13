@@ -2,7 +2,8 @@ from .databaseModule import DatabaseModule
 from telebot.async_telebot import AsyncTeleBot
 from ...types.databases.keyDatabase import KeyDatabase
 from telebot.types import Message
-from .adminToolsModule import AdminTools
+from .adminTools import AdminTools
+from .statistics import Statistics
 from dotenv import load_dotenv
 import os
 
@@ -12,15 +13,18 @@ class MainHandler(DatabaseModule):
             "top": self._top_senders,
             "bottom": self._bottom_senders
         }
-        super().__init__(bot, commands)
 
-        bot.register_message_handler(content_types=["text"], callback=self._register_message, pass_bot=True)
+        super().__init__(bot, commands)
 
         self._database: KeyDatabase = KeyDatabase("data/people")
         self._database.load()
 
+        Statistics(bot, self._database)
         AdminTools(bot, self._database)
+
         self._create_admin()
+
+        bot.register_message_handler(content_types=["text"], callback=self._register_message, pass_bot=True)
     
     def _new_person(self, id: int, name: str, admin: bool, group_id: int):
         self._database.setArg(id, "admin", admin)

@@ -53,8 +53,8 @@ class YoutubeModule(DatabaseModule):
             
             video = YouTube(video_url)
 
-            if video.length > 60:
-                await bot.send_message(message.chat.id, "Can't download videos longer than 1 minute.")
+            if video.length > int(os.getenv("MAX_VIDEO_LENGTH")):
+                await bot.send_message(message.chat.id, f"Can't download videos longer than {os.getenv('MAX_VIDEO_LENGTH')} seconds.")
                 return
             
             video.streams.filter(progressive=True, file_extension='mp4').first().download(output_path="data/youtube/videos/", filename="video.mp4")

@@ -26,7 +26,7 @@ class GameModule(DsbModule):
         sent_message = (await bot.send_message(message.chat.id, f"Game starting in {countdown} seconds"))
 
         while countdown > 0:
-            if self._games[message.chat.id].game_running:
+            if self._games[message.chat.id].game_running or self._games[message.chat.id]._force_end:
                 return
             try:
                 if countdown % 5 == 0 or countdown < 5:

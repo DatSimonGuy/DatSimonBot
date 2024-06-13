@@ -1,15 +1,19 @@
 from .database import Database
 
 class KeyDatabase(Database):
-    def __init__(self, path: str) -> None:
+    def __init__(self, path: str, num: int = 0) -> None:
         super().__init__(path)
+        self._num = num
         self._data: dict[any, dict[str]] = {}
     
     def setArg(self, id: any, key: str, value) -> None:
         if id not in self._data:
             self._data[id] = {}
         self._data[id][key] = value
-        self.save()
+        self.save(self._num)
+    
+    def load(self) -> None:
+        return super().load(self._num)
     
     def getArg(self, id, key: str):
         """ gets specified key from an id
@@ -75,4 +79,7 @@ class KeyDatabase(Database):
     
     def exists(self, id) -> bool:
         return id in self._data
+    
+    def get_all_entries(self) -> list[int]:
+        return list(self._data.keys())
         
