@@ -10,8 +10,7 @@ import os
 class MainHandler(DatabaseModule):
     def __init__(self, bot: AsyncTeleBot) -> None:
         commands = {
-            "top": self._top_senders,
-            "bottom": self._bottom_senders
+
         }
 
         super().__init__(bot, commands)
@@ -19,8 +18,8 @@ class MainHandler(DatabaseModule):
         self._database: KeyDatabase = KeyDatabase("data/people")
         self._database.load()
 
-        Statistics(bot, self._database)
-        AdminTools(bot, self._database)
+        self._statistics = Statistics(bot, self._database)
+        self._admin_tools = AdminTools(bot, self._database)
 
         self._create_admin()
 
@@ -70,36 +69,3 @@ class MainHandler(DatabaseModule):
             return
         
         self._create_person(message)
-
-    def _top_list(self, message):
-        senders = self._database.find(lambda key, val: key != "groups" or (key == "groups" and message.chat.id in val))
-
-        scores = []
-
-        for sender in senders:
-            sent_messages = self._database.getArg(sender, "sent_messages")
-            name = self._database.getArg(sender, "name")
-            scores.append((name, sent_messages[message.chat.id]))
-        
-        scores.sort(key=lambda x: x[1], reverse=True)
-
-        return scores
-    
-    async def _top_senders(self, message: Message, bot: AsyncTeleBot):
-        scores = self._top_list(message)
-
-        top_message = "Top senders in this chat:\n"
-
-        top_message += '\n'.join(f"{score[0]}: {score[1]}" for score in scores)
-
-        await bot.send_message(message.chat.id, top_message)
-    
-    # pun intended
-    async def _bottom_senders(self, message: Message, bot: AsyncTeleBot):
-        scores = reversed(self._top_list(message))
-
-        bottom_message = "Bottom senders in this chat:\n"
-
-        bottom_message += '\n'.join(f"{score[0]}: {score[1]}" for score in scores)
-
-        await bot.send_message(message.chat.id, bottom_message)

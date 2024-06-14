@@ -2,17 +2,15 @@ from telebot.async_telebot import AsyncTeleBot
 from .databaseModule import DatabaseModule
 from ...types.databases.keyDatabase import KeyDatabase
 from telebot.types import Message
-from dotenv import load_dotenv
-import os
 
 class AdminTools(DatabaseModule):
-    def __init__(self, bot: AsyncTeleBot, database: KeyDatabase) -> None:
+    def __init__(self, bot: AsyncTeleBot, people_database: KeyDatabase) -> None:
         commands = {
             "add_admin": self._add_admin
         }
         super().__init__(bot, commands)
 
-        self._database: KeyDatabase = database
+        self._database: KeyDatabase = people_database
 
     async def _add_admin(self, message: Message, bot: AsyncTeleBot):
         if not self._database.getArg(message.from_user.id, "admin"):
