@@ -6,8 +6,11 @@ import jsonpickle
 import os
 
 class ContextoModule(GameModule):
+    used = True
+
     def __init__(self, bot):
-        commands = {
+        super().__init__(bot)
+        self._commands = {
             "contexto": self._start_game,
             "c_end": self._end_game,
             "c": self.guess,
@@ -16,7 +19,6 @@ class ContextoModule(GameModule):
             "c_leave": self._leave_game,
             "c_instant": self._instant_start,
         }
-        super().__init__(bot, commands)
         os.makedirs("data/games/contexto", exist_ok=True)
         self._game_class = ContextoGame
         try:

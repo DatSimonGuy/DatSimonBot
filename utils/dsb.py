@@ -1,33 +1,45 @@
 import telebot.async_telebot as async_telebot
 from utils.modules.dsbModule import DsbModule
+import os
 
 class DSB:
-    def __init__(self, token: str, start_args: dict[str, bool] | None = None) -> None:
+    def __init__(self, token: str, start_args: dict | None = None) -> None:
         self._bot = async_telebot.AsyncTeleBot(token)
+        self._start_args = start_args
+        self._setup_moudules()
+        
+    def _setup_moudules(self):
+        self._modules = []
+        self._activated_modules: dict[str, DsbModule] = {}
+        list_of_modules = []
+        for dir in os.listdir("utils/modules/"):
+            if not os.path.isdir(f"utils/modules/{dir}"):
+                continue
+            if dir.startswith("__"):
+                continue
+            for name in os.listdir(f"utils/modules/{dir}"):
+                if not "Module" in name:
+                    continue
+                module_name = name.replace(".py", "")
+                list_of_modules.append((f"utils.modules.{dir}.{module_name}", module_name[0].upper() + module_name[1:]))
+        
+        for path, name in list_of_modules:
+            module = getattr(__import__(path, fromlist=[name]), name)
+            
+            if not module.used:
+                continue
+            
+            self._modules.append(module)
+        
+        for module in self._modules:
+            current_module = module(self._bot)
+            self._activated_modules[module.__name__] = current_module
 
-        self.activate_modules(start_args)
+            if not self._start_args.get(f"no_{module.__name__.split('Module')[0]}", False):
+                self._activated_modules[module.__name__].set_state("active")
+            else:
+                self._activated_modules[module.__name__].set_state("disabled") 
 
-    def _activate_module(self, module: DsbModule):
-        self._activated_modules[module.__name__] = module(self._bot)
-
-    def activate_modules(self, args: dict[str, bool]) -> None:
-        self._activated_modules = {}
-
-        self._avaible_modules = [
-            ("no_planing", "utils.modules.utility.planingModule", "PlaningModule"),
-            ("no_stickers", "utils.modules.utility.stickerModule", "StickerModule"),
-            ("no_gifs", "utils.modules.utility.gifModule", "GifModule"),
-            ("no_contexto", "utils.modules.games.contextoModule", "ContextoModule"),
-            ("no_youtube", "utils.modules.utility.youtubeModule", "YoutubeModule"),
-            ("", "utils.modules.utility.mainHandlerModule", "MainHandler")
-        ]
-
-        for arg, module_path, module_name in self._avaible_modules:
-            if not args.get(arg, False):
-                module = getattr(__import__(module_path, fromlist=[module_name]), module_name)
-                self._activate_module(module)
     
     async def run(self) -> None:
-        """ runs the bot
-        """
         await self._bot.polling(non_stop=True)

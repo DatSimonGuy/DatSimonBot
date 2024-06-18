@@ -3,7 +3,10 @@ import telebot.async_telebot as async_telebot
 from telebot.types import Message
 
 class GifModule(TagModule):
+    used = True
+    
     def __init__(self, bot):
+        super().__init__(bot, "gifs")
         self._commands = {
             "add_gif_tag": self._add_tag,
             "remove_gif_tag": self._remove_tag,
@@ -11,7 +14,6 @@ class GifModule(TagModule):
             "remove_gif": self._remove_gif,
             "gif": self._gif
         }
-        super().__init__(bot, self._commands, "gifs")
     
     async def _add_gif(self, message: Message, bot: async_telebot.AsyncTeleBot):
         try:

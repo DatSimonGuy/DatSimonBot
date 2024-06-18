@@ -12,14 +12,16 @@ from ...types.databases.keyDatabase import KeyDatabase
 load_dotenv()
 
 class YoutubeModule(DatabaseModule):
+    used = True
+    
     def __init__(self, bot: AsyncTeleBot, data_saving: bool = False) -> None:
-        commands = {
+        super().__init__(bot)
+
+        self._commands = {
             "mission": self._todays_mission,
             "auto_download": self._allow_auto_download,
             "no_auto_download": self._disallow_auto_download
         }
-
-        super().__init__(bot, commands)
 
         bot.register_message_handler(callback=self._auto_download, content_types=["text"], regexp=r"https?://(?:www\.)?youtu(?:\.be|be\.com)/\S+", pass_bot=True)
 

@@ -1,12 +1,16 @@
 from .database import Database
 
 class KeyDatabase(Database):
-    def __init__(self, path: str, num: int = 0) -> None:
+    def __init__(self, path: str, num: int = 0, read_only: bool = False) -> None:
         super().__init__(path)
         self._num = num
         self._data: dict[any, dict[str]] = {}
+        self._read_only = read_only
     
     def setArg(self, id: any, key: str, value) -> None:
+        if self._read_only: # prevents other modules using the database from writing to it
+            return
+        
         if id not in self._data:
             self._data[id] = {}
         self._data[id][key] = value

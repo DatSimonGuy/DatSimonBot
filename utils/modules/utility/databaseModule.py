@@ -3,8 +3,10 @@ from ..dsbModule import DsbModule
 from ...types.databases.database import Database
 
 class DatabaseModule(DsbModule):
-    def __init__(self, bot: AsyncTeleBot, commands: dict) -> None:
-        super().__init__(bot, commands)
+    used = False
+    
+    def __init__(self, bot: AsyncTeleBot) -> None:
+        super().__init__(bot)
         self._database: Database = None
     
     def _save(self) -> None:

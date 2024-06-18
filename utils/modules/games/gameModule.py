@@ -6,8 +6,10 @@ import asyncio
 from telebot.asyncio_helper import ApiTelegramException
 
 class GameModule(DsbModule):
-    def __init__(self, bot, commands: dict):
-        super().__init__(bot, commands)
+    used = False
+    
+    def __init__(self, bot: AsyncTeleBot):
+        super().__init__(bot)
         self._games: dict[int, Game] = {}
         self._game_class = Game
     

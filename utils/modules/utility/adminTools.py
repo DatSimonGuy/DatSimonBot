@@ -4,11 +4,14 @@ from ...types.databases.keyDatabase import KeyDatabase
 from telebot.types import Message
 
 class AdminTools(DatabaseModule):
+    used = True
+    
     def __init__(self, bot: AsyncTeleBot, people_database: KeyDatabase) -> None:
-        commands = {
+        super().__init__(bot)
+
+        self._commands = {
             "add_admin": self._add_admin
         }
-        super().__init__(bot, commands)
 
         self._database: KeyDatabase = people_database
 

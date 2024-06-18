@@ -5,7 +5,10 @@ from ...types.databases.plansDatabase import PlansDatabase
 from .databaseModule import DatabaseModule
 
 class PlaningModule(DatabaseModule):
+    used = True
+    
     def __init__(self, bot: async_telebot.AsyncTeleBot) -> None:
+        super().__init__(bot)
         self._commands = {
             "new_plan": self._new_plan,
             "remove_plan": self._remove_plan,
@@ -18,9 +21,8 @@ class PlaningModule(DatabaseModule):
             "move_lesson": self._move_lesson,
             "free": self._who_is_free
         }
-        super().__init__(bot, self._commands)
         self._database: PlansDatabase = PlansDatabase("data/plans")
-        self._load() # load plans from file if they already exist
+        self._load()
         
 
     async def _new_plan(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:

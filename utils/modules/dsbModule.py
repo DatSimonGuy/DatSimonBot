@@ -1,15 +1,44 @@
 import telebot.async_telebot as async_telebot
 from telebot.types import Message, ReactionTypeEmoji
 from ..types.databases.database import Database
+from enum import Enum
+from typing import Literal
+
+class States(Enum):
+    ACTIVE = "active"
+    EXPERIMENTAL = "experimental" # will use it later ig
+    DISABLED = "disabled"
+    TEMPLATE = "template"
 
 class DsbModule:
-    def __init__(self, bot: async_telebot.AsyncTeleBot, commands: dict) -> None:
-        self._add_handlers(bot, commands)
-
-    def _add_handlers(self, bot: async_telebot.AsyncTeleBot, commands: dict) -> None:
-        for command in commands:
-            bot.register_message_handler(commands[command], commands=[command], pass_bot=True)
+    used = False
     
+    def __init__(self, bot: async_telebot.AsyncTeleBot) -> None:
+        self._state = States.DISABLED
+        self._bot = bot
+        self._commands = {}
+    
+    def set_state(self, state: Literal["active", "experimental", "disabled"]):
+        self._state = States(state)
+        if self._state == States.ACTIVE or self._state == States.EXPERIMENTAL:
+            self._add_handlers()
+        elif self._state == States.DISABLED:
+            self._add_blank_handlers()
+
+    def _add_handlers(self) -> None:
+        for command in self._commands:
+            self._bot.register_message_handler(self._commands[command], commands=[command], pass_bot=True)
+        
+    def _add_blank_handlers(self) -> None:
+        for command in self._commands:
+            self._bot.register_message_handler(self._maintenance_break, commands=[command], pass_bot=True)
+    
+    async def _blank_response(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
+        await bot.reply_to(message, "This function is not implemented yet")
+    
+    async def _maintenance_break(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
+        await bot.reply_to(message, "This function is currently not avaible")
+
     async def _confirm(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
         """ will react to the message with a thumbs up emoji to confirm the action
 
@@ -55,6 +84,9 @@ class DsbModule:
         for arg in arguments:
             if arg.startswith("—"):
                 last_arg_name = arg.split("—")[1]
+                parsed[last_arg_name] = ""
+            elif arg.startswith("--"):
+                last_arg_name = arg.split("--")[1]
                 parsed[last_arg_name] = ""
             else:
                 if last_arg_name not in parsed or parsed[last_arg_name] == "":

@@ -5,9 +5,11 @@ from telebot.types import Message
 import random
 
 class TagModule(DatabaseModule):
-    def __init__(self, bot, commands: dict, elements_type: str):
-        super().__init__(bot, commands)
-        self._database: TagDatabase = TagDatabase(f"data/{elements_type}")
+    used = False
+    
+    def __init__(self, bot: async_telebot.AsyncTeleBot, dir_name: str):
+        super().__init__(bot)
+        self._database: TagDatabase = TagDatabase(f"data/{dir_name}")
         self._load()
 
     async def _add_tag(self, message: Message, bot: async_telebot.AsyncTeleBot):

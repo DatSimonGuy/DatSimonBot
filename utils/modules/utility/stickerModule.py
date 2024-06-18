@@ -4,7 +4,10 @@ import telebot.async_telebot as async_telebot
 from telebot.types import Message
 
 class StickerModule(TagModule):
+    used = True
+    
     def __init__(self, bot):
+        super().__init__(bot, "stickers")
         self._commands = {
             "add_sticker_tag": self._add_tag,
             "remove_sticker_tag": self._remove_tag,
@@ -12,7 +15,6 @@ class StickerModule(TagModule):
             "remove_sticker": self._remove_sticker,
             "sticker": self._sticker
         }
-        super().__init__(bot, self._commands, "stickers")
     
     async def _add_sticker(self, message: Message, bot: async_telebot.AsyncTeleBot):
         try:

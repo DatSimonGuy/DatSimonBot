@@ -8,19 +8,26 @@ import matplotlib.pyplot as plt
 import schedule
 import uuid
 
-class Statistics(DatabaseModule):
-    def __init__(self, bot: AsyncTeleBot, database: KeyDatabase) -> None:
-        commands = {
+class StatisticsModule(DatabaseModule):
+    used = True
+    
+    def __init__(self, bot: AsyncTeleBot) -> None:
+        super().__init__(bot)
+
+        self._commands = {
             "activity": self._daily_activity,
             "top": self._top_senders,
             "bottom": self._bottom_senders
         }
-        super().__init__(bot, commands)
-        self._database: KeyDatabase = database
+
+        self._database: KeyDatabase = KeyDatabase("data/people", read_only=True)
+
         self._last_group_activity: KeyDatabase = KeyDatabase("data/activity")
         self._last_group_activity.load()
+
         if not self._last_group_activity.exists(0):
             self._last_group_activity.setArg(0, "done_today", False)
+
         self._last_individual_activity: KeyDatabase = KeyDatabase("data/activity", 1)
         self._last_individual_activity.load()
         schedule.every().day.at("00:00").do(self._next_day)
@@ -77,6 +84,8 @@ class Statistics(DatabaseModule):
             f.write(jsonpickle.encode(group_daily_individual_activity, keys=True))
 
     def _top_list(self, message):
+        self._database.load()
+
         senders = self._database.find(lambda key, val: key != "groups" or (key == "groups" and message.chat.id in val))
 
         scores = []
@@ -98,7 +107,11 @@ class Statistics(DatabaseModule):
         
         scores = self._top_list(message)
 
-        ammount = int(args.get("ammount", len(scores)))
+        try:
+            ammount = int(args.get("ammount", len(scores)))
+        except ValueError:
+            await bot.reply_to(message, "You passed invalid number as the argument")
+            return
 
         top_message = "Top senders in this chat:\n"
 
@@ -112,9 +125,15 @@ class Statistics(DatabaseModule):
         except ValueError:
             args = {}
         
-        scores = reversed(self._top_list(message))
+        scores = self._top_list(message)
 
-        ammount = int(args.get("ammount", len(scores)))
+        try:
+            ammount = int(args.get("ammount", len(scores)))
+        except ValueError:
+            await bot.reply_to(message, "You passed invalid number as the argument")
+            return
+        
+        scores.reverse()
 
         bottom_message = "Bottom senders in this chat:\n"
 
@@ -162,6 +181,7 @@ class Statistics(DatabaseModule):
         activity = []
         today_activity = list(group_daily_individual_activity[group_id].values())
 
+        self._database.load()
 
         for i, person in enumerate(group_daily_individual_activity[group_id]):
             activity.append((self._database.getArg(person, "name"), today_activity[i]))
@@ -172,18 +192,27 @@ class Statistics(DatabaseModule):
             names.append(a[0])
             today_activity[i] = a[1]
 
-        ammount = int(args.get("n", max(len(total_activity), len(today_activity))))
+        try:
+            ammount = int(args.get("num", max(len(total_activity), len(today_activity))))
+        except ValueError:
+            await bot.reply_to(message, "You passed invalid number as the argument")
+            return
+
+        hard_limit = int(os.getenv("PEOPLE_LIMIT")) # This is for visibility purposes
+        
+        ammount = min(ammount, hard_limit)
 
         if total_activity:
-            plt.bar(names_2[:ammount], total_activity[:ammount])
-            plt.bar(names[:ammount], today_activity[:ammount])
+            plt.bar(names_2[:ammount], total_activity[:ammount], color="green")
+            plt.bar(names[:ammount], today_activity[:ammount], color="blue")
             plt.legend(["Total activity", "Today's activity"])
         else:
-            plt.bar(names[:ammount], today_activity[:ammount])
+            plt.bar(names[:ammount], today_activity[:ammount], color="blue")
             plt.legend(["Today's activity"])
 
         plt.ylabel("Number of messages")
-        plt.yscale("log")
+        if max(today_activity) > 0:
+            plt.yscale("log")
         plt.title("Activity for group")
 
         unique_id = uuid.uuid4()
