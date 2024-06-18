@@ -91,20 +91,34 @@ class Statistics(DatabaseModule):
         return scores
 
     async def _top_senders(self, message: Message, bot: AsyncTeleBot):
+        try:
+            args = self._parse_input(message, "ammount")
+        except ValueError:
+            args = {}
+        
         scores = self._top_list(message)
+
+        ammount = int(args.get("ammount", len(scores)))
 
         top_message = "Top senders in this chat:\n"
 
-        top_message += '\n'.join(f"{score[0]}: {score[1]}" for score in scores)
+        top_message += '\n'.join(f"{score[0]}: {score[1]}" for score in scores[:ammount])
 
         await bot.send_message(message.chat.id, top_message)
     
     async def _bottom_senders(self, message: Message, bot: AsyncTeleBot):
+        try:
+            args = self._parse_input(message, "ammount")
+        except ValueError:
+            args = {}
+        
         scores = reversed(self._top_list(message))
+
+        ammount = int(args.get("ammount", len(scores)))
 
         bottom_message = "Bottom senders in this chat:\n"
 
-        bottom_message += '\n'.join(f"{score[0]}: {score[1]}" for score in scores)
+        bottom_message += '\n'.join(f"{score[0]}: {score[1]}" for score in scores[:ammount])
 
         await bot.send_message(message.chat.id, bottom_message)
 
@@ -130,23 +144,24 @@ class Statistics(DatabaseModule):
             for score in scores:
                 names_2.append(score[0])
                 total_activity.append(score[1])
-    
-        max = -1
+
+        max_file_num = -1
 
         for file in os.listdir("data/activity/group_logs"):
             file_num = int(file.replace("group_activity_log", "").replace(".json", ""))
-            if file_num > max:
-                max = file_num
+            if file_num > max_file_num:
+                max_file_num = file_num
 
-        if max == -1:
+        if max_file_num == -1:
             await bot.reply_to(message, "No logs yet")
             return
 
-        with open(f"data/activity/individual_logs/individual_activity_log{max}.json", "r") as f:
+        with open(f"data/activity/individual_logs/individual_activity_log{max_file_num}.json", "r") as f:
             group_daily_individual_activity = jsonpickle.decode(f.read(), keys=True)
 
         activity = []
         today_activity = list(group_daily_individual_activity[group_id].values())
+
 
         for i, person in enumerate(group_daily_individual_activity[group_id]):
             activity.append((self._database.getArg(person, "name"), today_activity[i]))
@@ -157,12 +172,14 @@ class Statistics(DatabaseModule):
             names.append(a[0])
             today_activity[i] = a[1]
 
+        ammount = int(args.get("n", max(len(total_activity), len(today_activity))))
+
         if total_activity:
-            plt.bar(names_2, total_activity)
-            plt.bar(names, today_activity)
+            plt.bar(names_2[:ammount], total_activity[:ammount])
+            plt.bar(names[:ammount], today_activity[:ammount])
             plt.legend(["Total activity", "Today's activity"])
         else:
-            plt.bar(names, today_activity)
+            plt.bar(names[:ammount], today_activity[:ammount])
             plt.legend(["Today's activity"])
 
         plt.ylabel("Number of messages")
