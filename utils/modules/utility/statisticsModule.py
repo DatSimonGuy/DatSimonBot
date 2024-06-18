@@ -25,15 +25,13 @@ class StatisticsModule(DatabaseModule):
         self._last_group_activity: KeyDatabase = KeyDatabase("data/activity")
         self._last_group_activity.load()
 
-        if not self._last_group_activity.exists(0):
-            self._last_group_activity.setArg(0, "done_today", False)
-
         self._last_individual_activity: KeyDatabase = KeyDatabase("data/activity", 1)
         self._last_individual_activity.load()
+
         schedule.every().day.at("00:00").do(self._next_day)
     
     def _next_day(self):
-        self._last_group_activity.setArg(0, "done_today", False)
+        self._log_daily_activity()
     
     def _log_daily_activity(self):
         people = self._database.get_all_entries()
@@ -142,10 +140,6 @@ class StatisticsModule(DatabaseModule):
         await bot.send_message(message.chat.id, bottom_message)
 
     async def _daily_activity(self, message: Message, bot: AsyncTeleBot):
-        if not self._last_group_activity.getArg(0, "done_today"):
-            self._log_daily_activity()
-            self._last_group_activity.setArg(0, "done_today", True)
-
         try:
             args = self._parse_input(message, "type")
         except ValueError:
