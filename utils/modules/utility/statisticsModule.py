@@ -32,6 +32,7 @@ class StatisticsModule(DatabaseModule):
     
     def _next_day(self):
         self._log_daily_activity()
+        self.log_event("Logged daily activity", "info")
     
     def _log_daily_activity(self):
         people = self._database.get_all_entries()

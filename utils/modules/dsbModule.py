@@ -3,6 +3,14 @@ from telebot.types import Message, ReactionTypeEmoji
 from ..types.databases.database import Database
 from enum import Enum
 from typing import Literal
+import datetime
+import os
+
+class Event_Type(Enum):
+    ERROR = "error"
+    INFO = "info"
+    WARNING = "warning"
+    DEBUG = "debug"
 
 class States(Enum):
     ACTIVE = "active"
@@ -25,10 +33,16 @@ class DsbModule:
         elif self._state == States.DISABLED:
             self._add_blank_handlers()
 
+    def log_event(self, event: str, event_type: Literal["info", "warning", "debug", "error"]) -> None:
+        os.makedirs("logs", exist_ok=True)
+        
+        with open(f"logs/log{datetime.datetime.today().date()}.txt", "a") as log:
+            log.write(f"{event_type}: {event}\n")
+
     def _add_handlers(self) -> None:
         for command in self._commands:
             self._bot.register_message_handler(self._commands[command], commands=[command], pass_bot=True)
-        
+    
     def _add_blank_handlers(self) -> None:
         for command in self._commands:
             self._bot.register_message_handler(self._maintenance_break, commands=[command], pass_bot=True)
