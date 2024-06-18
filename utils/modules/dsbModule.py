@@ -15,7 +15,7 @@ class Event_Type(Enum):
 
 class States(Enum):
     ACTIVE = "active"
-    EXPERIMENTAL = "experimental" # will use it later ig
+    EXPERIMENTAL = "experimental"
     DISABLED = "disabled"
     TEMPLATE = "template"
 
@@ -35,9 +35,30 @@ class DsbModule:
     def log_event(self, event: str, event_type: Literal["info", "warning", "debug", "error"]) -> None:
         os.makedirs("logs", exist_ok=True)
         
-        with open(f"logs/log{datetime.datetime.today().date()}.txt", "a") as log:
-            type = event_type.upper() if isinstance(event_type, str) else event_type.value.upper()
-            log.write(f"[{type}]: {event}\n")
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.ERROR)
+        
+        
+        log_file = f"logs/log{datetime.datetime.today().date()}.txt"
+        file_handler = logging.FileHandler(log_file)
+        
+        formatter = logging.Formatter("[%(levelname)s]: %(asctime)s - %(message)s")
+        file_handler.setFormatter(formatter)
+        
+        logger.addHandler(file_handler)
+        
+        type = event_type if isinstance(event_type, str) else event_type.value
+        
+        if type == "info":
+            logger.info(event)
+        elif type == "warning":
+            logger.warning(event)
+        elif type == "debug":
+            logger.debug(event)
+        elif type == "error":
+            logger.error(event)
+
+        logger.handlers.remove(file_handler)
 
     def _add_handlers(self) -> None:
         for command in self._commands:

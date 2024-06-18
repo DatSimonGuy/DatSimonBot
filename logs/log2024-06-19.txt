@@ -1,4 +1,0 @@
-[INFO]: Downloaded today's mission video: https://www.youtube.com/watch?v=8lUySCvx0YA
-[ERROR]: <utils.modules.utility.mainHandlerModule.MainHandlerModule object at 0x0000020164B6F310> is not a callable object
-[ERROR]: <utils.modules.utility.mainHandlerModule.MainHandlerModule object at 0x000001717FBFFAD0> is not a callable object
-[ERROR]: <utils.modules.utility.mainHandlerModule.MainHandlerModule object at 0x000001717FBFFAD0> is not a callable object
