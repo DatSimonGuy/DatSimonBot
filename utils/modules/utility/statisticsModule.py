@@ -11,7 +11,7 @@ import uuid
 class StatisticsModule(DatabaseModule):
     used = True
     
-    def __init__(self, bot: AsyncTeleBot) -> None:
+    def __init__(self, bot: AsyncTeleBot, *args, **kwargs) -> None:
         super().__init__(bot)
 
         self._commands = {

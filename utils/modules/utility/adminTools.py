@@ -4,7 +4,7 @@ from ...types.databases.keyDatabase import KeyDatabase
 from telebot.types import Message
 
 class AdminTools(DatabaseModule):
-    used = True
+    used = False
     
     def __init__(self, bot: AsyncTeleBot, people_database: KeyDatabase) -> None:
         super().__init__(bot)

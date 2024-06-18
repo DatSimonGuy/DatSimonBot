@@ -5,7 +5,7 @@ from ...types.databases.database import Database
 class DatabaseModule(DsbModule):
     used = False
     
-    def __init__(self, bot: AsyncTeleBot) -> None:
+    def __init__(self, bot: AsyncTeleBot, *args, **kwargs) -> None:
         super().__init__(bot)
         self._database: Database = None
     

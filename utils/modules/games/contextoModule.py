@@ -8,7 +8,7 @@ import os
 class ContextoModule(GameModule):
     used = True
 
-    def __init__(self, bot):
+    def __init__(self, bot: AsyncTeleBot, *args, **kwargs):
         super().__init__(bot)
         self._commands = {
             "contexto": self._start_game,

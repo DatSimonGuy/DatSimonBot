@@ -5,7 +5,7 @@ from telebot.types import Message
 class GifModule(TagModule):
     used = True
     
-    def __init__(self, bot):
+    def __init__(self, bot: async_telebot.AsyncTeleBot, *args, **kwargs):
         super().__init__(bot, "gifs")
         self._commands = {
             "add_gif_tag": self._add_tag,

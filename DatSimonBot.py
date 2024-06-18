@@ -11,8 +11,8 @@ if __name__ == "__main__":
 
     opts = [
         ("--no-planing", "disable the planing module"),
-        ("--no-stickers", "disable the sticker module"),
-        ("--no-gifs", "disable the gif module"),
+        ("--no-sticker", "disable the sticker module"),
+        ("--no-gif", "disable the gif module"),
         ("--no-contexto", "disable the contexto module"),
         ("--no-youtube", "disable the youtube module"),
         ("--data-saving", "decrease data usage")
@@ -25,5 +25,5 @@ if __name__ == "__main__":
 
     token = os.getenv('BOT_TOKEN')
 
-    dsb = DSB(token, args)
+    dsb = DSB(token, **args)
     asyncio.run(dsb.run())

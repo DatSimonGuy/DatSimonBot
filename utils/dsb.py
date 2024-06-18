@@ -3,9 +3,9 @@ from utils.modules.dsbModule import DsbModule
 import os
 
 class DSB:
-    def __init__(self, token: str, start_args: dict | None = None) -> None:
+    def __init__(self, token: str, *args, **kwargs) -> None:
         self._bot = async_telebot.AsyncTeleBot(token)
-        self._start_args = start_args
+        self._start_args = kwargs
         self._setup_moudules()
         
     def _setup_moudules(self):
@@ -32,7 +32,7 @@ class DSB:
             self._modules.append(module)
         
         for module in self._modules:
-            current_module = module(self._bot)
+            current_module = module(self._bot, **self._start_args)
             self._activated_modules[module.__name__] = current_module
 
             if not self._start_args.get(f"no_{module.__name__.split('Module')[0]}", False):
@@ -40,6 +40,5 @@ class DSB:
             else:
                 self._activated_modules[module.__name__].set_state("disabled") 
 
-    
     async def run(self) -> None:
         await self._bot.polling(non_stop=True)

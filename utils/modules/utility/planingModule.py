@@ -7,7 +7,7 @@ from .databaseModule import DatabaseModule
 class PlaningModule(DatabaseModule):
     used = True
     
-    def __init__(self, bot: async_telebot.AsyncTeleBot) -> None:
+    def __init__(self, bot: async_telebot.AsyncTeleBot, *args, **kwargs) -> None:
         super().__init__(bot)
         self._commands = {
             "new_plan": self._new_plan,

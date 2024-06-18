@@ -14,7 +14,7 @@ load_dotenv()
 class YoutubeModule(DatabaseModule):
     used = True
     
-    def __init__(self, bot: AsyncTeleBot, data_saving: bool = False) -> None:
+    def __init__(self, bot: AsyncTeleBot, *args, **kwargs) -> None:
         super().__init__(bot)
 
         self._commands = {
@@ -26,6 +26,8 @@ class YoutubeModule(DatabaseModule):
         bot.register_message_handler(callback=self._auto_download, content_types=["text"], regexp=r"https?://(?:www\.)?youtu(?:\.be|be\.com)/\S+", pass_bot=True)
 
         schedule.every().day.at("00:00").do(self._remove_mission)
+
+        data_saving = bool(kwargs.get("data_saving", False))
 
         self._last_mission = None
         self._database: KeyDatabase = KeyDatabase("data/youtube/auto_download")
@@ -89,7 +91,7 @@ class YoutubeModule(DatabaseModule):
             video_url = "https://www.youtube.com/watch?v="+str(random_video['videoId'])
             YouTube(video_url).streams.filter(progressive=True, file_extension='mp4').first().download(output_path="data/todays_mission/", filename="mission.mp4")
 
-        await bot.send_video(message.chat.id, open("data/todays_mission/mission.mp4", "rb"))
+        await bot.send_video(message.chat.id, open("data/todays_mission/mission.mp4", "rb"), caption="Auto downloaded video")
 
         
         

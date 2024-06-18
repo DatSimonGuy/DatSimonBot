@@ -10,7 +10,7 @@ import os
 class MainHandlerModule(DatabaseModule):
     used = True
     
-    def __init__(self, bot: AsyncTeleBot) -> None:
+    def __init__(self, bot: AsyncTeleBot, *args, **kwargs) -> None:
         super().__init__(bot)
 
         self._commands = {
@@ -23,7 +23,7 @@ class MainHandlerModule(DatabaseModule):
 
         self._create_admin()
 
-        bot.register_message_handler(content_types=["text"], callback=self._register_message, regexp=r"^(?!\/).*", pass_bot=True)
+        bot.register_message_handler(content_types=["text"], callback=self._register_message, regexp=r"^(?!\/)(?!http).*", pass_bot=True)
     
     def _new_person(self, id: int, name: str, admin: bool, group_id: int):
         self._database.setArg(id, "admin", admin)
