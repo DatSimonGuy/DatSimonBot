@@ -34,7 +34,7 @@ class YoutubeModule(DatabaseModule):
         self._database.load()
         self._data_saving = data_saving
 
-    async def _get_todays_mission(self) -> None:
+    def _get_todays_mission(self) -> None:
         if os.path.exists("data/todays_mission/mission.mp4"):
             os.remove("data/todays_mission/mission.mp4")
         os.makedirs("data/todays_mission", exist_ok=True)
@@ -54,7 +54,7 @@ class YoutubeModule(DatabaseModule):
         video_url = "https://www.youtube.com/watch?v="+str(random_video['videoId'])
         YouTube(video_url).streams.filter(progressive=True, file_extension='mp4').first().download(output_path="data/todays_mission/", filename="mission.mp4")
         
-        self.log_event(f"Downloaded today's mission video: {video_url}", "info")
+        print("Mission downloaded")
 
     async def _allow_auto_download(self, message: Message, bot: AsyncTeleBot) -> None:
         self._database.setArg(message.chat.id, "auto_download", True)

@@ -23,7 +23,6 @@ class PlaningModule(DatabaseModule):
         }
         self._database: PlansDatabase = PlansDatabase("data/plans")
         self._load()
-        
 
     async def _new_plan(self, message: Message, bot: async_telebot.AsyncTeleBot) -> None:
         """ creates a new plan with the specified name

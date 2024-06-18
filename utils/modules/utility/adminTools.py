@@ -10,7 +10,9 @@ class AdminTools(DatabaseModule):
         super().__init__(bot)
 
         self._commands = {
-            "add_admin": self._add_admin
+            "add_admin": self._add_admin,
+            "remove_admin": self._remove_admin,
+            "see_admins": self._see_admins
         }
 
         self._database: KeyDatabase = people_database
@@ -68,3 +70,6 @@ class AdminTools(DatabaseModule):
             await self._confirm(message, bot)
         except ValueError:
             await bot.reply_to(message, "No username specified")
+    
+    def _see_admins(self):
+        raise NotImplementedError("This function is not implemented yet")

@@ -3,7 +3,6 @@ from telebot.async_telebot import AsyncTeleBot
 from ...types.databases.keyDatabase import KeyDatabase
 from telebot.types import Message
 from .adminTools import AdminTools
-from .statisticsModule import StatisticsModule
 from dotenv import load_dotenv
 import os
 
@@ -14,12 +13,11 @@ class MainHandlerModule(DatabaseModule):
         super().__init__(bot)
 
         self._commands = {
+            "aaaa": self
         }
 
         self._database: KeyDatabase = KeyDatabase("data/people")
         self._database.load()
-
-        self._admin_tools = AdminTools(bot, self._database)
 
         self._create_admin()
 

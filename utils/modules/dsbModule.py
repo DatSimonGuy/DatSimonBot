@@ -5,6 +5,7 @@ from enum import Enum
 from typing import Literal
 import datetime
 import os
+import logging
 
 class Event_Type(Enum):
     ERROR = "error"
@@ -18,9 +19,7 @@ class States(Enum):
     DISABLED = "disabled"
     TEMPLATE = "template"
 
-class DsbModule:
-    used = False
-    
+class DsbModule:    
     def __init__(self, bot: async_telebot.AsyncTeleBot) -> None:
         self._state = States.DISABLED
         self._bot = bot
@@ -37,7 +36,8 @@ class DsbModule:
         os.makedirs("logs", exist_ok=True)
         
         with open(f"logs/log{datetime.datetime.today().date()}.txt", "a") as log:
-            log.write(f"{event_type}: {event}\n")
+            type = event_type.upper() if isinstance(event_type, str) else event_type.value.upper()
+            log.write(f"[{type}]: {event}\n")
 
     def _add_handlers(self) -> None:
         for command in self._commands:
@@ -109,5 +109,33 @@ class DsbModule:
                     parsed[last_arg_name] += " " + arg
         
         return parsed
+
+    class StderrWriter:
+        def __init__(self, log_event) -> None:
+            self._log_event = log_event
+
+        def write(self, message):
+            if message.strip():
+                self._log_event(message, Event_Type.ERROR)
+        
+        def flush(self):
+            pass
     
+    class StdoutWriter:
+        def __init__(self, log_event) -> None:
+            self._log_event = log_event
+
+        def write(self, message):
+            if message.strip():
+                self._log_event(message, Event_Type.INFO)
+        
+        def flush(self):
+            pass
     
+    class LogHandler(logging.Handler):
+        def __init__(self, log_event) -> None:
+            super().__init__()
+            self._log_event = log_event
+
+        def emit(self, record):
+            self._log_event(self.format(record), Event_Type.ERROR)
