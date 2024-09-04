@@ -9,7 +9,7 @@ class Telebot(Module):
     def __init__(self, bot: dsb.DSB) -> None:
         super().__init__(bot)
         self.name = "Telebot"
-        self.dependencies = ["Logger"]
+        self.dependencies = ["Logger", "Database"]
         self._logger = None
 
     def run(self, _) -> None:
