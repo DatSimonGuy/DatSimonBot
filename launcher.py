@@ -13,12 +13,10 @@ def argparser_setup() -> argparse.ArgumentParser:
 if __name__ == "__main__":
     parser = argparser_setup()
     args = parser.parse_args()
-    
-    app = tk_gui.App()
 
     dsb = DSB("stable")
+    dsb.import_modules()
 
-    app.set_functions(dsb.run, dsb.stop, args, dsb.get_status)
+    app = tk_gui.App(dsb, args)
 
     app.run_app()
-    

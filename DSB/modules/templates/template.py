@@ -1,23 +1,46 @@
 """ Template module for creating new modules. """
 
+from __future__ import annotations
 from argparse import Namespace
 from DSB.modules.templates.statuses import Statuses
+from DSB import dsb
+
+def run_only(func):
+    """ Decorator used to run a function only if the module is running. """
+    def wrapper(self, *args, **kwargs):
+        if self.running:
+            return func(self, *args, **kwargs)
+        return None
+    return wrapper
 
 class Module:
-    """ Class used to create new modules. It needs to be named the same as the file for importing purposes. """
-    def __init__(self, bot) -> None:
+    """ Class used to create new modules. It needs to be named as the file
+    using PascalCase for importing purposes."""
+    def __init__(self, bot: dsb.DSB) -> None:
         self.name = "Template"
         self.status = Statuses.NOT_RUNNING
-        self.dependencies = []
+        self.dependencies = [] # List of module names that this module depends on
         self.bot = bot
 
-    def run(self, args: Namespace) -> None:
-        """ Run the module. """
+    @property
+    def running(self) -> bool:
+        """ Check if the module is running. """
+        return self.status == Statuses.RUNNING
+
+    def get_dependencies(self, args: Namespace) -> None:
+        """ Get the dependencies of the module. """
+        self.status = Statuses.WAITING
         for dependency in self.dependencies:
-            if dependency not in self.bot:
-                self.status = Statuses.WAITING
+            if not self.bot.run_module(dependency, args):
+                self.status = Statuses.ERROR
                 return
+
+    def run(self, args: Namespace) -> bool: # pylint: disable=unused-argument
+        """ Run the module. """
+        if self.status == Statuses.ERROR:
+            return False
         self.status = Statuses.RUNNING
+        return True
 
     def stop(self) -> None:
         """ Stop the module. """
