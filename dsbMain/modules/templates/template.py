@@ -1,9 +1,7 @@
 """ Template module for creating new modules. """
 
-from __future__ import annotations
 from argparse import Namespace
-from DSB.modules.templates.statuses import Statuses
-from DSB import dsb
+from dsbMain.modules.templates.statuses import Statuses
 
 def run_only(func):
     """ Decorator used to run a function only if the module is running. """
@@ -16,7 +14,7 @@ def run_only(func):
 class Module:
     """ Class used to create new modules. It needs to be named as the file
     using PascalCase for importing purposes."""
-    def __init__(self, bot: dsb.DSB) -> None:
+    def __init__(self, bot) -> None:
         self.name = "Template"
         self.status = Statuses.NOT_RUNNING
         self.dependencies = [] # List of module names that this module depends on

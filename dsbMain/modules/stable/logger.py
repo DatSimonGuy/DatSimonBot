@@ -1,9 +1,9 @@
 """ Module used to create run logs. """
 
 from datetime import datetime
-from DSB.modules.templates.template import Module, run_only
-from DSB.modules.templates.statuses import Statuses
-from DSB import dsb
+from dsbMain.modules.templates.template import Module, run_only
+from dsbMain.modules.templates.statuses import Statuses
+from dsbMain import dsb
 
 class Logger(Module):
     """ Module used to create run logs. """

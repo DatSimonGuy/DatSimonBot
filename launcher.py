@@ -1,8 +1,8 @@
 """ Launching file for the application. """
 
 import argparse
-from GUI import tkinter_gui as tk_gui
-from DSB.dsb import DSB
+from gui import tkinterGui as tk_gui
+from dsbMain.dsb import DSB
 
 def argparser_setup() -> argparse.ArgumentParser:
     """ Setup the argument parser for the application. """

@@ -1,11 +1,10 @@
 """ Main app """
 
-from __future__ import annotations
 from typing import Literal
 import os
 import importlib
 from argparse import Namespace
-from DSB.modules.templates import template
+from dsbMain.modules.templates import template
 
 class DSB:
     """ Main class for the application. """
@@ -16,10 +15,10 @@ class DSB:
 
     def import_modules(self) -> None:
         """ Imports all necessary modules. """
-        for module in os.listdir("DSB/modules/" + self._modules_directory):
+        for module in os.listdir("dsbMain/modules/" + self._modules_directory):
             if module.endswith(".py") and module != "__init__.py":
                 module_name = module[:-3]
-                module = importlib.import_module("DSB.modules." +
+                module = importlib.import_module('dsbMain.modules.' +
                                                  self._modules_directory + "." + module_name)
                 module_class_name = module_name.title().replace("_", "")
                 module_class = getattr(module, module_class_name)

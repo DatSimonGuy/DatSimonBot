@@ -2,7 +2,7 @@
 
 import tkinter as tk
 from argparse import Namespace
-from DSB.dsb import DSB
+from dsbMain.dsb import DSB
 
 class Table(tk.Frame):
     """ Class used to create a table in the application window. """

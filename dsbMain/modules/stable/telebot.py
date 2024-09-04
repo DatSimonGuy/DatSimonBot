@@ -1,8 +1,8 @@
 """ Telebot module. """
 
-from DSB.modules.templates.template import Module
-from DSB.modules.templates.statuses import Statuses
-from DSB import dsb
+from dsbMain.modules.templates.template import Module
+from dsbMain.modules.templates.statuses import Statuses
+from dsbMain import dsb
 
 class Telebot(Module):
     """ Telebot instance """
