@@ -15,10 +15,11 @@ class Logger(Module):
     @run_only
     def log(self, message: str) -> None: # pylint: disable=method-hidden
         """ Log a message. """
+        log = datetime.now().strftime("%d/%m %H:%M") + " " + message + "\n"
         if self.action is not None:
-            self.action(message)
+            self.action(log)
         else:
-            self.logs.append(datetime.now().strftime("%d/%m %H:%M") + " " + message + "\n")
+            self.logs.append(log)
 
     def get_logs(self) -> list:
         """ Get the logs. """

@@ -12,6 +12,8 @@ class DSB:
         self._modules: dict[str, module.Module] = {}
         self._modules_directory = "experimental" if args.experimental else "stable"
         self.config = dotenv.dotenv_values("dsb_main/.env")
+        for arg in vars(args):
+            self.config[arg] = getattr(args, arg)
         self._import_modules()
 
     def _import_modules(self) -> None:
