@@ -1,15 +1,13 @@
 """ Module used to create run logs. """
 
 from datetime import datetime
-from dsbMain.modules.templates.template import Module, run_only
-from dsbMain.modules.templates.statuses import Statuses
-from dsbMain import dsb
+from dsb_main.modules.base_modules.module import Module, run_only
 
 class Logger(Module):
     """ Module used to create run logs. """
-    def __init__(self, bot: dsb.DSB) -> None:
+    def __init__(self, bot) -> None:
         super().__init__(bot)
-        self.name = "Logger"
+        self._name = "Logger"
         self.logs = []
         self.dependencies = []
         self.action = None
@@ -30,12 +28,13 @@ class Logger(Module):
         """ Clear the logs. """
         self.logs = []
 
-    def run(self, _) -> None:
-        """ Run the module. """
-        self.status = Statuses.RUNNING
+    def run(self) -> bool:
+        """ Run the module. Returns True if the module was run. """
+        super().run()
         self.log("Logger started")
+        return True
 
     def stop(self) -> None:
         """ Stop the module. """
         self.log("Logger stopping")
-        self.status = Statuses.NOT_RUNNING
+        super().stop()

@@ -1,8 +1,7 @@
 """ Module used to create the GUI for the application. """
 
 import tkinter as tk
-from argparse import Namespace
-from dsbMain.dsb import DSB
+from dsb_main.dsb import DSB
 
 class Table(tk.Frame):
     """ Class used to create a table in the application window. """
@@ -51,7 +50,7 @@ class Logs(tk.Text): # pylint: disable=too-many-ancestors
 
 class App(tk.Tk):
     """ Class used to create the application window. """
-    def __init__(self, bot: DSB, args: Namespace) -> None:
+    def __init__(self, bot: DSB) -> None:
         super().__init__()
         self.title("DatSimonBot")
         self.geometry("800x600")
@@ -64,7 +63,6 @@ class App(tk.Tk):
         self.grid_columnconfigure(0, weight=1)
         self.running = False
         self.bot = bot
-        self.args = args
         self.add_widgets()
         self.update()
 
@@ -73,7 +71,7 @@ class App(tk.Tk):
         title = tk.Label(self, text="DatSimonBot", font=("Helvetica", 20))
         title.grid(row=0, column=0)
 
-        start_button = tk.Button(self, text="Start", command=lambda: self.run(self.args))
+        start_button = tk.Button(self, text="Start", command=self.run)
         start_button.grid(row=1, column=0)
 
         self.module_list = Table(self, [8, 2], ["Module name", "Status"], 0, 3)
@@ -89,7 +87,7 @@ class App(tk.Tk):
                 self.module_list.add_row(i + 1, [module[0], module[1]])
 
             if not self.running:
-                start_button = tk.Button(self, text="Start", command=lambda: self.run(self.args))
+                start_button = tk.Button(self, text="Start", command=self.run)
                 start_button.grid(row=1, column=0)
             else:
                 stop_button = tk.Button(self, text="Stop", command=self.stop)
@@ -98,10 +96,10 @@ class App(tk.Tk):
             pass
         self.after(1000, self.update)
 
-    def run(self, args: Namespace) -> None:
+    def run(self) -> None:
         """ Run the application. """
         self.running = True
-        self.bot.run(args)
+        self.bot.run()
 
     def stop(self) -> None:
         """ Stop the application. """
