@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-class Statuses(Enum):
+class Status(Enum):
     """ Enum containing the statuses for the modules. """
     NOT_RUNNING = ("Not running", 0)
     RUNNING = ("Running", 2)

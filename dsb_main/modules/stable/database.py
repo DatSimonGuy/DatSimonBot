@@ -2,18 +2,17 @@
 
 import os
 import jsonpickle
-from dsbMain.modules.templates.template import Module, run_only
-from dsbMain.modules.templates.statuses import Statuses
-from dsbMain import dsb
+from dsb_main.modules.base_modules.module import Module, run_only
 
 class Database(Module):
     """ Database module for the DSB project. Will be rewritten to use SQL later. """
-    def __init__(self, bot: dsb.DSB) -> None:
+    def __init__(self, bot) -> None:
         super().__init__(bot)
-        self.name = "Database"
+        self._name = "Database"
         self.dependencies = ["Logger"]
         self._logger = None
-        self._directory = "dsbMain/data"
+        self._directory = self._bot.config.get("Database", "dsbMain/database")
+        os.makedirs(self._directory, exist_ok=True)
 
     @run_only
     def save(self, data: dict, subdir: str, filename: str) -> None:
@@ -77,13 +76,14 @@ class Database(Module):
         except FileNotFoundError:
             self._logger.log(f"File {subdir}/{filename} not found")
 
-    def run(self, _) -> None:
-        """ Run the module. """
-        self.status = Statuses.RUNNING
-        self._logger = self.bot.get_module("Logger")
+    def run(self) -> bool:
+        """ Run the module. Returns True if the module was run. """
+        super().run()
+        self._logger = self._bot.get_module("Logger")
         self._logger.log("Database started")
+        return True
 
     def stop(self) -> None:
         """ Stop the module. """
-        self.status = Statuses.NOT_RUNNING
+        super().stop()
         self._logger.log("Database stopped")
