@@ -44,7 +44,7 @@ class Logs(tk.Text): # pylint: disable=too-many-ancestors
     def log(self, message: str) -> None:
         """ Log a message to the text field. """
         self.config(state=tk.NORMAL)
-        self.insert(tk.END, message + "\n")
+        self.insert(tk.END, message)
         self.config(state=tk.DISABLED)
         self.see(tk.END)
 
