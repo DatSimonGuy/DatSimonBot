@@ -23,7 +23,11 @@ class Planner(BaseModule):
             "remove_lesson": self._remove_lesson,
             "edit_lesson": self.edit_lesson,
             "clear_day": self._clear_day,
-            "clear_all": self._clear_all
+            "clear_all": self._clear_all,
+            "edit_plan": self._edit_plan,
+            "who_is_free": self.who_is_free,
+            "join_plan": self.join_plan,
+            "leave_plan": self.leave_plan
         }
         self.add_handlers()
 
@@ -41,8 +45,13 @@ class Planner(BaseModule):
             plan_name = " ".join(args)
 
         group_id = update.effective_chat.id
+
+        if self._planning_module.get_plan(plan_name, group_id):
+            await update.message.reply_text("A plan with that name already exists")
+            return
+
         if self._planning_module.create_plan(plan_name, group_id):
-            await update.message.reply_text("Plan created")
+            await update.message.set_reaction("👍")
         else:
             await update.message.reply_text("An error occurred")
 
@@ -50,7 +59,7 @@ class Planner(BaseModule):
     async def _delete_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Delete a lesson plan """
         if not context.args:
-            await update.message.reply_text("Please provide a name for the plan")
+            await update.message.reply_text("Please provide the name of the plan")
             return
 
         args, kwargs = self._get_args(context)
@@ -61,9 +70,35 @@ class Planner(BaseModule):
 
         group_id = update.effective_chat.id
         if self._planning_module.delete_plan(plan_name, group_id):
-            await update.message.reply_text("Plan deleted")
+            await update.message.set_reaction("👍")
         else:
             await update.message.reply_text("An error occurred")
+
+    @prevent_edited
+    async def _edit_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Editing a plan name """
+        if not context.args:
+            await update.message.reply_text("Please provide the name of the plan")
+            return
+
+        args, kwargs = self._get_args(context)
+        if "name" in kwargs:
+            plan_name = kwargs.get("name")
+        else:
+            plan_name = " ".join(args)
+
+        group_id = update.effective_chat.id
+        plan = self._planning_module.get_plan(plan_name, group_id)
+
+        if plan is None:
+            await update.message.reply_text("Plan not found")
+            return
+
+        if self._planning_module.get_plan(kwargs.get("new_name"), group_id):
+            await update.message.reply_text("A plan with that name already exists")
+
+        self._planning_module.update_plan(plan_name, group_id, plan, kwargs.get("new_name"))
+        await update.message.set_reaction("👍")
 
     @prevent_edited
     @admin_only
@@ -75,7 +110,7 @@ class Planner(BaseModule):
             if not self._planning_module.delete_plan(plan.replace(".json", ""), group_id):
                 await update.message.reply_text("An error occurred")
                 return
-        await update.message.reply_text("All plans deleted")
+        await update.message.set_reaction("👍")
 
     @prevent_edited
     async def _get_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -119,8 +154,8 @@ class Planner(BaseModule):
             return
         try:
             new_lesson = Lesson(kwargs["subject"], kwargs["teacher"], kwargs["room"],
-                                datetime.strptime(kwargs["start"], "%H:%M"),
-                                datetime.strptime(kwargs["end"], "%H:%M"), kwargs["day"],
+                                datetime.strptime(kwargs["start"], "%H:%M").time(),
+                                datetime.strptime(kwargs["end"], "%H:%M").time(), kwargs["day"],
                                 kwargs["type"])
         except KeyError as key:
             await update.message.reply_text(f"Missing argument: {key}")
@@ -152,7 +187,7 @@ class Planner(BaseModule):
 
         plan.add_lesson(int(new_lesson.day) - 1, new_lesson)
         self._planning_module.update_plan(plan_name, group_id, plan)
-        await update.message.reply_text("Lesson added")
+        await update.message.set_reaction("👍")
 
     @prevent_edited
     async def _remove_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -196,8 +231,10 @@ class Planner(BaseModule):
             await update.message.reply_text("Please provide a day")
             return
 
+        day = kwargs.get("day")
+
         try:
-            if kwargs["day"] not in "12345":
+            if day not in "12345":
                 day = days[kwargs["day"].lower()]
         except KeyError:
             await update.message.reply_text("Invalid day")
@@ -206,7 +243,7 @@ class Planner(BaseModule):
         try:
             plan.remove_lesson_by_index(int(day) - 1, idx)
             self._planning_module.update_plan(plan_name, group_id, plan)
-            await update.message.reply_text("Lesson removed")
+            await update.message.set_reaction("👍")
         except IndexError:
             await update.message.reply_text("Lesson not found")
 
@@ -266,7 +303,7 @@ class Planner(BaseModule):
             plan.remove_lesson_by_index(int(day) - 1, idx)
             plan.add_lesson(int(day) - 1, lesson)
             self._planning_module.update_plan(plan_name, group_id, plan)
-            await update.message.reply_text("Lesson edited")
+            await update.message.set_reaction("👍")
         except IndexError:
             await update.message.reply_text("Lesson not found")
 
@@ -313,7 +350,7 @@ class Planner(BaseModule):
 
         plan.clear_day(int(day) - 1)
         self._planning_module.update_plan(plan_name, group_id, plan)
-        await update.message.reply_text("Day cleared")
+        await update.message.set_reaction("👍")
 
     @prevent_edited
     async def _clear_all(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -337,5 +374,89 @@ class Planner(BaseModule):
 
         plan.clear_all()
         self._planning_module.update_plan(plan_name, group_id, plan)
-        await update.message.reply_text("All lessons cleared")
-        
+        await update.message.set_reaction("👍")
+
+    @prevent_edited
+    async def who_is_free(self, update: Update, _) -> None:
+        """ Find out who is free at a given time """
+        plans = self._planning_module.get_plans(update.effective_chat.id)
+
+        if not plans:
+            await update.message.reply_text("No plans found")
+            return
+
+        today = datetime.today().weekday()
+
+        if today > 4:
+            await update.message.reply_text("No lessons today")
+            return
+
+        free_students = []
+
+        for plan_name in plans:
+            plan = self._planning_module.get_plan(plan_name.replace(".json", ""),
+                                                  update.effective_chat.id)
+            if len(plan.get_day(today)) == 0:
+                free_students.extend((student, "No lessons!") for student in plan.students)
+                continue
+            if plan:
+                if not any(lesson.is_now for lesson in plan.get_day(today)):
+                    next_lesson = plan.next_lesson
+                    time_until = next_lesson.time_until.total_seconds()
+                    text = f"{int(time_until//3600):02}:{int(time_until//60):02}" if next_lesson \
+                        else "No lessons!"
+                    free_students.extend((student, text) for student in plan.students)
+
+        student_list = "\n".join(f"{student} - {text}" for student, text in free_students)
+        if not student_list:
+            await update.message.reply_text("No students are free")
+            return
+        await update.message.reply_text(f"Free students:\n{student_list}")
+
+    @prevent_edited
+    async def join_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Join a lesson plan """
+        if not context.args:
+            await update.message.reply_text("Please provide a name for the plan")
+            return
+
+        args, kwargs = self._get_args(context)
+        if "name" in kwargs:
+            plan_name = kwargs.get("name")
+        else:
+            plan_name = " ".join(args)
+
+        group_id = update.effective_chat.id
+        plan = self._planning_module.get_plan(plan_name, group_id)
+
+        if not plan:
+            await update.message.reply_text(f"Plan {plan_name} not found")
+            return
+
+        plan.add_student(update.effective_user.username)
+        self._planning_module.update_plan(plan_name, group_id, plan)
+        await update.message.set_reaction("👍")
+
+    @prevent_edited
+    async def leave_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Leave a lesson plan """
+        if not context.args:
+            await update.message.reply_text("Please provide a name for the plan")
+            return
+
+        args, kwargs = self._get_args(context)
+        if "name" in kwargs:
+            plan_name = kwargs.get("name")
+        else:
+            plan_name = " ".join(args)
+
+        group_id = update.effective_chat.id
+        plan = self._planning_module.get_plan(plan_name, group_id)
+
+        if not plan:
+            await update.message.reply_text(f"Plan {plan_name} not found")
+            return
+
+        plan.remove_student(update.effective_user.username)
+        self._planning_module.update_plan(plan_name, group_id, plan)
+        await update.message.set_reaction("👍")

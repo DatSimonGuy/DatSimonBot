@@ -1,5 +1,6 @@
 """ Class for Plan """
 
+from datetime import datetime
 from .lesson import Lesson
 
 class Plan:
@@ -9,7 +10,12 @@ class Plan:
     def __init__(self, name: str) -> None:
         self._name = name
         self._students = []
-        self._week = [[] for _ in range(5)]
+        self._week: list[list[Lesson]] = [[] for _ in range(5)]
+
+    @property
+    def students(self) -> list:
+        """ Returns the students of the plan """
+        return self._students
 
     @property
     def monday(self) -> list:
@@ -35,6 +41,16 @@ class Plan:
     def friday(self) -> list:
         """ Returns the lessons for Friday """
         return self._week[4]
+
+    @property
+    def next_lesson(self) -> Lesson | None:
+        """ Returns the next lesson """
+        today = datetime.now().weekday()
+        now = datetime.now().time()
+        for lesson in self._week[today]:
+            if lesson.start_time > now:
+                return lesson
+        return None
 
     def add_student(self, student_id: int) -> None:
         """ Add a student to the plan """
@@ -66,7 +82,7 @@ class Plan:
         for day in self._week:
             day.clear()
 
-    def get_day(self, day: int) -> list:
+    def get_day(self, day: int) -> list[Lesson]:
         """ Get all lessons for a day """
         return self._week[day]
 

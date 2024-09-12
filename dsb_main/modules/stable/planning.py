@@ -37,8 +37,11 @@ class Planning(Module):
         return self._db.list_all(f"{group_id}/plans")
 
     @run_only
-    def update_plan(self, name: str, group_id: int, new_plan: Plan) -> bool:
+    def update_plan(self, name: str, group_id: int, new_plan: Plan, new_name: str = "") -> bool:
         """ Update a lesson plan """
+        if new_name:
+            self._db.delete(f"{group_id}/plans", name)
+            return self._db.save(new_plan, f"{group_id}/plans", new_name)
         return self._db.save(new_plan, f"{group_id}/plans", name)
 
     def run(self) -> bool:

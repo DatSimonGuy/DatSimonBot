@@ -1,6 +1,6 @@
 """ Class for Lesson """
 
-from datetime import datetime, time
+from datetime import datetime, time, date, timedelta
 
 class Lesson:
     """ Lesson class containing info about a lesson """
@@ -12,7 +12,8 @@ class Lesson:
         self._room = room
         self._start_time = start_time
         self._end_time = end_time
-        self._duration = self._end_time - self._start_time
+        self._duration = datetime.combine(date.today(), self._end_time) - \
+            datetime.combine(date.today(), self._start_time)
         self._type = lesson_type
 
     @property
@@ -68,20 +69,22 @@ class Lesson:
         return self._end_time - now
 
     @property
-    def time_until(self) -> time:
+    def time_until(self) -> timedelta:
         """ Returns the time until the lesson """
         if self.is_now or datetime.now().time() > self._start_time:
             return time(0, 0)
-        now = datetime.now().time()
-        return self._start_time - now
+        now = datetime.now()
+        return datetime.combine(date.today(), self._start_time) - now
 
     def update(self, data: dict):
         """ Update the lesson with new data """
         self._subject = data.get("subject", self._subject)
         self._teacher = data.get("teacher", self._teacher)
         self._room = data.get("room", self._room)
-        self._start_time = data.get("start_time", self._start_time)
-        self._end_time = data.get("end_time", self._end_time)
+        if "start_time" in data:
+            self._start_time = datetime.strptime(data["start_time"], "%H:%M").time()
+        if "end_time" in data:
+            self._end_time = datetime.strptime(data["end_time"], "%H:%M").time()
         self._duration = self._end_time - self._start_time
         self._type = data.get("type", self._type)
 
