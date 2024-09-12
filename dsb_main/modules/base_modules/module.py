@@ -44,6 +44,10 @@ class Module:
         """ Check if the module is running. """
         return self._status == Status.RUNNING
 
+    def add_dependency(self, module_name: str) -> None:
+        """ Add a dependency to the module. """
+        self.dependencies.append(module_name)
+
     def run(self) -> bool:
         """ Run the module. """
         self._status = Status.RUNNING

@@ -6,6 +6,8 @@ import asyncio
 import threading
 from telegram.ext import ApplicationBuilder
 from dsb_main.modules.base_modules.module import Module
+from dsb_main.modules.stable.logger import Logger
+from dsb_main.modules.stable.database import Database
 
 class Telebot(Module):
     """ Telebot instance """
@@ -14,10 +16,11 @@ class Telebot(Module):
         self._name = "Telebot"
         self.dependencies = ["Logger", "Database"]
         self._debug_mode = self._bot.config["debug"]
-        self._logger = None
-        self._db = None
+        self._logger: Logger = None
+        self._db: Database = None
         self._handlers_path = "dsb_main/modules/stable/telebot_modules"
         self._ptb = ApplicationBuilder().token(self._bot.config["telebot_token"]).build()
+        self._commands = []
         self._bot_thread = None
         self._loop = asyncio.new_event_loop()
         self._get_telebot_modules()
@@ -26,6 +29,16 @@ class Telebot(Module):
     def debug(self) -> bool:
         """ Returns the debug mode status. """
         return self._debug_mode
+
+    @property
+    def commands(self) -> list:
+        """ Returns the list of commands. """
+        return self._commands
+
+    @property
+    def config(self) -> dict:
+        """ Get the bot configuration """
+        return self._bot.config
 
     def _get_telebot_modules(self) -> None:
         """ Loads handlers from files """
@@ -36,7 +49,12 @@ class Telebot(Module):
                         f"{self._handlers_path.replace('/', '.')}.{module_name}")
                 module_name = module_name.title().replace("_", "")
                 module = getattr(module, module_name)
-                module(self._ptb)
+                new_module = module(self._ptb, self)
+                self._commands.extend(new_module.handlers.keys())
+
+    def get_dsb_module(self, module_name: str) -> Module:
+        """ Get a DSB module by name """
+        return self._bot.get_module(module_name)
 
     def _run_bot(self):
         asyncio.set_event_loop(self._loop)

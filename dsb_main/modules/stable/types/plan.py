@@ -4,11 +4,12 @@ from .lesson import Lesson
 
 class Plan:
     """ Plan class containing info about lessons """
+    _days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+
     def __init__(self, name: str) -> None:
         self._name = name
         self._students = []
         self._week = [[] for _ in range(5)]
-        self._days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
     @property
     def monday(self) -> list:
@@ -46,10 +47,15 @@ class Plan:
     def add_lesson(self, day: int, lesson: Lesson) -> None:
         """ Add a lesson to the plan """
         self._week[day].append(lesson)
+        self._week[day].sort(key=lambda x: x.start_time)
 
     def remove_lesson(self, day: int, lesson: Lesson) -> None:
         """ Remove a lesson from the plan """
         self._week[day].remove(lesson)
+
+    def remove_lesson_by_index(self, day: int, index: int) -> None:
+        """ Remove a lesson from the plan by index """
+        self._week[day].pop(index)
 
     def clear_day(self, day: int) -> None:
         """ Clear all lessons for a day """
@@ -72,5 +78,6 @@ class Plan:
         plan = ""
         for i, day in enumerate(self._week):
             plan += f"{self._days[i]}:\n"
-            plan += "\n".join(day) + "\n"
+            for lesson in day:
+                plan += f"{str(lesson)}\n"
         return plan
