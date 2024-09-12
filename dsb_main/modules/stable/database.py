@@ -11,7 +11,7 @@ class Database(Module):
         self._name = "Database"
         self.dependencies = ["Logger"]
         self._logger = None
-        self._directory = self._bot.config.get("Database", "dsbMain/database")
+        self._directory = self._bot.config.get("database_location", "dsb_main/database")
         os.makedirs(self._directory, exist_ok=True)
 
     @run_only
