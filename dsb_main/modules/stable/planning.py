@@ -34,7 +34,9 @@ class Planning(Module):
     @run_only
     def get_plans(self, group_id: int) -> list:
         """ Get all lesson plans """
-        return self._db.list_all(f"{group_id}/plans")
+        plan_list =  self._db.list_all(f"{group_id}/plans")
+        plan_list = [plan[:-5] for plan in plan_list]
+        return plan_list
 
     @run_only
     def update_plan(self, name: str, group_id: int, new_plan: Plan, new_name: str = "") -> bool:

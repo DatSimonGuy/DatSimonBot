@@ -107,7 +107,7 @@ class Planner(BaseModule):
         group_id = update.effective_chat.id
         plan_names = self._planning_module.get_plans(group_id)
         for plan in plan_names:
-            if not self._planning_module.delete_plan(plan.replace(".json", ""), group_id):
+            if not self._planning_module.delete_plan(plan, group_id):
                 await update.message.reply_text("An error occurred")
                 return
         await update.message.set_reaction("👍")
@@ -139,7 +139,7 @@ class Planner(BaseModule):
         plans = self._planning_module.get_plans(group_id)
         plans_str = ""
         for i, plan in enumerate(plans):
-            plans_str += f"{i+1}. {plan.replace('.json', '')}\n"
+            plans_str += f"{i+1}. {plan}\n"
         if plans:
             await update.message.reply_text(plans_str)
         else:
@@ -394,7 +394,7 @@ class Planner(BaseModule):
         free_students = []
 
         for plan_name in plans:
-            plan = self._planning_module.get_plan(plan_name.replace(".json", ""),
+            plan = self._planning_module.get_plan(plan_name,
                                                   update.effective_chat.id)
             if len(plan.get_day(today)) == 0:
                 free_students.extend((student, "No lessons!") for student in plan.students)
