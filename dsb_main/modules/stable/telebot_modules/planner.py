@@ -292,6 +292,8 @@ class Planner(BaseModule):
         try:
             if kwargs["day"] not in "12345":
                 day = days[kwargs["day"].lower()]
+            else:
+                day = int(kwargs["day"])
         except KeyError:
             await update.message.reply_text("Invalid day")
             return
