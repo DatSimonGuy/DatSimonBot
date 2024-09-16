@@ -18,8 +18,7 @@ def prevent_edited(func):
         """ Wrapper function """
         if update.edited_message:
             return
-        else:
-            await func(self, update, context)
+        await func(self, update, context)
     return wrapper
 
 class BaseModule:
@@ -64,4 +63,3 @@ class BaseModule:
             if current == "":
                 args.append(arg)
         return args, kwargs
-                

@@ -89,7 +89,9 @@ class Lesson:
         self._type = data.get("type", self._type)
 
     def __str__(self) -> str:
-        s_display = datetime.strftime(self._start_time, "%H:%M")
-        e_display = datetime.strftime(self._end_time, "%H:%M")
+        s_time = datetime.combine(date.today(), self._start_time)
+        e_time = datetime.combine(date.today(), self._end_time)
+        s_display = datetime.strftime(s_time, "%H:%M")
+        e_display = datetime.strftime(e_time, "%H:%M")
         return f"{self.subject} | {self._type}" + \
             f" | {self._teacher} | {self._room} | {s_display} - {e_display}"
