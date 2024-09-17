@@ -48,6 +48,9 @@ class BaseModule:
         """ Get the bot configuration """
         return self._telebot_module.config
 
+    def prep(self) -> None:
+        """ Prepare the module """
+
     def add_handlers(self) -> None:
         """ Add handlers to the dispatcher """
         for command, handler in self._handlers.items():

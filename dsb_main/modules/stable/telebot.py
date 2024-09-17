@@ -22,6 +22,7 @@ class Telebot(Module):
         self._ptb.add_error_handler(self._error_handler)
         self._commands = {}
         self._bot_thread = None
+        self._modules = []
         self._loop = asyncio.new_event_loop()
         self._get_telebot_modules()
 

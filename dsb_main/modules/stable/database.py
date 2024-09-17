@@ -2,6 +2,7 @@
 
 import os
 import jsonpickle
+from typing import Any
 from dsb_main.modules.base_modules.module import Module
 
 class Database(Module):
@@ -36,7 +37,7 @@ class Database(Module):
         self._bot.log("DEBUG", f"Image saved to {subdir}/{filename}")
         return True
 
-    def load(self, subdir: str, filename: str) -> dict:
+    def load(self, subdir: str, filename: str, default: Any = None) -> dict:
         """ Load data from the database. """
         try:
             with open(f"{self._directory}/{subdir}/{filename}.json", "r", encoding='utf-8') as file:
@@ -44,8 +45,10 @@ class Database(Module):
             self._bot.log("DEBUG", f"Data loaded from {subdir}/{filename}")
             return data
         except FileNotFoundError:
-            self._bot.log("DEBUG", f"File {subdir}/{filename} not found")
-            return {}
+            self._logger.log(f"File {subdir}/{filename} not found")
+            if default is None:
+                return {}
+            return default
 
     def list_all(self, subdir: str) -> list:
         """ List all files in the directory. """
