@@ -149,7 +149,7 @@ class Planner(BaseModule):
     async def _add_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Add a lesson to a plan """
         args, kwargs = self._get_args(context)
-        if not args and not kwargs["plan"]:
+        if not args and not kwargs.get("plan", None):
             await update.message.reply_text("Please provide a name for the plan")
             return
         try:
