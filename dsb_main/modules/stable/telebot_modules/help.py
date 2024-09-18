@@ -1,5 +1,6 @@
 """ Telebot help module """
 
+from telegram import Update
 from .base.base_module import BaseModule
 
 class Help(BaseModule):
@@ -9,11 +10,13 @@ class Help(BaseModule):
         self._handlers = {
             "help": self._help
         }
-        self.add_handlers()
+        self._descriptions = {
+            "help": "Display help message"
+        }
 
-    async def _help(self, update, _) -> None:
+    async def _help(self, update: Update, _) -> None:
         """ Display help message """
         help_message = "Available commands:\n"
-        for i, command in enumerate(self._telebot_module.commands):
-            help_message += f"{i+1}. /{command}\n"
+        for command, desc in self._telebot_module.commands.items():
+            help_message += f"{command} - {desc}\n"
         await update.message.reply_text(help_message)

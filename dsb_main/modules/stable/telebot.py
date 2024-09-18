@@ -4,34 +4,29 @@ import os
 import importlib
 import asyncio
 import threading
-from telegram.ext import ApplicationBuilder
+from typing import TYPE_CHECKING, Literal
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CallbackContext
 from dsb_main.modules.base_modules.module import Module
-from dsb_main.modules.stable.logger import Logger
-from dsb_main.modules.stable.database import Database
+if TYPE_CHECKING:
+    from .telebot_modules.base.base_module import BaseModule
 
 class Telebot(Module):
     """ Telebot instance """
+    name = "Telebot"
     def __init__(self, bot) -> None:
         super().__init__(bot)
-        self._name = "Telebot"
-        self.dependencies = ["Logger", "Database"]
-        self._debug_mode = self._bot.config["debug"]
-        self._logger: Logger = None
-        self._db: Database = None
+        self._modules: list['BaseModule'] = []
         self._handlers_path = "dsb_main/modules/stable/telebot_modules"
         self._ptb = ApplicationBuilder().token(self._bot.config["telebot_token"]).build()
-        self._commands = []
+        self._ptb.add_error_handler(self._error_handler)
+        self._commands = {}
         self._bot_thread = None
         self._loop = asyncio.new_event_loop()
         self._get_telebot_modules()
 
     @property
-    def debug(self) -> bool:
-        """ Returns the debug mode status. """
-        return self._debug_mode
-
-    @property
-    def commands(self) -> list:
+    def commands(self) -> dict:
         """ Returns the list of commands. """
         return self._commands
 
@@ -40,21 +35,36 @@ class Telebot(Module):
         """ Get the bot configuration """
         return self._bot.config
 
-    def _get_telebot_modules(self) -> None:
-        """ Loads handlers from files """
+    def log(self, level: Literal["ERROR", "INFO", "WARNING", "DEBUG"],
+            message: str) -> None:
+        """ Log a message """
+        self._bot.log(level, message)
+
+    def _get_telebot_modules(self, reload: bool = False) -> None:
+        """ Loads handlers from files, optionally reloading them """
+        self._modules.clear()
         for module_file in os.listdir(self._handlers_path):
             if module_file.endswith(".py") and module_file != "__init__.py":
                 module_name = module_file[:-3]
-                module = importlib.import_module(
+                if reload:
+                    module = importlib.reload(importlib.import_module(
+                        f"{self._handlers_path.replace('/', '.')}.{module_name}"))
+                else:
+                    module = importlib.import_module(
                         f"{self._handlers_path.replace('/', '.')}.{module_name}")
                 module_name = module_name.title().replace("_", "")
                 module = getattr(module, module_name)
-                new_module = module(self._ptb, self)
-                self._commands.extend(new_module.handlers.keys())
+                new_module: 'BaseModule' = module(self._ptb, self)
+                self._modules.append(new_module)
 
     def get_dsb_module(self, module_name: str) -> Module:
         """ Get a DSB module by name """
         return self._bot.get_module(module_name)
+
+    def _error_handler(self, update: Update, context: CallbackContext) -> None:
+        """Log the error and send a message to the user."""
+        self._bot.log("ERROR", "Exception while handling an update:", exc_info=context.error)
+        update.message.reply_text('An error occurred. Please try again later.')
 
     def _run_bot(self):
         asyncio.set_event_loop(self._loop)
@@ -62,18 +72,22 @@ class Telebot(Module):
 
     def run(self) -> bool:
         """ Run the module. Returns True if the module was run. """
-        super().run()
+        self._get_telebot_modules(reload=True)
+        for module in self._modules:
+            if module.prepare():
+                self._commands.update(module.descriptions)
+                module.add_handlers()
+            else:
+                self._bot.log("ERROR", f"Failed to prepare module {module}")
         self._bot_thread = threading.Thread(target=self._run_bot)
         self._bot_thread.start()
-        self._logger = self._bot.get_module("Logger")
-        self._db = self._bot.get_module("Database")
-        self._logger.log("Telebot started")
-        return True
+        return super().run()
 
     def stop(self) -> None:
         """ Stop the module and the bot cleanly. """
-        super().stop()
+        for module in self._modules:
+            module.remove_handlers()
         self._loop.call_soon_threadsafe(self._ptb.stop_running)
         asyncio.run_coroutine_threadsafe(self._ptb.shutdown(), self._loop)
         self._bot_thread.join()
-        self._logger.log("Telebot stopped")
+        super().stop()
