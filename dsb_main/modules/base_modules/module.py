@@ -1,6 +1,9 @@
 """ Base module to use as a base for creating new modules. """
 
+from typing import TYPE_CHECKING
 from dsb_main.modules.base_modules.statuses import Status
+if TYPE_CHECKING:
+    from dsb_main import dsb
 
 def run_only(func):
     """ Decorator used to run a function only if the module is running. """
@@ -13,21 +16,10 @@ def run_only(func):
 class Module:
     """ Class used to create new modules. It needs to be named as the file
     using PascalCase for importing purposes."""
-    def __init__(self, bot) -> None:
-        self._name = "Module"
+    name = "Module"
+    def __init__(self, bot: 'dsb.DSB') -> None:
         self._status = Status.NOT_RUNNING
-        self.dependencies = [] # List of module names that this module depends on
         self._bot = bot
-
-    @property
-    def name(self) -> str:
-        """ Get the name of the module. """
-        return self._name
-
-    @name.setter
-    def name(self, new_name: str) -> None:
-        """ Set the name of the module. """
-        self._name = new_name
 
     @property
     def status(self) -> Status:
@@ -44,15 +36,18 @@ class Module:
         """ Check if the module is running. """
         return self._status == Status.RUNNING
 
-    def add_dependency(self, module_name: str) -> None:
-        """ Add a dependency to the module. """
-        self.dependencies.append(module_name)
+    @property
+    def error(self) -> bool:
+        """ Check if the module is in error state. """
+        return self._status == Status.ERROR
 
     def run(self) -> bool:
         """ Run the module. """
         self._status = Status.RUNNING
+        self._bot.log("INFO", f"{self.name} module started")
         return True
 
     def stop(self) -> None:
         """ Stop the module. """
         self._status = Status.NOT_RUNNING
+        self._bot.log("INFO", f"{self.name} module stopped")

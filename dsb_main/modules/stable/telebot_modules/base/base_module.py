@@ -1,10 +1,14 @@
 """ telegram bot base module """
 
-from telegram.ext import CommandHandler
+from typing import TYPE_CHECKING
+from telegram import Update
+from telegram.ext import CommandHandler, Application, ContextTypes
+if TYPE_CHECKING:
+    from dsb_main.modules.stable.telebot import Telebot
 
 def admin_only(func):
     """ Decorator for admin only commands """
-    async def wrapper(self, update, context):
+    async def wrapper(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """ Wrapper function """
         if str(update.effective_user.id) in self.config.get("admins", []):
             await func(self, update, context)
@@ -14,7 +18,7 @@ def admin_only(func):
 
 def prevent_edited(func):
     """ Decorator for commands that won't work on edited messages """
-    async def wrapper(self, update, context):
+    async def wrapper(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """ Wrapper function """
         if update.edited_message:
             return
@@ -23,15 +27,21 @@ def prevent_edited(func):
 
 class BaseModule:
     """ Base module for all telegram bot modules. """
-    def __init__(self, bot, telebot_module) -> None:
+    def __init__(self, bot: Application, telebot_module: 'Telebot') -> None:
         self._ptb = bot
         self._handlers = {}
+        self._descriptions = {}
         self._telebot_module = telebot_module
 
     @property
     def handlers(self) -> dict:
         """ Get the handlers """
         return self._handlers
+
+    @property
+    def descriptions(self) -> dict:
+        """ Get the command descriptions """
+        return self._descriptions
 
     @property
     def config(self) -> dict:
@@ -46,20 +56,29 @@ class BaseModule:
     def remove_handlers(self) -> None:
         """ Remove handlers from the dispatcher """
         for command, handler in self._handlers.items():
-            self._ptb.remove_handler(CommandHandler(command, handler))
+            try:
+                self._ptb.remove_handler(CommandHandler(command, handler))
+            except ValueError:
+                pass
 
-    def _get_args(self, context) -> tuple[list, dict]:
+    def _get_args(self, context: ContextTypes.DEFAULT_TYPE) -> tuple[list, dict]:
         """ Get the command arguments and options """
         args = []
         kwargs = {}
         current = ""
         for arg in context.args:
-            if arg.startswith("-"):
-                current = arg[1:]
+            if arg.startswith(("-", "--", "—")):
+                if current and current not in kwargs:
+                    kwargs[current] = True
+                current = arg.lstrip("-").lstrip("—")
             elif current in kwargs:
                 kwargs[current] += " " + arg
-            else:
+            elif current:
                 kwargs[current] = arg
-            if current == "":
+            else:
                 args.append(arg)
         return args, kwargs
+
+    def prepare(self) -> bool:
+        """ Prepare the module """
+        return True

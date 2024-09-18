@@ -1,19 +1,15 @@
 """ Module for lesson plan handling """
 
 from dsb_main.modules.base_modules.module import Module, run_only
-from dsb_main.modules.base_modules.statuses import Status
 from dsb_main.modules.stable.database import Database
-from dsb_main.modules.stable.logger import Logger
 from .types.plan import Plan
 
 class Planning(Module):
     """ Planning module """
+    name = "Planning"
     def __init__(self, bot) -> None:
         super().__init__(bot)
-        self._name = "Planning"
-        self._logger: Logger = None
         self._db: Database = None
-        self.dependencies = ["Logger", "Database"]
 
     @run_only
     def create_plan(self, name: str, group_id: int) -> bool:
@@ -48,23 +44,6 @@ class Planning(Module):
 
     def run(self) -> bool:
         """ Run the module. Returns True if the module was run. """
-        super().run()
-        self._logger = self._bot.get_module("Logger")
         self._db = self._bot.get_module("Database")
-
-        if not self._db:
-            self.status = Status.ERROR
-            self._logger.log("Database module not found")
-            return False
-
-        if not self._logger:
-            self.status = Status.ERROR
-            return False
-
-        self._logger.log("Planning module started")
-        return True
-
-    def stop(self) -> None:
-        """ Stop the module. """
-        super().stop()
-        self._logger.log("Planning module stopped")
+        self._bot.log("INFO", "Planning module started")
+        return super().run()

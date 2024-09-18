@@ -5,14 +5,13 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from dsb_main.modules.stable.planning import Planning
 from dsb_main.modules.stable.types.lesson import Lesson
-from .base.base_module import BaseModule, admin_only, prevent_edited
+from .base.base_module import BaseModule, prevent_edited
 
 class Planner(BaseModule):
     """ Planner module """
     def __init__(self, ptb, telebot_module) -> None:
         super().__init__(ptb, telebot_module)
-        telebot_module.add_dependency("Planning")
-        self._planning_module: Planning = telebot_module.get_dsb_module("Planning")
+        self._planning_module: Planning = None
         self._handlers = {
             "create_plan": self._create_plan,
             "delete_plan": self._delete_plan,
@@ -29,7 +28,22 @@ class Planner(BaseModule):
             "join_plan": self.join_plan,
             "leave_plan": self.leave_plan
         }
-        self.add_handlers()
+        self._descriptions = {
+            "create_plan": "Create a new lesson plan",
+            "delete_plan": "Delete a lesson plan",
+            "get_plan": "Get a lesson plan",
+            "get_plans": "Get all lesson plans",
+            "delete_all": "Delete all lesson plans",
+            "add_lesson": "Add a lesson to a plan",
+            "remove_lesson": "Remove a lesson from a plan",
+            "edit_lesson": "Edit a lesson in a plan",
+            "clear_day": "Clear all lessons for a day",
+            "clear_all": "Clear all lessons for a plan",
+            "edit_plan": "Edit a plan name",
+            "who_is_free": "Find out who is free at a given time",
+            "join_plan": "Join a lesson plan",
+            "leave_plan": "Leave a lesson plan"
+        }
 
     @prevent_edited
     async def _create_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -101,7 +115,6 @@ class Planner(BaseModule):
         await update.message.set_reaction("👍")
 
     @prevent_edited
-    @admin_only
     async def _delete_all(self, update: Update, _) -> None:
         """ Delete all lesson plans """
         group_id = update.effective_chat.id
@@ -462,3 +475,11 @@ class Planner(BaseModule):
         plan.remove_student(update.effective_user.username)
         self._planning_module.update_plan(plan_name, group_id, plan)
         await update.message.set_reaction("👍")
+
+    def prepare(self) -> bool:
+        """ Prepare the module """
+        self._planning_module = self._telebot_module.get_dsb_module("Planning")
+        if not self._planning_module:
+            self._telebot_module.log("ERROR", "Planning module not found")
+            return False
+        return True
