@@ -1,8 +1,8 @@
 """ Database module for the DSB project. """
 
 import os
-import jsonpickle
 from typing import Any
+import jsonpickle
 from dsb_main.modules.base_modules.module import Module
 
 class Database(Module):
@@ -45,7 +45,7 @@ class Database(Module):
             self._bot.log("DEBUG", f"Data loaded from {subdir}/{filename}")
             return data
         except FileNotFoundError:
-            self._logger.log(f"File {subdir}/{filename} not found")
+            self._bot.log("DEBUG", f"File {subdir}/{filename} not found")
             if default is None:
                 return {}
             return default

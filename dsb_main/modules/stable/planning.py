@@ -45,5 +45,4 @@ class Planning(Module):
     def run(self) -> bool:
         """ Run the module. Returns True if the module was run. """
         self._db = self._bot.get_module("Database")
-        self._bot.log("INFO", "Planning module started")
         return super().run()

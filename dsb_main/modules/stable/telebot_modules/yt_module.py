@@ -4,7 +4,7 @@ import io
 from telegram import Update, InputFile
 from telegram.ext import ContextTypes
 from dsb_main.modules.stable.youtube import Youtube
-from .base.base_module import BaseModule
+from .base.base_module import BaseModule, prevent_edited
 
 class YtModule(BaseModule):
     """ Youtube module for telebot """
@@ -16,12 +16,18 @@ class YtModule(BaseModule):
             "allow_auto_download": self._allow_auto_download,
             "disallow_auto_download": self._disallow_auto_download
         }
-        telebot_module.add_dependency("Youtube")
+        self._descriptions = {
+            "download": "Download a youtube video",
+            "ytsearch": "Search for a youtube video",
+            "allow_auto_download": "Allow auto downloading in a group",
+            "disallow_auto_download": "Disallow auto downloading in a group"
+        }
         self._auto_download_groups = set()
         self._youtube = None
         self._db = None
         self.add_handlers()
 
+    @prevent_edited
     async def _download(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """  Send a youtube video """
         if update.message.reply_to_message:
@@ -51,6 +57,7 @@ class YtModule(BaseModule):
 
         await update.message.reply_video(video_file)
 
+    @prevent_edited
     async def ytsearch(self, update, context) -> None:
         """ Search for a youtube video """
         if not context.args:
@@ -67,6 +74,7 @@ class YtModule(BaseModule):
         for result in results:
             await update.message.reply_text(f"https://youtu.be/{result['videoId']}")
 
+    @prevent_edited
     async def _allow_auto_download(self, update: Update, _) -> None:
         """ Allow auto downloading in a group """
         group_id = update.message.chat.id
@@ -76,6 +84,7 @@ class YtModule(BaseModule):
                           "auto_download_groups")
         await update.message.set_reaction("✅")
 
+    @prevent_edited
     async def _disallow_auto_download(self, update: Update, _) -> None:
         """ Disallow auto downloading in a group """
         group_id = update.message.chat.id
@@ -85,9 +94,16 @@ class YtModule(BaseModule):
                           "auto_download_groups")
         await update.message.set_reaction("✅")
 
-    def prepare(self) -> None:
+    def prepare(self) -> bool:
         """ Prepare the module """
         self._youtube: Youtube = self._telebot_module.get_dsb_module("Youtube")
         self._db = self._telebot_module.get_dsb_module("Database")
         self._auto_download_groups = self._db.load("yt_module", "auto_download_groups",
                                                    default=set())
+        if not self._youtube:
+            self._telebot_module.log("ERROR", "Youtube module not found")
+            return False
+        if not self._db:
+            self._telebot_module.log("ERROR", "Database module not found")
+            return False
+        return True

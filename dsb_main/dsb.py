@@ -100,7 +100,10 @@ class DSB:
         """ Stop the application. """
         for module in self._modules.values():
             if module.running:
-                module.stop()
+                try:
+                    module.stop()
+                except Exception as exc: # pylint: disable=broad-except
+                    self._logger.error("Error stopping module %s", module.name, exc_info=exc)
 
     def get_module(self, module_name: str) -> Optional['Module']:
         """ Get a module by its name. """

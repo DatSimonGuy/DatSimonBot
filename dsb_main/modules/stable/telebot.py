@@ -22,7 +22,7 @@ class Telebot(Module):
         self._ptb.add_error_handler(self._error_handler)
         self._commands = {}
         self._bot_thread = None
-        self._modules = []
+        self._modules = {}
         self._loop = asyncio.new_event_loop()
         self._get_telebot_modules()
 
@@ -56,7 +56,7 @@ class Telebot(Module):
                 module_name = module_name.title().replace("_", "")
                 module = getattr(module, module_name)
                 new_module: 'BaseModule' = module(self._ptb, self)
-                self._modules.append(new_module)
+                self._modules[module_name] = new_module
 
     def get_dsb_module(self, module_name: str) -> Module:
         """ Get a DSB module by name """
@@ -74,19 +74,19 @@ class Telebot(Module):
     def run(self) -> bool:
         """ Run the module. Returns True if the module was run. """
         self._get_telebot_modules(reload=True)
-        for module in self._modules:
+        for name, module in self._modules.items():
             if module.prepare():
                 self._commands.update(module.descriptions)
                 module.add_handlers()
             else:
-                self._bot.log("ERROR", f"Failed to prepare module {module}")
+                self._bot.log("ERROR", f"Failed to prepare module {name}")
         self._bot_thread = threading.Thread(target=self._run_bot)
         self._bot_thread.start()
         return super().run()
 
     def stop(self) -> None:
         """ Stop the module and the bot cleanly. """
-        for module in self._modules:
+        for module in self._modules.values():
             module.remove_handlers()
         self._loop.call_soon_threadsafe(self._ptb.stop_running)
         asyncio.run_coroutine_threadsafe(self._ptb.shutdown(), self._loop)
