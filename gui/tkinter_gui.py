@@ -81,6 +81,7 @@ class App(tk.Tk):
         self.bot = bot
         self.add_widgets()
         self.bot.logger.addHandler(TextHandler(self.logs))
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.update()
 
     def add_widgets(self) -> None:
@@ -124,6 +125,12 @@ class App(tk.Tk):
         """ Stop the application. """
         self.running = False
         self.bot.stop()
+
+    def on_closing(self) -> None:
+        """ Actions to perform when the window is closed. """
+        if self.running:
+            self.stop()
+        self.destroy()
 
     def run_app(self) -> None:
         """ Run the application. """
