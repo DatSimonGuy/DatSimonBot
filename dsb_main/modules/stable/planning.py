@@ -45,4 +45,7 @@ class Planning(Module):
     def run(self) -> bool:
         """ Run the module. Returns True if the module was run. """
         self._db = self._bot.get_module("Database")
+        if not self._db:
+            self._bot.log("ERROR", "Database module not found")
+            return False
         return super().run()
