@@ -85,7 +85,7 @@ class YtModule(BaseModule):
                           "auto_download_groups")
         await update.message.set_reaction("✅")
 
-    def prep(self) -> None:
+    def prepare(self) -> None:
         """ Prepare the module """
         self._youtube: Youtube = self._telebot_module.get_dsb_module("Youtube")
         self._db = self._telebot_module.get_dsb_module("Database")
