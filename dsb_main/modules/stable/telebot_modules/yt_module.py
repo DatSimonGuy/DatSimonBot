@@ -81,7 +81,7 @@ class YtModule(BaseModule):
             self._auto_download_groups.add(group_id)
             self._db.save(self._auto_download_groups, f"{group_id}/yt_module",
                           "auto_download_groups")
-        await update.message.set_reaction("✅")
+        await update.message.set_reaction("👍")
 
     @prevent_edited
     async def _disallow_auto_download(self, update: Update, _) -> None:
@@ -91,7 +91,7 @@ class YtModule(BaseModule):
             self._auto_download_groups.remove(group_id)
             self._db.save(self._auto_download_groups, f"{group_id}/yt_module",
                           "auto_download_groups")
-        await update.message.set_reaction("✅")
+        await update.message.set_reaction("👍")
 
     def prepare(self) -> bool:
         """ Prepare the module """
