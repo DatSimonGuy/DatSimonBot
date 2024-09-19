@@ -12,7 +12,7 @@ class YtModule(BaseModule):
         super().__init__(bot, telebot_module)
         self._handlers = {
             "download": self._download,
-            "ytsearch": self.ytsearch,
+            "ytsearch": self._ytsearch,
             "allow_auto_download": self._allow_auto_download,
             "disallow_auto_download": self._disallow_auto_download
         }
@@ -25,7 +25,6 @@ class YtModule(BaseModule):
         self._auto_download_groups = set()
         self._youtube = None
         self._db = None
-        self.add_handlers()
 
     @prevent_edited
     async def _download(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -58,7 +57,7 @@ class YtModule(BaseModule):
         await update.message.reply_video(video_file)
 
     @prevent_edited
-    async def ytsearch(self, update, context) -> None:
+    async def _ytsearch(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Search for a youtube video """
         if not context.args:
             await update.message.reply_text("Please provide a search query")

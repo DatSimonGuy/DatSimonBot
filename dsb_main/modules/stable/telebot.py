@@ -16,13 +16,12 @@ class Telebot(Module):
     name = "Telebot"
     def __init__(self, bot) -> None:
         super().__init__(bot)
-        self._modules: list['BaseModule'] = []
+        self._modules: dict[str, 'BaseModule'] = {}
         self._handlers_path = "dsb_main/modules/stable/telebot_modules"
         self._ptb = ApplicationBuilder().token(self._bot.config["telebot_token"]).build()
         self._ptb.add_error_handler(self._error_handler)
         self._commands = {}
         self._bot_thread = None
-        self._modules = {}
         self._loop = asyncio.new_event_loop()
         self._get_telebot_modules()
 
@@ -62,10 +61,10 @@ class Telebot(Module):
         """ Get a DSB module by name """
         return self._bot.get_module(module_name)
 
-    def _error_handler(self, update: Update, context: CallbackContext) -> None:
+    async def _error_handler(self, update: Update, context: CallbackContext) -> None:
         """Log the error and send a message to the user."""
         self._bot.log("ERROR", "Exception while handling an update:", exc_info=context.error)
-        update.message.reply_text('An error occurred. Please try again later.')
+        await update.message.reply_text('An error occurred. Please try again later.')
 
     def _run_bot(self):
         asyncio.set_event_loop(self._loop)
