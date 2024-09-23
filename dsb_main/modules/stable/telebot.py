@@ -23,6 +23,7 @@ class Telebot(Module):
         self._commands = {}
         self._bot_thread = None
         self._loop = asyncio.new_event_loop()
+        self._chat_macros = {}
         self._get_telebot_modules()
 
     @property
@@ -64,7 +65,52 @@ class Telebot(Module):
     async def _error_handler(self, update: Update, context: CallbackContext) -> None:
         """Log the error and send a message to the user."""
         self._bot.log("ERROR", "Exception while handling an update:", exc_info=context.error)
-        await update.message.reply_text('An error occurred. Please try again later.')
+        if update is not None:
+            await update.message.reply_text('An error occurred. Please try again later.')
+
+    def send_message(self, chat_id: int, message: str) -> None:
+        """ Send a message to a chat """
+        if chat_id in self._chat_macros:
+            chat_id = self._chat_macros[chat_id]
+        try:
+            if isinstance(chat_id, str):
+                chat_id = int(chat_id)
+        except ValueError:
+            self._bot.log("ERROR", f"Invalid chat id {chat_id}")
+            return
+        asyncio.run_coroutine_threadsafe(self._ptb.bot.send_message(chat_id, message), self._loop)
+
+    def send_image(self, chat_id: int, image: bytes, caption: str = "") -> None:
+        """ Send an image to a chat """
+        if chat_id in self._chat_macros:
+            chat_id = self._chat_macros[chat_id]
+        try:
+            if isinstance(chat_id, str):
+                chat_id = int(chat_id)
+        except ValueError:
+            self._bot.log("ERROR", f"Invalid chat id {chat_id}")
+            return
+        asyncio.run_coroutine_threadsafe(self._ptb.bot.send_photo(chat_id, image, caption=caption),
+                                         self._loop)
+
+    def download_file(self, file_id: str) -> bytes:
+        """ Download a file from the bot """
+        file = asyncio.run_coroutine_threadsafe(self._ptb.bot.getFile(file_id),
+                                                self._loop).result()
+        return asyncio.run_coroutine_threadsafe(file.download_as_bytearray(),
+                                                self._loop).result()
+
+    def get_chat_id(self, macro: str) -> int:
+        """ Get the chat id from a chat macro """
+        return self._chat_macros.get(macro, -1)
+
+    def add_chat_macro(self, chat_id: int, macro: str) -> None:
+        """ Add a chat macro """
+        self._chat_macros[macro] = chat_id
+        try:
+            self._bot.get_module("Database").save(self._chat_macros, "telebot", "chat_macros")
+        except KeyError:
+            pass
 
     def _run_bot(self):
         asyncio.set_event_loop(self._loop)
@@ -72,6 +118,10 @@ class Telebot(Module):
 
     def run(self) -> bool:
         """ Run the module. Returns True if the module was run. """
+        try:
+            self._chat_macros = self._bot.get_module("Database").load("telebot", "chat_macros")
+        except KeyError:
+            self._chat_macros = {}
         self._get_telebot_modules(reload=True)
         for name, module in self._modules.items():
             if module.prepare():

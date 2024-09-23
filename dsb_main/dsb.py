@@ -3,7 +3,7 @@
 import os
 import importlib
 import logging
-from typing import Literal, TYPE_CHECKING, Optional
+from typing import Literal, TYPE_CHECKING, Optional, Generator
 from argparse import Namespace
 import dotenv
 from dsb_main.modules.base_modules.statuses import Status
@@ -32,6 +32,16 @@ class DSB:
     def logger(self) -> logging.Logger:
         """ Get the logger. """
         return self._logger
+
+    @property
+    def module_ammount(self) -> int:
+        """ Get the amount of modules. """
+        return len(self._modules)
+
+    @property
+    def running(self) -> bool:
+        """ Check if the application is running properly. """
+        return all(module.running for module in self._modules.values())
 
     def set_log_level(self, level: Literal["ERROR", "INFO", "WARNING", "DEBUG"]) -> None:
         """ Set the log level. """
@@ -108,6 +118,11 @@ class DSB:
     def get_module(self, module_name: str) -> Optional['Module']:
         """ Get a module by its name. """
         return self._modules.get(module_name, None)
+
+    def get_modules(self) -> Generator['Module', None, None]:
+        """ Get all modules. """
+        for module in self._modules.values():
+            yield module
 
     def log(self, level: Literal["ERROR", "INFO", "WARNING", "DEBUG"],
             message: str, exc_info: Optional[Exception] = None) -> None:

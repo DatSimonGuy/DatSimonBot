@@ -6,7 +6,7 @@ import jsonpickle
 from dsb_main.modules.base_modules.module import Module
 
 class Database(Module):
-    """ Database module for the DSB project. Will be rewritten to use SQL later. """
+    """ Database module for the DSB project """
     name = "Database"
     def __init__(self, bot) -> None:
         super().__init__(bot)
