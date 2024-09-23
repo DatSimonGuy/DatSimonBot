@@ -141,7 +141,13 @@ class Planner(BaseModule):
         group_id = update.effective_chat.id
         plan = self._planning_module.get_plan(plan_name, group_id)
         if plan:
-            await update.message.reply_text(str(plan))
+            if plan.is_empty():
+                await update.message.reply_text("Plan is empty")
+                return
+            plan_image = plan.to_image()
+            with open("plan.png", "wb") as file:
+                file.write(plan_image)
+            await update.message.reply_photo(plan_image)
         else:
             await update.message.reply_text("Plan not found")
 

@@ -1,6 +1,8 @@
 """ Class for Plan """
 
 from datetime import datetime
+from io import BytesIO
+import matplotlib.pyplot as plt
 from .lesson import Lesson
 
 class Plan:
@@ -90,6 +92,13 @@ class Plan:
         """ Get all lessons """
         return self._week
 
+    def is_empty(self) -> bool:
+        """ Returns True if the plan is empty """
+        for day in self._week:
+            if day:
+                return False
+        return True
+
     def __str__(self) -> str:
         plan = ""
         for i, day in enumerate(self._week):
@@ -97,3 +106,49 @@ class Plan:
             for lesson in day:
                 plan += f"{str(lesson)}\n"
         return plan
+
+    def to_image(self) -> bytes:
+        """ Create an image of the plan """
+        if self.is_empty():
+            return b""
+
+        max_lessons = max([len(day) for day in self._week])
+
+        fig, ax = plt.subplots(figsize=(10, 5))
+        fig.patch.set_facecolor('#222222')
+        ax.set_facecolor('#222222')
+
+        col_labels = self._days
+        table_data = []
+
+        for i in range(max_lessons):
+            row = []
+            for day in self._week:
+                if i < len(day):
+                    row.append(str(day[i]))
+                else:
+                    row.append("")
+            table_data.append(row)
+
+        row_labels = [f"Lesson {i+1}" for i in range(max_lessons)]
+
+        ax.axis("tight")
+        ax.axis("off")
+
+        table = ax.table(cellText=table_data, rowLabels=row_labels,
+                        colLabels=col_labels, loc="center", cellLoc="center")
+        table.auto_set_font_size(False)
+        table.set_fontsize(7)
+        table.scale(1, 3)
+
+        for cell in table.get_celld().values():
+            cell.set_edgecolor('#222222')
+            cell.set_facecolor('darkgrey')
+
+        buf = BytesIO()
+        plt.savefig(buf, format='png')
+        plt.close()
+        buf.seek(0)
+        with open("plan.png", "wb") as file:
+            file.write(buf.read())
+        return buf.getvalue()

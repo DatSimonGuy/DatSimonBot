@@ -93,5 +93,5 @@ class Lesson:
         e_time = datetime.combine(date.today(), self._end_time)
         s_display = datetime.strftime(s_time, "%H:%M")
         e_display = datetime.strftime(e_time, "%H:%M")
-        return f"{self.subject} | {self._type}" + \
-            f" | {self._teacher} | {self._room} | {s_display} - {e_display}"
+        return f"| {s_display} - {e_display} | {self.subject} | {self._type} |\n" + \
+            f" | {self._teacher} | {self._room} | "

@@ -18,7 +18,7 @@ class Planning(Module):
         return self._db.save(new_plan, f"{group_id}/plans", name)
 
     @run_only
-    def get_plan(self, name: str, group_id: int) -> Plan:
+    def get_plan(self, name: str, group_id: int) -> Plan | None:
         """ Get a lesson plan """
         return self._db.load(f"{group_id}/plans", name)
 
