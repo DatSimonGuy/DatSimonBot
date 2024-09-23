@@ -410,21 +410,7 @@ class Planner(BaseModule):
             await update.message.reply_text("No lessons today")
             return
 
-        free_students = []
-
-        for plan_name in plans:
-            plan = self._planning_module.get_plan(plan_name,
-                                                  update.effective_chat.id)
-            if len(plan.get_day(today)) == 0:
-                free_students.extend((student, "No lessons!") for student in plan.students)
-                continue
-            if plan:
-                if not any(lesson.is_now for lesson in plan.get_day(today)):
-                    next_lesson = plan.next_lesson
-                    time_until = next_lesson.time_until.total_seconds()
-                    text = f"{int(time_until//3600):02}:{int(time_until//60):02}" if next_lesson \
-                        else "No lessons!"
-                    free_students.extend((student, text) for student in plan.students)
+        free_students = self._planning_module.who_is_free(update.effective_chat.id)
 
         student_list = "\n".join(f"{student} - {text}" for student, text in free_students)
         if not student_list:

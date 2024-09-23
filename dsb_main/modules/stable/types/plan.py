@@ -55,6 +55,22 @@ class Plan:
                 return lesson
         return None
 
+    @property
+    def current_lesson(self) -> Lesson | None:
+        """ Returns the current lesson """
+        today = datetime.now().weekday()
+        now = datetime.now().time()
+        for lesson in self._week[today]:
+            if lesson.start_time <= now <= lesson.end_time:
+                return lesson
+        return None
+
+    def is_free(self) -> bool:
+        """ Returns True if the students are free """
+        if self.current_lesson:
+            return False
+        return True
+
     def add_student(self, student_id: int) -> None:
         """ Add a student to the plan """
         self._students.append(student_id)
