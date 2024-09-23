@@ -4,7 +4,7 @@ from datetime import datetime, time, date, timedelta
 
 class Lesson:
     """ Lesson class containing info about a lesson """
-    def __init__(self, subject: str, teacher: str, room: str, # pylint: disable=too-many-arguments
+    def __init__(self, subject: str, teacher: str, room: str, # pylint: disable=too-many-arguments, too-many-positional-arguments
                  start_time: time, end_time: time, day: int, lesson_type: str) -> None:
         self._subject = subject
         self._teacher = teacher

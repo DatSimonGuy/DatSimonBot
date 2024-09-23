@@ -6,7 +6,7 @@ from dsb_main.dsb import DSB
 
 class Table(tk.Frame):
     """ Class used to create a table in the application window. """
-    def __init__(self, parent, columns: list, titles: list, column: int, row: int) -> None:
+    def __init__(self, parent, columns: list, titles: list, column: int, row: int) -> None: # pylint: disable=too-many-arguments, too-many-positional-arguments
         super().__init__(parent)
 
         self.columns = columns
