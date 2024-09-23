@@ -145,8 +145,6 @@ class Planner(BaseModule):
                 await update.message.reply_text("Plan is empty")
                 return
             plan_image = plan.to_image()
-            with open("plan.png", "wb") as file:
-                file.write(plan_image)
             await update.message.reply_photo(plan_image)
         else:
             await update.message.reply_text("Plan not found")

@@ -76,6 +76,11 @@ class Lesson:
         now = datetime.now()
         return datetime.combine(date.today(), self._start_time) - now
 
+    @property
+    def type(self) -> str:
+        """ Returns the type of the lesson """
+        return self._type
+
     def update(self, data: dict):
         """ Update the lesson with new data """
         self._subject = data.get("subject", self._subject)

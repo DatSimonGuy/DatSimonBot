@@ -4,6 +4,7 @@ from datetime import datetime
 from io import BytesIO
 import matplotlib.pyplot as plt
 from .lesson import Lesson
+import matplotlib
 
 class Plan:
     """ Plan class containing info about lessons """
@@ -112,43 +113,54 @@ class Plan:
         if self.is_empty():
             return b""
 
-        max_lessons = max([len(day) for day in self._week])
+        colors_by_type = {
+            "lecture": "#5b9fe6",
+            "exercise": "#f1559e",
+            "test": "#f7b731",
+            "exam": "#f7b731",
+            "lab": "#9f7dde",
+            "project": "#ee9e57",
+            "seminar": "lightgreen",
+            "other": "grey"
+        }
 
-        fig, ax = plt.subplots(figsize=(10, 5))
-        fig.patch.set_facecolor('#222222')
-        ax.set_facecolor('#222222')
-
-        col_labels = self._days
-        table_data = []
-
-        for i in range(max_lessons):
-            row = []
-            for day in self._week:
-                if i < len(day):
-                    row.append(str(day[i]))
-                else:
-                    row.append("")
-            table_data.append(row)
-
-        row_labels = [f"Lesson {i+1}" for i in range(max_lessons)]
-
+        matplotlib.use('Agg')
+        fig, ax = plt.subplots()
         ax.axis("tight")
-        ax.axis("off")
 
-        table = ax.table(cellText=table_data, rowLabels=row_labels,
-                        colLabels=col_labels, loc="center", cellLoc="center")
-        table.auto_set_font_size(False)
-        table.set_fontsize(7)
-        table.scale(1, 3)
+        for i in range(6):
+            ax.plot([i, i], [0, 15], color="black")
 
-        for cell in table.get_celld().values():
-            cell.set_edgecolor('#222222')
-            cell.set_facecolor('darkgrey')
+        for i in range(7, 22):
+            ax.plot([0, 5], [i-7, i-7], color="black")
+
+        for i, day in enumerate(self._week):
+            for lesson in day:
+                start = lesson.start_time
+                end = lesson.end_time
+                ax.fill_between([i+0.01, i + 0.99], [start.hour - 7 + start.minute / 60],
+                                [end.hour - 7 + end.minute / 60],
+                                color=colors_by_type.get(lesson.type, "grey"), zorder=2,
+                                edgecolor="black", linewidth=0.5)
+                start_d = lesson.start_time.strftime("%H:%M")
+                end_d = lesson.end_time.strftime("%H:%M")
+                ax.text(i + 0.5, start.hour - 7 + start.minute / 60 + 0.9,
+                        f"{lesson.subject} ({lesson.type})\n{start_d}-{end_d}",
+                        color="black", fontdict={"fontsize": 7, "ha": "center", "va": "bottom"},
+                        zorder=3)
+
+        ax.set_xlim(0, 5)
+        ax.set_ylim(15, 0)
+        ax.set_yticks(range(15))
+        ax.set_yticklabels([f"{i+7}:00" for i in range(15)], fontsize=8, color="black")
+
+        ax.set_xticks([0.5, 1.5, 2.5, 3.5, 4.5])
+        ax.set_xticklabels(self._days, fontsize=10, color="black", ha='center')
+        ax.xaxis.set_label_position('top')
+        ax.xaxis.tick_top()
 
         buf = BytesIO()
-        plt.savefig(buf, format='png')
-        plt.close()
+        plt.savefig(buf, format="png")
+        plt.close(fig)
         buf.seek(0)
-        with open("plan.png", "wb") as file:
-            file.write(buf.read())
         return buf.getvalue()
