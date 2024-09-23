@@ -28,6 +28,7 @@ class Misc(BaseModule):
             await update.message.reply_text("Stos is dead. 💀")
         await update.message.reply_text(f"Stos is alive. It took {elapsed_time} seconds to check.")
 
+    @admin_only
     async def _screenshot(self, update: Update, context) -> None:
         """ Take a screenshot of a page """
         args, _ = self._get_args(context)
