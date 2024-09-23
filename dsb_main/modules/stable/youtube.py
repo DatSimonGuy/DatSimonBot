@@ -10,7 +10,7 @@ class Youtube(Module):
     name = "Youtube"
 
     @run_only
-    def search(self, query: str, limit: int | None = None,
+    def search(self, query: str, limit: int | None = None, # pylint: disable=too-many-arguments, too-many-positional-arguments
                sleep: int = 1, sort_by: Literal['relevance',
                'upload_date', 'view_count', 'rating'] = "relevance",
                results_type: Literal['video', 'channel', 'playlist',
