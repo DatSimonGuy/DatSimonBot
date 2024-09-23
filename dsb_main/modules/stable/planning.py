@@ -1,6 +1,5 @@
 """ Module for lesson plan handling """
 
-from datetime import datetime
 from dsb_main.modules.base_modules.module import Module, run_only
 from dsb_main.modules.stable.database import Database
 from .types.plan import Plan

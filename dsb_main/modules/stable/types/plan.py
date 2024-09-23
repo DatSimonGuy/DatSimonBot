@@ -3,8 +3,8 @@
 from datetime import datetime
 from io import BytesIO
 import matplotlib.pyplot as plt
-from .lesson import Lesson
 import matplotlib
+from .lesson import Lesson
 
 class Plan:
     """ Plan class containing info about lessons """
