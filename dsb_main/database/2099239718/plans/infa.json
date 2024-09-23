@@ -1,0 +1,283 @@
+{
+    "py/object": "dsb_main.modules.stable.types.plan.Plan",
+    "_name": "infa",
+    "_students": [
+        "DatSimonGuy"
+    ],
+    "_week": [
+        [
+            {
+                "py/object": "dsb_main.modules.stable.types.lesson.Lesson",
+                "_subject": "PP",
+                "_teacher": "Dere\u0144",
+                "_day": "1",
+                "_room": "AUDIL",
+                "_start_time": {
+                    "py/object": "datetime.time",
+                    "__reduce__": [
+                        {
+                            "py/type": "datetime.time"
+                        },
+                        [
+                            "DAAAAAAA"
+                        ]
+                    ]
+                },
+                "_end_time": {
+                    "py/object": "datetime.time",
+                    "__reduce__": [
+                        {
+                            "py/type": "datetime.time"
+                        },
+                        [
+                            "DQ8AAAAA"
+                        ]
+                    ]
+                },
+                "_duration": {
+                    "py/reduce": [
+                        {
+                            "py/type": "datetime.timedelta"
+                        },
+                        {
+                            "py/tuple": [
+                                0,
+                                4500,
+                                0
+                            ]
+                        }
+                    ]
+                },
+                "_type": "lab"
+            }
+        ],
+        [
+            {
+                "py/object": "dsb_main.modules.stable.types.lesson.Lesson",
+                "_subject": "PP",
+                "_teacher": "Dere\u0144",
+                "_day": "2",
+                "_room": "AUDIL",
+                "_start_time": {
+                    "py/object": "datetime.time",
+                    "__reduce__": [
+                        {
+                            "py/type": "datetime.time"
+                        },
+                        [
+                            "CwAAAAAA"
+                        ]
+                    ]
+                },
+                "_end_time": {
+                    "py/object": "datetime.time",
+                    "__reduce__": [
+                        {
+                            "py/type": "datetime.time"
+                        },
+                        [
+                            "Cy0AAAAA"
+                        ]
+                    ]
+                },
+                "_duration": {
+                    "py/reduce": [
+                        {
+                            "py/type": "datetime.timedelta"
+                        },
+                        {
+                            "py/tuple": [
+                                0,
+                                2700,
+                                0
+                            ]
+                        }
+                    ]
+                },
+                "_type": "test"
+            },
+            {
+                "py/object": "dsb_main.modules.stable.types.lesson.Lesson",
+                "_subject": "PP",
+                "_teacher": "Dere\u0144",
+                "_day": "2",
+                "_room": "AUDIL",
+                "_start_time": {
+                    "py/object": "datetime.time",
+                    "__reduce__": [
+                        {
+                            "py/type": "datetime.time"
+                        },
+                        [
+                            "DAAAAAAA"
+                        ]
+                    ]
+                },
+                "_end_time": {
+                    "py/object": "datetime.time",
+                    "__reduce__": [
+                        {
+                            "py/type": "datetime.time"
+                        },
+                        [
+                            "DQ8AAAAA"
+                        ]
+                    ]
+                },
+                "_duration": {
+                    "py/reduce": [
+                        {
+                            "py/type": "datetime.timedelta"
+                        },
+                        {
+                            "py/tuple": [
+                                0,
+                                4500,
+                                0
+                            ]
+                        }
+                    ]
+                },
+                "_type": "project"
+            }
+        ],
+        [
+            {
+                "py/object": "dsb_main.modules.stable.types.lesson.Lesson",
+                "_subject": "PP",
+                "_teacher": "Dere\u0144",
+                "_day": "3",
+                "_room": "AUDIL",
+                "_start_time": {
+                    "py/object": "datetime.time",
+                    "__reduce__": [
+                        {
+                            "py/type": "datetime.time"
+                        },
+                        [
+                            "DAAAAAAA"
+                        ]
+                    ]
+                },
+                "_end_time": {
+                    "py/object": "datetime.time",
+                    "__reduce__": [
+                        {
+                            "py/type": "datetime.time"
+                        },
+                        [
+                            "DQ8AAAAA"
+                        ]
+                    ]
+                },
+                "_duration": {
+                    "py/reduce": [
+                        {
+                            "py/type": "datetime.timedelta"
+                        },
+                        {
+                            "py/tuple": [
+                                0,
+                                4500,
+                                0
+                            ]
+                        }
+                    ]
+                },
+                "_type": "seminar"
+            }
+        ],
+        [
+            {
+                "py/object": "dsb_main.modules.stable.types.lesson.Lesson",
+                "_subject": "PP",
+                "_teacher": "Dere\u0144",
+                "_day": "4",
+                "_room": "AUDIL",
+                "_start_time": {
+                    "py/object": "datetime.time",
+                    "__reduce__": [
+                        {
+                            "py/type": "datetime.time"
+                        },
+                        [
+                            "DAAAAAAA"
+                        ]
+                    ]
+                },
+                "_end_time": {
+                    "py/object": "datetime.time",
+                    "__reduce__": [
+                        {
+                            "py/type": "datetime.time"
+                        },
+                        [
+                            "DQ8AAAAA"
+                        ]
+                    ]
+                },
+                "_duration": {
+                    "py/reduce": [
+                        {
+                            "py/type": "datetime.timedelta"
+                        },
+                        {
+                            "py/tuple": [
+                                0,
+                                4500,
+                                0
+                            ]
+                        }
+                    ]
+                },
+                "_type": "lecture"
+            }
+        ],
+        [
+            {
+                "py/object": "dsb_main.modules.stable.types.lesson.Lesson",
+                "_subject": "PP",
+                "_teacher": "Dere\u0144",
+                "_day": "5",
+                "_room": "AUDIL",
+                "_start_time": {
+                    "py/object": "datetime.time",
+                    "__reduce__": [
+                        {
+                            "py/type": "datetime.time"
+                        },
+                        [
+                            "DAAAAAAA"
+                        ]
+                    ]
+                },
+                "_end_time": {
+                    "py/object": "datetime.time",
+                    "__reduce__": [
+                        {
+                            "py/type": "datetime.time"
+                        },
+                        [
+                            "DQ8AAAAA"
+                        ]
+                    ]
+                },
+                "_duration": {
+                    "py/reduce": [
+                        {
+                            "py/type": "datetime.timedelta"
+                        },
+                        {
+                            "py/tuple": [
+                                0,
+                                4500,
+                                0
+                            ]
+                        }
+                    ]
+                },
+                "_type": "test"
+            }
+        ]
+    ]
+}

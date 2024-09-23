@@ -20,13 +20,14 @@ class Planner(BaseModule):
             "delete_all": self._delete_all,
             "add_lesson": self._add_lesson,
             "remove_lesson": self._remove_lesson,
-            "edit_lesson": self.edit_lesson,
+            "edit_lesson": self._edit_lesson,
             "clear_day": self._clear_day,
             "clear_all": self._clear_all,
             "edit_plan": self._edit_plan,
-            "who_is_free": self.who_is_free,
+            "who_is_free": self._who_is_free,
             "join_plan": self.join_plan,
-            "leave_plan": self.leave_plan
+            "leave_plan": self.leave_plan,
+            "get_students": self._get_students
         }
         self._descriptions = {
             "create_plan": "Create a new lesson plan",
@@ -42,7 +43,8 @@ class Planner(BaseModule):
             "edit_plan": "Edit a plan name",
             "who_is_free": "Find out who is free at a given time",
             "join_plan": "Join a lesson plan",
-            "leave_plan": "Leave a lesson plan"
+            "leave_plan": "Leave a lesson plan",
+            "get_students": "Get all students in a plan"
         }
 
     @prevent_edited
@@ -141,7 +143,11 @@ class Planner(BaseModule):
         group_id = update.effective_chat.id
         plan = self._planning_module.get_plan(plan_name, group_id)
         if plan:
-            await update.message.reply_text(str(plan))
+            if plan.is_empty():
+                await update.message.reply_text("Plan is empty")
+                return
+            plan_image = plan.to_image()
+            await update.message.reply_photo(plan_image)
         else:
             await update.message.reply_text("Plan not found")
 
@@ -261,7 +267,7 @@ class Planner(BaseModule):
             await update.message.reply_text("Lesson not found")
 
     @prevent_edited
-    async def edit_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def _edit_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Edit a lesson in a plan """
         if not context.args:
             await update.message.reply_text("Please provide a name for the plan")
@@ -392,7 +398,7 @@ class Planner(BaseModule):
         await update.message.set_reaction("👍")
 
     @prevent_edited
-    async def who_is_free(self, update: Update, _) -> None:
+    async def _who_is_free(self, update: Update, _) -> None:
         """ Find out who is free at a given time """
         plans = self._planning_module.get_plans(update.effective_chat.id)
 
@@ -406,27 +412,39 @@ class Planner(BaseModule):
             await update.message.reply_text("No lessons today")
             return
 
-        free_students = []
-
-        for plan_name in plans:
-            plan = self._planning_module.get_plan(plan_name,
-                                                  update.effective_chat.id)
-            if len(plan.get_day(today)) == 0:
-                free_students.extend((student, "No lessons!") for student in plan.students)
-                continue
-            if plan:
-                if not any(lesson.is_now for lesson in plan.get_day(today)):
-                    next_lesson = plan.next_lesson
-                    time_until = next_lesson.time_until.total_seconds()
-                    text = f"{int(time_until//3600):02}:{int(time_until//60):02}" if next_lesson \
-                        else "No lessons!"
-                    free_students.extend((student, text) for student in plan.students)
+        free_students = self._planning_module.who_is_free(update.effective_chat.id)
 
         student_list = "\n".join(f"{student} - {text}" for student, text in free_students)
         if not student_list:
             await update.message.reply_text("No students are free")
             return
         await update.message.reply_text(f"Free students:\n{student_list}")
+
+    @prevent_edited
+    async def _get_students(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Get all students in a plan """
+        if not context.args:
+            await update.message.reply_text("Please provide a name for the plan")
+            return
+
+        args, kwargs = self._get_args(context)
+        if "name" in kwargs:
+            plan_name = kwargs.get("name")
+        else:
+            plan_name = " ".join(args)
+
+        group_id = update.effective_chat.id
+        plan = self._planning_module.get_plan(plan_name, group_id)
+
+        if not plan:
+            await update.message.reply_text(f"Plan {plan_name} not found")
+            return
+
+        student_list = "\n".join(f"{i+1}. {student}" for i, student in enumerate(plan.students))
+        if not student_list:
+            await update.message.reply_text("No students in the plan")
+            return
+        await update.message.reply_text(f"Students:\n{student_list}")
 
     @prevent_edited
     async def join_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

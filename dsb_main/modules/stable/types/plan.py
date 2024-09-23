@@ -1,6 +1,9 @@
 """ Class for Plan """
 
 from datetime import datetime
+from io import BytesIO
+import matplotlib.pyplot as plt
+import matplotlib
 from .lesson import Lesson
 
 class Plan:
@@ -52,6 +55,22 @@ class Plan:
                 return lesson
         return None
 
+    @property
+    def current_lesson(self) -> Lesson | None:
+        """ Returns the current lesson """
+        today = datetime.now().weekday()
+        now = datetime.now().time()
+        for lesson in self._week[today]:
+            if lesson.start_time <= now <= lesson.end_time:
+                return lesson
+        return None
+
+    def is_free(self) -> bool:
+        """ Returns True if the students are free """
+        if self.current_lesson:
+            return False
+        return True
+
     def add_student(self, student_id: int) -> None:
         """ Add a student to the plan """
         self._students.append(student_id)
@@ -90,6 +109,13 @@ class Plan:
         """ Get all lessons """
         return self._week
 
+    def is_empty(self) -> bool:
+        """ Returns True if the plan is empty """
+        for day in self._week:
+            if day:
+                return False
+        return True
+
     def __str__(self) -> str:
         plan = ""
         for i, day in enumerate(self._week):
@@ -97,3 +123,60 @@ class Plan:
             for lesson in day:
                 plan += f"{str(lesson)}\n"
         return plan
+
+    def to_image(self) -> bytes:
+        """ Create an image of the plan """
+        if self.is_empty():
+            return b""
+
+        colors_by_type = {
+            "lecture": "#5b9fe6",
+            "exercise": "#f1559e",
+            "test": "#f7b731",
+            "exam": "#f7b731",
+            "lab": "#9f7dde",
+            "project": "#ee9e57",
+            "seminar": "lightgreen",
+            "other": "grey"
+        }
+
+        matplotlib.use('Agg')
+        fig, ax = plt.subplots()
+        ax.axis("tight")
+
+        for i in range(6):
+            ax.plot([i, i], [0, 15], color="black")
+
+        for i in range(7, 22):
+            ax.plot([0, 5], [i-7, i-7], color="black")
+
+        for i, day in enumerate(self._week):
+            for lesson in day:
+                start = lesson.start_time
+                end = lesson.end_time
+                ax.fill_between([i+0.01, i + 0.99], [start.hour - 7 + start.minute / 60],
+                                [end.hour - 7 + end.minute / 60],
+                                color=colors_by_type.get(lesson.type, "grey"), zorder=2,
+                                edgecolor="black", linewidth=0.5)
+                start_d = lesson.start_time.strftime("%H:%M")
+                end_d = lesson.end_time.strftime("%H:%M")
+                ax.text(i + 0.5, start.hour - 7 + start.minute / 60 + 0.9,
+                        f"{lesson.subject} ({lesson.type})\n{start_d}-{end_d}",
+                        color="black", fontdict={"fontsize": 7, "ha": "center", "va": "bottom"},
+                        zorder=3)
+
+        ax.set_xlim(0, 5)
+        ax.set_ylim(15, 0)
+        ax.set_yticks(range(15))
+        ax.set_yticklabels([f"{i+7}:00" for i in range(15)], fontsize=8, color="black")
+
+        ax.set_xticks([0.5, 1.5, 2.5, 3.5, 4.5])
+        ax.set_xticklabels(self._days, fontsize=10, color="black", ha='center')
+        ax.xaxis.set_label_position('top')
+        ax.xaxis.tick_top()
+
+        buf = BytesIO()
+        plt.savefig(buf, format="png")
+        plt.close(fig)
+        buf.seek(0)
+        return buf.getvalue()
