@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Literal
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CallbackContext
 from dsb_main.modules.base_modules.module import Module
+from dsb_main.modules.base_modules.statuses import Status
 if TYPE_CHECKING:
     from .telebot_modules.base.base_module import BaseModule
 
@@ -36,6 +37,11 @@ class Telebot(Module):
         """ Get the bot configuration """
         return self._bot.config
 
+    @property
+    def chat_macros(self) -> dict:
+        """ Get the chat macros """
+        return self._chat_macros
+
     def log(self, level: Literal["ERROR", "INFO", "WARNING", "DEBUG"],
             message: str) -> None:
         """ Log a message """
@@ -61,6 +67,10 @@ class Telebot(Module):
     def get_dsb_module(self, module_name: str) -> Module:
         """ Get a DSB module by name """
         return self._bot.get_module(module_name)
+
+    def get_telebot_module(self, module_name: str) -> 'BaseModule':
+        """ Get a telebot module by name """
+        return self._modules.get(module_name, None)
 
     async def _error_handler(self, update: Update, context: CallbackContext) -> None:
         """Log the error and send a message to the user."""
@@ -107,10 +117,16 @@ class Telebot(Module):
     def add_chat_macro(self, chat_id: int, macro: str) -> None:
         """ Add a chat macro """
         self._chat_macros[macro] = chat_id
-        try:
-            self._bot.get_module("Database").save(self._chat_macros, "telebot", "chat_macros")
-        except KeyError:
-            pass
+        database = self._bot.get_module("Database")
+        if database:
+            database.save(self._chat_macros, "telebot", "chat_macros")
+
+    def remove_chat_macro(self, macro: str) -> None:
+        """ Remove a chat macro """
+        self._chat_macros.pop(macro, None)
+        database = self._bot.get_module("Database")
+        if database:
+            database.save(self._chat_macros, "telebot", "chat_macros")
 
     def _run_bot(self):
         asyncio.set_event_loop(self._loop)
@@ -118,9 +134,12 @@ class Telebot(Module):
 
     def run(self) -> bool:
         """ Run the module. Returns True if the module was run. """
-        try:
-            self._chat_macros = self._bot.get_module("Database").load("telebot", "chat_macros")
-        except KeyError:
+        if self._status == Status.RUNNING:
+            return True
+        database = self._bot.get_module("Database")
+        if database:
+            self._chat_macros = database.load("telebot", "chat_macros")
+        else:
             self._chat_macros = {}
         self._get_telebot_modules(reload=True)
         for name, module in self._modules.items():

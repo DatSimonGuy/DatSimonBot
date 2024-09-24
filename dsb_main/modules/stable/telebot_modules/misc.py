@@ -2,7 +2,7 @@
 
 from telegram import Update
 from dsb_main.modules.stable.miscelanious import Miscelanious
-from .base.base_module import BaseModule, admin_only
+from .base.base_module import BaseModule, admin_only, prevent_edited
 
 class Misc(BaseModule):
     """ Miscelanious module """
@@ -19,6 +19,7 @@ class Misc(BaseModule):
         }
 
     @admin_only
+    @prevent_edited
     async def _is_stos_alive(self, update: Update, _) -> None:
         """ Check if stos is alive """
         await update.message.reply_text("Checking if stos is alive..." + \
@@ -29,6 +30,7 @@ class Misc(BaseModule):
         await update.message.reply_text(f"Stos is alive. It took {elapsed_time} seconds to check.")
 
     @admin_only
+    @prevent_edited
     async def _screenshot(self, update: Update, context) -> None:
         """ Take a screenshot of a page """
         args, _ = self._get_args(context)

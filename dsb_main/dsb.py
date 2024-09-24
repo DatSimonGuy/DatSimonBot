@@ -57,26 +57,26 @@ class DSB:
         """ Imports or reloads all necessary modules. """
         e_modules = os.listdir("dsb_main/modules/experimental") if self._experimental else []
         s_modules = os.listdir("dsb_main/modules/stable")
-        for module_name in e_modules + s_modules:
-            if module_name in self._modules:
-                continue
-            if module_name.endswith(".py") and module_name != "__init__.py":
-                module_name = module_name[:-3]
-                if reload:
-                    loaded_module = importlib.reload(importlib.import_module(
-                        'dsb_main.modules.stable' + "." + module_name))
-                else:
-                    loaded_module = importlib.import_module(
-                        'dsb_main.modules.stable' + "." + module_name)
-                module_class_name = module_name.title().replace("_", "")
-                module_class: 'Module' = getattr(loaded_module, module_class_name)
-                try:
-                    module = module_class(self)
-                    self.add_module(module)
-                except Exception as exc: # pylint: disable=broad-except
-                    self._logger.error("Error loading module %s", module_name, exc_info=exc)
-                    if module_class.name in self._modules:
-                        self._modules[module_class.name].status = Status.ERROR
+        for module_type, module_path in [("experimental", e_modules), ("stable", s_modules)]:
+            for module_name in module_path:
+                if module_name in self._modules:
+                    continue
+                if module_name.endswith(".py") and module_name != "__init__.py":
+                    module_name = module_name[:-3]
+                    module_full_path = f'dsb_main.modules.{module_type}' + "." + module_name
+                    if reload:
+                        loaded_module = importlib.reload(importlib.import_module(module_full_path))
+                    else:
+                        loaded_module = importlib.import_module(module_full_path)
+                    module_class_name = module_name.title().replace("_", "")
+                    module_class: 'Module' = getattr(loaded_module, module_class_name)
+                    try:
+                        module = module_class(self)
+                        self.add_module(module)
+                    except Exception as exc: # pylint: disable=broad-except
+                        self._logger.error("Error loading module %s", module_name, exc_info=exc)
+                        if module_class.name in self._modules:
+                            self._modules[module_class.name].status = Status.ERROR
 
     def get_status(self) -> dict:
         """ Get the status of the modules. """
@@ -101,6 +101,8 @@ class DSB:
 
     def run(self) -> None:
         """ Run the application. """
+        if any(module.running for module in self._modules.values()):
+            self.stop()
         self._import_modules(reload=True)
         for current_module in self._modules.values():
             if not self._run_module(current_module.name):
