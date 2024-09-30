@@ -123,8 +123,7 @@ class DSB:
 
     def get_modules(self) -> Generator['Module', None, None]:
         """ Get all modules. """
-        for module in self._modules.values():
-            yield module
+        yield from self._modules.values()
 
     def log(self, level: Literal["ERROR", "INFO", "WARNING", "DEBUG"],
             message: str, exc_info: Optional[Exception] = None) -> None:
