@@ -1,6 +1,6 @@
 """ Template module for reference. """
 
-from dsb_main.modules.base_modules.module import Module, run_only
+from main.modules.base_modules.module import Module, run_only
 
 class Template(Module):
     """ Template module for reference. """

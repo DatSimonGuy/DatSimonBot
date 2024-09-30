@@ -2,7 +2,7 @@
 
 import time
 from playwright.async_api import async_playwright
-from dsb_main.modules.base_modules.module import Module
+from dsb.main.modules.base_modules.module import Module
 
 class Miscelanious(Module):
     """ Miscelanious module """

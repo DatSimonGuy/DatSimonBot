@@ -6,9 +6,9 @@ import logging
 from typing import Literal, TYPE_CHECKING, Optional, Generator
 from argparse import Namespace
 import dotenv
-from dsb_main.modules.base_modules.statuses import Status
+from .modules.base_modules.statuses import Status
 if TYPE_CHECKING:
-    from dsb_main.modules.base_modules.module import Module
+    from .modules.base_modules.module import Module
 
 class DSB:
     """ Main class for the application. """
@@ -21,7 +21,7 @@ class DSB:
         self._logger.propagate = False
         formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',
                                       datefmt='%Y-%m-%d %H:%M:%S')
-        handler = logging.FileHandler("dsb_main/dsb.log")
+        handler = logging.FileHandler("dsb/dsb.log")
         handler.setFormatter(formatter)
         self._logger.addHandler(handler)
         for arg in vars(args):
@@ -55,15 +55,15 @@ class DSB:
 
     def _import_modules(self, reload: bool = False) -> None:
         """ Imports or reloads all necessary modules. """
-        e_modules = os.listdir("dsb_main/modules/experimental") if self._experimental else []
-        s_modules = os.listdir("dsb_main/modules/stable")
+        e_modules = os.listdir("dsb/main/modules/experimental") if self._experimental else []
+        s_modules = os.listdir("dsb/main/modules/stable")
         for module_type, module_path in [("experimental", e_modules), ("stable", s_modules)]:
             for module_name in module_path:
                 if module_name in self._modules:
                     continue
                 if module_name.endswith(".py") and module_name != "__init__.py":
                     module_name = module_name[:-3]
-                    module_full_path = f'dsb_main.modules.{module_type}' + "." + module_name
+                    module_full_path = f'dsb.main.modules.{module_type}' + "." + module_name
                     if reload:
                         loaded_module = importlib.reload(importlib.import_module(module_full_path))
                     else:

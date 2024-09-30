@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from telegram import Update
 from telegram.ext import CommandHandler, Application, ContextTypes
 if TYPE_CHECKING:
-    from dsb_main.modules.stable.telebot import Telebot
+    from telebot.telebot_module import Telebot
 
 def admin_only(func):
     """ Decorator for admin only commands """

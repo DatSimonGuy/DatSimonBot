@@ -1,8 +1,11 @@
 """ Launching file for the application. """
 
+import os
 import argparse
-from gui import cli
-from dsb_main.dsb import DSB
+import subprocess
+import signal
+from dsb.gui import cli
+from dsb.main.dsb_class import DSB
 
 def argparser_setup() -> argparse.ArgumentParser:
     """ Setup the argument parser for the application. """
@@ -20,4 +23,21 @@ if __name__ == "__main__":
 
     app = cli.App(dsb)
 
-    app.run_app()
+    if os.name == "nt":
+        with subprocess.Popen(["start", "cmd", "/k", "python", "-m", "dsb.telebot.telebot_module"],
+                              shell=True) as telebot_process:
+            try:
+                app.run_app()
+            finally:
+                telebot_process.send_signal(signal.CTRL_BREAK_EVENT)
+                telebot_process.terminate()
+                telebot_process.wait()
+    else:
+        with subprocess.Popen(["gnome-terminal", "--", "python3",
+                               "-m", "dsb.telebot.telebot_module"],
+                              shell=True) as telebot_process:
+            try:
+                app.run_app()
+            finally:
+                telebot_process.terminate()
+                telebot_process.wait()

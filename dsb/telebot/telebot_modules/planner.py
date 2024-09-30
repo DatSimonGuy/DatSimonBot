@@ -3,15 +3,15 @@
 from datetime import datetime
 from telegram import Update
 from telegram.ext import ContextTypes
-from dsb_main.modules.stable.planning import Planning
-from dsb_main.modules.stable.types.lesson import Lesson
+from dsb.utils.planning import Planning
+from dsb.types.lesson import Lesson
 from .base.base_module import BaseModule, prevent_edited
 
 class Planner(BaseModule):
     """ Planner module """
     def __init__(self, ptb, telebot_module) -> None:
         super().__init__(ptb, telebot_module)
-        self._planning_module: Planning = None
+        self._planning_module = Planning(telebot_module.database)
         self._handlers = {
             "create_plan": self._create_plan,
             "delete_plan": self._delete_plan,
@@ -539,11 +539,3 @@ class Planner(BaseModule):
         plan.remove_student(update.effective_user.username)
         self._planning_module.update_plan(plan_name, group_id, plan)
         await update.message.set_reaction("👍")
-
-    def prepare(self) -> bool:
-        """ Prepare the module """
-        self._planning_module = self._telebot_module.get_dsb_module("Planning")
-        if not self._planning_module:
-            self._telebot_module.log("ERROR", "Planning module not found")
-            return False
-        return True

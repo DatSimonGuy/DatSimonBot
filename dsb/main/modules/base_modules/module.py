@@ -1,9 +1,9 @@
 """ Base module to use as a base for creating new modules. """
 
 from typing import TYPE_CHECKING
-from dsb_main.modules.base_modules.statuses import Status
+from dsb.main.modules.base_modules.statuses import Status
 if TYPE_CHECKING:
-    from dsb_main import dsb
+    from dsb.main import dsb_class
 
 def run_only(func):
     """ Decorator used to run a function only if the module is running. """
@@ -17,7 +17,7 @@ class Module:
     """ Class used to create new modules. It needs to be named as the file
     using PascalCase for importing purposes."""
     name = "Module"
-    def __init__(self, bot: 'dsb.DSB') -> None:
+    def __init__(self, bot: 'dsb_class.DSB') -> None:
         self._status = Status.NOT_RUNNING
         self._bot = bot
 
