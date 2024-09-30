@@ -96,7 +96,5 @@ class Telebot:
         self._ptb.run_polling()
 
 if __name__ == "__main__":
-    print("Running telebot")
-    print("Logs will appear here")
     bot = Telebot()
     bot.run()
