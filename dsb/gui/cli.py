@@ -110,8 +110,10 @@ class App:
         """ Update the application window. """
         try:
             while self.running:
-                if not self._bot.config.get("server", False):
-                    self._console.clear()
+                if self._bot.config.get("silent", False):
+                    continue
+                self._console.clear()
+                if not self._bot.config.get("stats", False):
                     columns = self.display()
                     self._console.print(columns)
                     self.command_prompt()
