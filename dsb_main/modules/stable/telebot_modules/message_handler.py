@@ -3,7 +3,7 @@
 from telegram import Update
 from telegram.ext import filters
 import telegram.ext
-from .base.base_module import BaseModule
+from .base.base_module import BaseModule, prevent_edited
 
 class MessageHandler(BaseModule):
     """ Module for handling text messages """
@@ -24,6 +24,7 @@ class MessageHandler(BaseModule):
         """ Returns the list of messages """
         return self._messages
 
+    @prevent_edited
     async def _handle_text(self, update: Update, _) -> None:
         """ Handle text messages """
         if update.message.chat_id not in self._messages:

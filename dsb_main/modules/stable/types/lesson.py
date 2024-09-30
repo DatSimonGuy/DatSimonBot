@@ -12,8 +12,6 @@ class Lesson:
         self._room = room
         self._start_time = start_time
         self._end_time = end_time
-        self._duration = datetime.combine(date.today(), self._end_time) - \
-            datetime.combine(date.today(), self._start_time)
         self._type = lesson_type
 
     @property
@@ -40,11 +38,6 @@ class Lesson:
     def end_time(self) -> time:
         """ Returns the end time of the lesson """
         return self._end_time
-
-    @property
-    def duration(self) -> time:
-        """ Returns the duration of the lesson """
-        return self._duration
 
     @property
     def day(self) -> int:
@@ -90,7 +83,6 @@ class Lesson:
             self._start_time = datetime.strptime(data["start_time"], "%H:%M").time()
         if "end_time" in data:
             self._end_time = datetime.strptime(data["end_time"], "%H:%M").time()
-        self._duration = self._end_time - self._start_time
         self._type = data.get("type", self._type)
 
     def __str__(self) -> str:

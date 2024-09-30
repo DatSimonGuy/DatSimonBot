@@ -142,12 +142,15 @@ class Plan:
 
         matplotlib.use('Agg')
         fig, ax = plt.subplots()
+        fig.legend(handles=[plt.Rectangle((0, 0), 1, 1,
+                                          color=color) for color in colors_by_type.values()],
+                   labels=colors_by_type.keys(), loc="upper right", fontsize=6)
         ax.axis("tight")
 
         for i in range(6):
-            ax.plot([i, i], [0, 15], color="black")
+            ax.plot([i, i], [0, 14], color="black")
 
-        for i in range(7, 22):
+        for i in range(7, 21):
             ax.plot([0, 5], [i-7, i-7], color="black")
 
         for i, day in enumerate(self._week):
@@ -160,15 +163,17 @@ class Plan:
                                 edgecolor="black", linewidth=0.5)
                 start_d = lesson.start_time.strftime("%H:%M")
                 end_d = lesson.end_time.strftime("%H:%M")
-                ax.text(i + 0.5, start.hour - 7 + start.minute / 60 + 0.9,
-                        f"{lesson.subject} ({lesson.type})\n{start_d}-{end_d}",
-                        color="black", fontdict={"fontsize": 7, "ha": "center", "va": "bottom"},
+                lesson_text = "{}\n{}-{}".format('\n'.join(lesson.subject.split()),
+                                                 start_d, end_d)
+                text_y = min(start.hour - 7 + start.minute / 60 + 0.5 + 0.4, 13.5)
+                ax.text(i + 0.5, text_y, lesson_text, color="black",
+                        fontdict={"fontsize": 5, "ha": "center", "va": "bottom"},
                         zorder=3)
 
         ax.set_xlim(0, 5)
-        ax.set_ylim(15, 0)
-        ax.set_yticks(range(15))
-        ax.set_yticklabels([f"{i+7}:00" for i in range(15)], fontsize=8, color="black")
+        ax.set_ylim(14, 0)
+        ax.set_yticks(range(14))
+        ax.set_yticklabels([f"{i+7}:00" for i in range(14)], fontsize=8, color="black")
 
         ax.set_xticks([0.5, 1.5, 2.5, 3.5, 4.5])
         ax.set_xticklabels(self._days, fontsize=10, color="black", ha='center')
@@ -176,7 +181,7 @@ class Plan:
         ax.xaxis.tick_top()
 
         buf = BytesIO()
-        plt.savefig(buf, format="png")
+        plt.savefig(buf, format="png", dpi=600)
         plt.close(fig)
         buf.seek(0)
         return buf.getvalue()

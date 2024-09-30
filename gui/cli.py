@@ -35,7 +35,6 @@ class App:
             "stop": self.stop_bot,
             "restart": self.restart_bot,
             "r": self.restart_bot,
-            "idle": self.update_live,
             "database": self.show_database,
             "send": self.send_message,
             "add_chat_macro": self.add_chat_macro,
@@ -119,19 +118,6 @@ class App:
             self.stop_app()
         except (AttributeError, TypeError):
             pass
-
-    def update_live(self) -> None:
-        """ Update the application window live. """
-        self._console.clear()
-        columns = self.display()
-        with rich.live.Live(columns, refresh_per_second=1, console=self._console) as live:
-            print("Automatically updating logs, Press Ctrl+C to stop")
-            while self.running:
-                try:
-                    columns = self.display()
-                    live.update(columns)
-                except KeyboardInterrupt:
-                    break
 
     def show_database(self) -> None:
         """ Show the database directory tree. """
