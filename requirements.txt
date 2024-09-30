@@ -7,3 +7,4 @@ scrapetube==2.5.1
 playwright==1.47.0
 matplotlib==3.9.2
 rich==13.8.1
+psutil==6.0.0

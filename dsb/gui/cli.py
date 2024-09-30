@@ -1,6 +1,8 @@
 """ Command line interface for the bot. """
 
+import time
 from logging import Handler
+import psutil
 import rich.progress
 from rich.prompt import Prompt
 import rich.live
@@ -108,11 +110,16 @@ class App:
         """ Update the application window. """
         try:
             while self.running:
-                self._console.clear()
-                columns = self.display()
-                self._console.print(columns)
                 if not self._bot.config.get("server", False):
+                    self._console.clear()
+                    columns = self.display()
+                    self._console.print(columns)
                     self.command_prompt()
+                else:
+                    print(f"Cpu usage: {psutil.cpu_percent()}")
+                    print(f"RAM usage: {psutil.virtual_memory().used // (1024 * 1024)}MB /" + \
+                        f" {psutil.virtual_memory().total // (1024 * 1024)}MB")
+                    time.sleep(0.5)
         except KeyboardInterrupt:
             self.stop_app()
         except EOFError:
