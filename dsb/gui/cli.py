@@ -111,7 +111,8 @@ class App:
                 self._console.clear()
                 columns = self.display()
                 self._console.print(columns)
-                self.command_prompt()
+                if not self._bot.config.get("server", False):
+                    self.command_prompt()
         except KeyboardInterrupt:
             self.stop_app()
         except EOFError:

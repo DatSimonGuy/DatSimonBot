@@ -13,6 +13,7 @@ def argparser_setup() -> argparse.ArgumentParser:
     argparser.add_argument("-e", "--experimental", action="store_true",
                            help="Switch to experimental modules")
     argparser.add_argument("-d", "--debug", action="store_true", help="Enable debug mode")
+    argparser.add_argument("-s", "--server", action="store_true", help="Enable server mode")
     return argparser
 
 if __name__ == "__main__":
