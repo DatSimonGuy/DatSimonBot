@@ -42,6 +42,10 @@ class YtModule(BaseModule):
 
         video = self._youtube.get_video(" ".join(args))
 
+        if video is None:
+            await message.reply_text("The video is not available")
+            return
+
         if video.filesize_mb > 50:
             await message.reply_text("The video is too large to send")
             return

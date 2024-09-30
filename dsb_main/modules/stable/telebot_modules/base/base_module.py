@@ -70,16 +70,18 @@ class BaseModule:
         kwargs = {}
         current = ""
         for arg in context.args:
-            if arg.startswith(("-", "--", "—")):
+            if arg.startswith(("--", "—")):
                 if current and current not in kwargs:
                     kwargs[current] = True
-                current = arg.lstrip("-").lstrip("—")
+                current = arg.lstrip("--").lstrip("—")
             elif current in kwargs:
                 kwargs[current] += " " + arg
             elif current:
                 kwargs[current] = arg
             else:
                 args.append(arg)
+        if current and current not in kwargs:
+            kwargs[current] = True
         return args, kwargs
 
     def prepare(self) -> bool:

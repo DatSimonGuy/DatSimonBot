@@ -6,3 +6,4 @@ pytubefix==6.16.2
 scrapetube==2.5.1
 playwright==1.47.0
 matplotlib==3.9.2
+rich==13.8.1

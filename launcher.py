@@ -1,7 +1,7 @@
 """ Launching file for the application. """
 
 import argparse
-from gui import tkinter_gui as tk_gui
+from gui import cli
 from dsb_main.dsb import DSB
 
 def argparser_setup() -> argparse.ArgumentParser:
@@ -18,6 +18,6 @@ if __name__ == "__main__":
 
     dsb = DSB(args)
 
-    app = tk_gui.App(dsb)
+    app = cli.App(dsb)
 
     app.run_app()

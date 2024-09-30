@@ -2,6 +2,7 @@
 
 from typing import Literal, Generator
 import pytubefix as pytube
+from pytubefix.exceptions import VideoUnavailable
 import scrapetube
 from dsb_main.modules.base_modules.module import Module, run_only
 
@@ -21,5 +22,8 @@ class Youtube(Module):
     @run_only
     def get_video(self, url: str) -> pytube.Stream:
         """ Get the highest resolution stream of a youtube video """
-        video = pytube.YouTube(url)
-        return video.streams.get_highest_resolution()
+        try:
+            video = pytube.YouTube(url)
+            return video.streams.get_highest_resolution()
+        except VideoUnavailable:
+            return None

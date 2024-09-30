@@ -27,7 +27,8 @@ class Planner(BaseModule):
             "who_is_free": self._who_is_free,
             "join_plan": self.join_plan,
             "leave_plan": self.leave_plan,
-            "get_students": self._get_students
+            "get_students": self._get_students,
+            "transfer_plan": self._transfer_plan
         }
         self._descriptions = {
             "create_plan": "Create a new lesson plan",
@@ -44,8 +45,44 @@ class Planner(BaseModule):
             "who_is_free": "Find out who is free at a given time",
             "join_plan": "Join a lesson plan",
             "leave_plan": "Leave a lesson plan",
-            "get_students": "Get all students in a plan"
+            "get_students": "Get all students in a plan",
+            "transfer_plan": "Transfer a plan to another group"
         }
+
+    @prevent_edited
+    async def _transfer_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Transfer a plan to another group """
+        if not context.args:
+            await update.message.reply_text("Please provide a name for the plan")
+            return
+
+        args, kwargs = self._get_args(context)
+        if "name" in kwargs:
+            plan_name = kwargs.get("name")
+        else:
+            plan_name = " ".join(args)
+
+        group_id = update.effective_chat.id
+        plan = self._planning_module.get_plan(plan_name, group_id)
+
+        if not plan:
+            await update.message.reply_text(f"Plan {plan_name} not found")
+            return
+
+        if "new_group" not in kwargs:
+            await update.message.reply_text("Please provide a new group id")
+            return
+
+        new_group = int(kwargs.get("new_group"))
+
+        if not kwargs.get("ignore_existing", False) and \
+            self._planning_module.get_plan(plan_name, new_group):
+            await update.message.reply_text("A plan with that name already exists")
+            return
+
+        self._planning_module.create_plan(plan_name, new_group)
+        self._planning_module.update_plan(plan_name, new_group, plan)
+        await update.message.set_reaction("👍")
 
     @prevent_edited
     async def _create_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -172,6 +209,9 @@ class Planner(BaseModule):
             await update.message.reply_text("Please provide a name for the plan")
             return
         try:
+            if len(kwargs["subject"].split()) > 2:
+                await update.message.reply_text("Subject must be one or two words")
+                return
             new_lesson = Lesson(kwargs["subject"], kwargs["teacher"], kwargs["room"],
                                 datetime.strptime(kwargs["start"], "%H:%M").time(),
                                 datetime.strptime(kwargs["end"], "%H:%M").time(), kwargs["day"],
@@ -199,12 +239,14 @@ class Planner(BaseModule):
 
         try:
             if new_lesson.day not in "12345":
-                new_lesson.day = days[new_lesson.day.lower()]
+                day = days[new_lesson.day.lower()]
+            else:
+                day = int(new_lesson.day)
         except KeyError:
             await update.message.reply_text("Invalid day")
             return
 
-        plan.add_lesson(int(new_lesson.day) - 1, new_lesson)
+        plan.add_lesson(day - 1, new_lesson)
         self._planning_module.update_plan(plan_name, group_id, plan)
         await update.message.set_reaction("👍")
 
@@ -309,20 +351,24 @@ class Planner(BaseModule):
             return
 
         try:
-            if kwargs["day"] not in "12345":
-                day = days[kwargs["day"].lower()]
-            else:
-                day = int(kwargs["day"])
+            day = days.get(kwargs["day"].lower(), int(kwargs["day"]))
+            new_day = days.get(kwargs.get("new_day", "").lower(),
+                               int(kwargs["new_day"])) if kwargs.get("new_day") else None
         except KeyError:
             await update.message.reply_text("Invalid day")
             return
 
-        lesson = plan.get_day(int(day) - 1)[idx]
+        lesson = plan.get_day(day - 1)[idx]
+
+        if len(kwargs.get("subject", "").split()) > 2:
+            await update.message.reply_text("Subject must be one or two words")
+            return
+
         lesson.update(kwargs)
 
         try:
-            plan.remove_lesson_by_index(int(day) - 1, idx)
-            plan.add_lesson(int(day) - 1, lesson)
+            plan.remove_lesson_by_index(day - 1, idx)
+            plan.add_lesson(new_day - 1 if new_day else day - 1, lesson)
             self._planning_module.update_plan(plan_name, group_id, plan)
             await update.message.set_reaction("👍")
         except IndexError:

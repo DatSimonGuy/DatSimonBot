@@ -2,11 +2,12 @@
 
 import os
 from typing import Any
+from rich.tree import Tree
 import jsonpickle
 from dsb_main.modules.base_modules.module import Module
 
 class Database(Module):
-    """ Database module for the DSB project. Will be rewritten to use SQL later. """
+    """ Database module for the DSB project """
     name = "Database"
     def __init__(self, bot) -> None:
         super().__init__(bot)
@@ -92,3 +93,14 @@ class Database(Module):
         except FileNotFoundError:
             self._bot.log("DEBUG", f"File {subdir}/{filename} not found")
             return False
+
+    def tree(self) -> Tree:
+        """ Return the directory tree. """
+        tree = Tree(f"{self._directory}")
+        branches = {f"{self._directory}": tree}
+        for root, _, files in os.walk(self._directory):
+            if root not in branches:
+                branches[root] = branches[os.path.dirname(root)].add(os.path.basename(root))
+            for file in files:
+                branches[root].add(file)
+        return tree

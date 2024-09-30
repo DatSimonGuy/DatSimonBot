@@ -57,7 +57,7 @@ class Planning(Module):
                     time_diff = "No lessons left"
                 else:
                     diff = next_lesson.time_until.total_seconds()
-                    time_diff = f"{diff // 3600}:{(diff % 3600) // 60}"
+                    time_diff = f"{int(diff // 3600)}h {int((diff % 3600) // 60):02}min"
                 for student in plan.students:
                     free_students.append((student, time_diff))
         return free_students
