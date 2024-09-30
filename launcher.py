@@ -24,7 +24,7 @@ if __name__ == "__main__":
     app = cli.App(dsb)
 
     if os.name == "nt":
-        with subprocess.Popen(["start", "cmd", "/k", "python", "-m", "dsb.telebot.telebot_module"],
+        with subprocess.Popen(["python", "-m", "dsb.telebot.telebot_module"],
                               shell=True) as telebot_process:
             try:
                 app.run_app()
@@ -33,9 +33,8 @@ if __name__ == "__main__":
                 telebot_process.terminate()
                 telebot_process.wait()
     else:
-        with subprocess.Popen(["gnome-terminal", "--", "python3",
-                               "-m", "dsb.telebot.telebot_module"],
-                              shell=True) as telebot_process:
+        with subprocess.Popen(["python3", "-m", "dsb.telebot.telebot_module"],
+                              shell=False) as telebot_process:
             try:
                 app.run_app()
             finally:
