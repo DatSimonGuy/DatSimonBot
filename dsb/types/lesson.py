@@ -5,7 +5,8 @@ from datetime import datetime, time, date, timedelta
 class Lesson:
     """ Lesson class containing info about a lesson """
     def __init__(self, subject: str, teacher: str, room: str, # pylint: disable=too-many-arguments, too-many-positional-arguments
-                 start_time: time, end_time: time, day: int, lesson_type: str) -> None:
+                 start_time: time, end_time: time, day: int,
+                 lesson_type: str, repeat: bool = False) -> None:
         self._subject = subject
         self._teacher = teacher
         self._day = day
@@ -13,6 +14,7 @@ class Lesson:
         self._start_time = start_time
         self._end_time = end_time
         self._type = lesson_type
+        self._repeat = repeat
 
     @property
     def subject(self) -> str:
@@ -79,10 +81,10 @@ class Lesson:
         self._subject = data.get("subject", self._subject)
         self._teacher = data.get("teacher", self._teacher)
         self._room = data.get("room", self._room)
-        if "start_time" in data:
-            self._start_time = datetime.strptime(data["start_time"], "%H:%M").time()
-        if "end_time" in data:
-            self._end_time = datetime.strptime(data["end_time"], "%H:%M").time()
+        if "start" in data:
+            self._start_time = datetime.strptime(data["start"], "%H:%M").time()
+        if "end" in data:
+            self._end_time = datetime.strptime(data["end"], "%H:%M").time()
         self._type = data.get("type", self._type)
 
     def __str__(self) -> str:
