@@ -1,6 +1,7 @@
 """ Database module for the DSB project. """
 
 import os
+import shutil
 from typing import Any
 from rich.tree import Tree
 import jsonpickle
@@ -89,3 +90,11 @@ class Database:
             for file in files:
                 branches[root].add(file)
         return tree
+
+    def backup(self) -> bytes:
+        """ Create a backup of the database. """
+        shutil.make_archive(self._directory, 'zip', self._directory)
+        with open(f"{self._directory}.zip", "rb") as file:
+            data = file.read()
+        os.remove(f"{self._directory}.zip")
+        return data
