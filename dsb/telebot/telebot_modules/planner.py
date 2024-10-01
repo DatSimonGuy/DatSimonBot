@@ -168,7 +168,16 @@ class Planner(BaseModule):
     async def _get_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Get a lesson plan """
         if not context.args:
-            await update.message.reply_text("Please provide a name for the plan")
+            group_id = update.effective_chat.id
+            plans = self._planning_module.get_plans(group_id)
+            for plan_name in plans:
+                plan = self._planning_module.get_plan(plan_name, group_id)
+                if update.message.from_user.username in plan.students:
+                    plan_image = plan.to_image()
+                    await update.message.reply_photo(plan_image)
+                    return
+            await update.message.reply_text("You do not belong to a plan." + \
+                                            "Please use /join_plan command")
             return
 
         args, kwargs = self._get_args(context)
