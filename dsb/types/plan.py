@@ -163,8 +163,7 @@ class Plan:
                                 edgecolor="black", linewidth=0.5)
                 start_d = lesson.start_time.strftime("%H:%M")
                 end_d = lesson.end_time.strftime("%H:%M")
-                lesson_text = "{}\n{}-{}".format('\n'.join(lesson.subject.split()),
-                                                 start_d, end_d)
+                lesson_text = f"{lesson.subject}\n{lesson.room}\n{start_d}-{end_d}"
                 text_y = min(start.hour - 7 + start.minute / 60 + 0.5 + 0.4, 13.5)
                 ax.text(i + 0.5, text_y, lesson_text, color="black",
                         fontdict={"fontsize": 5, "ha": "center", "va": "bottom"},
