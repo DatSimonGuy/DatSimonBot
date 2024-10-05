@@ -97,6 +97,10 @@ class Planner(BaseModule):
         else:
             plan_name = " ".join(args)
 
+        if plan_name.isdigit():
+            await update.message.reply_text("Plan name cannot be a number")
+            return
+
         group_id = update.effective_chat.id
 
         if self._planning_module.get_plan(plan_name, group_id):
@@ -185,6 +189,14 @@ class Planner(BaseModule):
             plan_name = kwargs.get("name")
         else:
             plan_name = " ".join(args)
+
+        if plan_name.isdigit():
+            plans = self._planning_module.get_plans(update.effective_chat.id)
+            if int(plan_name) <= len(plans):
+                plan_name = plans[int(plan_name) - 1]
+            else:
+                await update.message.reply_text("Plan not found")
+                return
 
         group_id = update.effective_chat.id
         plan = self._planning_module.get_plan(plan_name, group_id)
