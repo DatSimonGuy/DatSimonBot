@@ -72,7 +72,7 @@ class Planner(BaseModule):
         plans = {}
         for plan_name in plan_list:
             plans[plan_name] = self.get_plan(plan_name, group_id)
-        return plans
+        return dict(sorted(plans.items()))
 
     def update_plan(self, name: str, group_id: int, new_plan: Plan, new_name: str = "") -> bool:
         """ Update a lesson plan """
@@ -242,7 +242,7 @@ class Planner(BaseModule):
         if plan_name.isdigit():
             plans = self.get_plans(update.effective_chat.id)
             if int(plan_name) <= len(plans):
-                plan_name = plans[int(plan_name) - 1]
+                plan_name = list(plans.keys())[int(plan_name) - 1]
             else:
                 await update.message.reply_text("Plan not found")
                 return
