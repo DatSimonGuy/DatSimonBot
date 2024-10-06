@@ -100,7 +100,7 @@ class YtModule(BaseModule):
         args, kwargs = self._get_args(context)
         if "limit" in kwargs:
             try:
-                results = self._youtube.search(" ".join(args), limit=int(kwargs["limit"]))
+                results = search(" ".join(args), limit=int(kwargs["limit"]))
             except ValueError:
                 await update.message.reply_text("Invalid limit")
         else:
