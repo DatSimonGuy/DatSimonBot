@@ -7,7 +7,7 @@ import logging
 import dotenv
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CallbackContext
-from ..utils.database import Database
+from ..utils.temp_database import Database
 if TYPE_CHECKING:
     from .telebot_modules.base.base_module import BaseModule
 
@@ -53,10 +53,6 @@ class Telebot:
         """ Log an error """
         self._logger.error(message)
 
-    def get_dsb_module(self, module_name: str) -> 'BaseModule':
-        """ Get a DSB module by name """
-        return self._modules.get(module_name, None)
-
     def _get_telebot_modules(self, reload: bool = False) -> None:
         """ Loads handlers from files, optionally reloading them """
         self._modules.clear()
@@ -84,8 +80,9 @@ class Telebot:
             self.error(context.error)
             await update.message.reply_text('An error occurred. Please try again later.')
 
-    def run(self) -> bool:
-        """ Run the module. Returns True if the module was run. """
+    def run(self) -> None:
+        """ Run the telebot """
+        print("Starting telebot")
         self._get_telebot_modules(reload=True)
         for name, module in self._modules.items():
             if module.prepare():
@@ -93,7 +90,11 @@ class Telebot:
                 module.add_handlers()
             else:
                 print(f"Failed to load module {name}")
-        self._ptb.run_polling()
+        try:
+            print("Modules loaded")
+            self._ptb.run_polling()
+        except KeyboardInterrupt:
+            return
 
 if __name__ == "__main__":
     bot = Telebot()

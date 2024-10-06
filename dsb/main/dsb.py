@@ -6,6 +6,7 @@ import logging
 from typing import Literal, TYPE_CHECKING, Optional, Generator
 from argparse import Namespace
 import dotenv
+from dsb.telebot.dsb_telebot import Telebot
 from .modules.base_modules.statuses import Status
 if TYPE_CHECKING:
     from .modules.base_modules.module import Module
@@ -19,6 +20,7 @@ class DSB:
         self._logger = logging.getLogger("DSB")
         self._logger.setLevel(logging.INFO)
         self._logger.propagate = False
+        self._telebot = Telebot()
         formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',
                                       datefmt='%Y-%m-%d %H:%M:%S')
         handler = logging.FileHandler("dsb/dsb.log")
@@ -42,6 +44,10 @@ class DSB:
     def running(self) -> bool:
         """ Check if the application is running properly. """
         return all(module.running for module in self._modules.values())
+
+    def start_telebot(self) -> None:
+        """ Start the telebot. """
+        self._telebot.run()
 
     def set_log_level(self, level: Literal["ERROR", "INFO", "WARNING", "DEBUG"]) -> None:
         """ Set the log level. """

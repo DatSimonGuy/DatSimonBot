@@ -44,7 +44,7 @@ class Database:
                 return {}
             return default
 
-    def list_all(self, subdir: str) -> list:
+    def list_all(self, subdir: str) -> list[str]:
         """ List all files in the directory. """
         try:
             return os.listdir(f"{self._directory}/{subdir}")
@@ -93,8 +93,12 @@ class Database:
 
     def backup(self) -> bytes:
         """ Create a backup of the database. """
-        shutil.make_archive(self._directory, 'zip', self._directory)
-        with open(f"{self._directory}.zip", "rb") as file:
-            data = file.read()
-        os.remove(f"{self._directory}.zip")
+        try:
+            shutil.make_archive(self._directory, 'zip', self._directory)
+            with open(f"{self._directory}.zip", "rb") as file:
+                data = file.read()
+        except OSError:
+            return b""
+        finally:
+            os.remove(f"{self._directory}.zip")
         return data

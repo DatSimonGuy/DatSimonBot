@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from telegram import Update
 from telegram.ext import CommandHandler, Application, ContextTypes
 if TYPE_CHECKING:
-    from telebot.telebot_module import Telebot
+    from dsb.telebot.dsb_telebot import Telebot
 
 def admin_only(func):
     """ Decorator for admin only commands """
@@ -47,6 +47,18 @@ class BaseModule:
     def config(self) -> dict:
         """ Get the bot configuration """
         return self._telebot_module.config
+
+    def save(self, data: dict, subdir: str, filename: str, unpickable: bool = True) -> bool:
+        """ Save data to a file using bot database """
+        self._telebot_module.database.save(data, subdir, filename, unpickable)
+
+    def load(self, subdir: str, filename: str, default: dict = None) -> dict:
+        """ Load data from a file using bot database """
+        return self._telebot_module.database.load(subdir, filename, default)
+
+    def delete(self, subdir: str, filename: str) -> bool:
+        """ Delete a file using bot database """
+        return self._telebot_module.database.delete(subdir, filename)
 
     def prep(self) -> None:
         """ Prepare the module """

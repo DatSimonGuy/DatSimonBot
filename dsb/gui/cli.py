@@ -9,7 +9,7 @@ import rich.live
 from rich.table import Table
 from rich.console import Console
 from rich.columns import Columns
-from dsb.main.dsb_class import DSB
+from dsb.main.dsb import DSB
 
 class TextHandler(Handler):
     """ Custom logging handler to log messages to the Logs text field. """
