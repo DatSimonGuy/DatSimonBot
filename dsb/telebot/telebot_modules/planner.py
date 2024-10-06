@@ -265,7 +265,10 @@ class Planner(BaseModule):
         plans = self.get_plans(group_id)
         plans_str = ""
         for i, plan in enumerate(plans.items()):
-            plans_str += f"{i+1}. {plan[0]}\n{'\n'.join(plan[1].students)}\n"
+            students = plan[1].students
+            if not students:
+                students = ["No students in the plan"]
+            plans_str += f"{i+1}. {plan[0]}\n{'\n'.join(students)}\n"
         if plans:
             await update.message.reply_text(plans_str)
         else:
