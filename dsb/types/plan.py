@@ -137,6 +137,7 @@ class Plan:
             "lab": "#9f7dde",
             "project": "#ee9e57",
             "seminar": "lightgreen",
+            "lektorat": "#11c5ae",
             "other": "grey"
         }
 
