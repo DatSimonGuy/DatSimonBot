@@ -1,11 +1,11 @@
 """ Youtube module for telebot """
 
-import io
+import os
 from typing import Generator, Literal
+from typing import Optional
 import scrapetube
-import pytubefix as pytube
-from pytubefix.exceptions import VideoUnavailable
-from telegram import Update, InputFile
+import yt_dlp
+from telegram import Update
 from telegram.ext import ContextTypes
 from .base.base_module import BaseModule, prevent_edited
 
@@ -17,13 +17,15 @@ def search(query: str, limit: int | None = None, # pylint: disable=too-many-argu
     """ Search for videos on youtube """
     return scrapetube.get_search(query, limit, sleep, sort_by, results_type)
 
-
-def get_video(url: str) -> pytube.Stream:
-    """ Get the highest resolution stream of a youtube video """
+def get_video_info(url: str) -> Optional[dict]:
+    """ Get video info """
     try:
-        video = pytube.YouTube(url)
-        return video.streams.get_highest_resolution()
-    except VideoUnavailable:
+        ydl_opts = {
+            'quiet': True,
+        }
+        video = yt_dlp.YoutubeDL(ydl_opts).extract_info(url, download=False)
+        return video
+    except Exception: # pylint: disable=broad-except
         return None
 
 class YtModule(BaseModule):
@@ -54,25 +56,40 @@ class YtModule(BaseModule):
             await message.reply_text("Please provide a youtube link")
             return
 
-        video = get_video(" ".join(args))
+        sent_message = await message.reply_text("Getting video info...")
+        video = get_video_info(" ".join(args))
 
         if video is None:
             await message.reply_text("The video is not available")
             return
 
-        if video.filesize_mb > 50:
+        if video["duration"] > 600:
             await message.reply_text("The video is too large to send")
             return
 
-        video_data = io.BytesIO()
+        dl_ops = {
+            'outtmpl': 'dsb/temp/%(id)s.%(ext)s',
+            'quiet': True,
+            'format': 'best[ext=mp4]/best',
+        }
 
-        video.stream_to_buffer(video_data)
-
-        video_data.seek(0)
-
-        video_file = InputFile(video_data, filename=f"{video.title}.mp4")
-
-        await update.message.reply_video(video_file)
+        os.makedirs("dsb/temp", exist_ok=True)
+        video_path = f"dsb/temp/{video['id']}.mp4"
+        try:
+            await sent_message.edit_text("Downloading the video...")
+            yt_dlp.YoutubeDL(dl_ops).download([video["webpage_url"]])
+            with open(video_path, "rb") as video_file:
+                video = video_file.read()
+            try:
+                await sent_message.delete()
+            except Exception: # pylint: disable=broad-except
+                pass
+            await update.message.reply_video(video, write_timeout=60, read_timeout=60)
+        except Exception: # pylint: disable=broad-except
+            await message.reply_text("Failed to download the video")
+            return
+        finally:
+            os.remove(video_path)
 
     @prevent_edited
     async def _ytsearch(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
