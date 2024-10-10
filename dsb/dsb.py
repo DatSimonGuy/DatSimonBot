@@ -6,8 +6,9 @@ from typing import TYPE_CHECKING, Generator
 import logging
 import dotenv
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CallbackContext
+from telegram.ext import ApplicationBuilder, CallbackContext, CommandHandler
 from .types.database import Database
+from .types.module import admin_only
 if TYPE_CHECKING:
     from .types.module import BaseModule
 
@@ -23,7 +24,10 @@ class DSB:
         self._experimental = experimental
         self._bot = ApplicationBuilder().token(self._config["telebot_token"]).build()
         self._bot.add_error_handler(self._error_handler)
-        self._commands = {}
+        self._commands = {
+            "switch_mode": "Switch the bot mode"
+        }
+        self._bot.add_handler(CommandHandler("switch_mode", self._switch_mode))
         self.__load_modules()
 
     def __loger_setup(self):
@@ -34,6 +38,11 @@ class DSB:
         handler = logging.FileHandler("dsb.log")
         handler.setFormatter(formatter)
         self._logger.addHandler(handler)
+
+    @property
+    def experimental(self) -> bool:
+        """ Get experimental mode """
+        return self._experimental
 
     @property
     def commands(self) -> dict:
@@ -57,6 +66,18 @@ class DSB:
     def error(self, message: str) -> None:
         """ Log an error """
         self._logger.error(message)
+
+    @admin_only
+    async def _switch_mode(self, update: Update, _) -> None:
+        """ Switch the bot mode """
+        if not self._experimental:
+            self._experimental = True
+            self.__load_modules(reload=True)
+            await update.message.reply_text("Experimental mode enabled")
+        else:
+            self._experimental = False
+            self.__load_modules(reload=True)
+            await update.message.reply_text("Experimental mode disabled")
 
     def __load_dir(self, path: str, reload: bool = False) \
         -> Generator[tuple[str, 'BaseModule'], None, None]:
@@ -104,10 +125,9 @@ class DSB:
         """ Run the telebot """
         print("Starting telebot")
         self.__load_modules(reload=True)
+        modules = self._modules["stable"]
         if self._experimental:
-            modules = self._modules["stable"].update(self._modules["experimental"])
-        else:
-            modules = self._modules["stable"]
+            modules.update(self._modules["experimental"])
         for name, module in modules.items():
             if module.prepare():
                 self._commands.update(module.descriptions)

@@ -28,7 +28,7 @@ def prevent_edited(func):
 class BaseModule:
     """ Base module for all telegram bot modules. """
     def __init__(self, bot: Application, dsb: 'DSB') -> None:
-        self._ptb = bot
+        self._bot = bot
         self._handlers = {}
         self._descriptions = {}
         self._dsb = dsb
@@ -66,13 +66,13 @@ class BaseModule:
     def add_handlers(self) -> None:
         """ Add handlers to the dispatcher """
         for command, handler in self._handlers.items():
-            self._ptb.add_handler(CommandHandler(command, handler))
+            self._bot.add_handler(CommandHandler(command, handler))
 
     def remove_handlers(self) -> None:
         """ Remove handlers from the dispatcher """
         for command, handler in self._handlers.items():
             try:
-                self._ptb.remove_handler(CommandHandler(command, handler))
+                self._bot.remove_handler(CommandHandler(command, handler))
             except ValueError:
                 pass
 
