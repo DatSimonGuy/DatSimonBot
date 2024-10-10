@@ -19,8 +19,9 @@ class GithubModule(BaseModule):
             return
         self._dsb.database.save(commit.sha, 'github', 'last_commit', True)
         commit_info = f"Author: {commit.author.name}" + \
-            f"\nMessage: {commit.commit.message}\nPosted at: {commit.commit.author.date}" + \
-                f"\nURL: {commit.html_url}"
+            f"\nTitle: {commit.commit.message.split("\n")[0]}" + \
+            f"\nPosted at: {commit.commit.author.date}" + \
+            f"\nURL: {commit.html_url}"
         await self._bot.bot.send_message(chat_id, "Last commit:\n" + commit_info)
 
     def prepare(self):
