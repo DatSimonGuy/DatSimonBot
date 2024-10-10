@@ -6,13 +6,13 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from dsb.types.lesson import Lesson
 from dsb.types.plan import Plan
-from .base.base_module import BaseModule, prevent_edited
+from dsb.types.module import BaseModule, prevent_edited
 if TYPE_CHECKING:
-    from dsb.telebot.dsb_telebot import Telebot
+    from dsb.dsb import DSB
 
 class Planner(BaseModule):
     """ Planner module """
-    def __init__(self, ptb, telebot: 'Telebot') -> None:
+    def __init__(self, ptb, telebot: 'DSB') -> None:
         super().__init__(ptb, telebot)
         self._db = telebot.database
         self._handlers = {

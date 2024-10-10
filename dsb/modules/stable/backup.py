@@ -2,12 +2,12 @@
 
 from telegram import Update
 from telegram.ext import Application
-from dsb.telebot.dsb_telebot import Telebot
-from .base.base_module import BaseModule, prevent_edited, admin_only
+from dsb.dsb import DSB
+from dsb.types.module import BaseModule, prevent_edited, admin_only
 
 class Backup(BaseModule):
     """ Backup module """
-    def __init__(self, bot: Application, telebot_module: Telebot) -> None:
+    def __init__(self, bot: Application, telebot_module: DSB) -> None:
         super().__init__(bot, telebot_module)
         self._handlers = {
             "backup": self._backup
@@ -19,7 +19,7 @@ class Backup(BaseModule):
     @admin_only
     @prevent_edited
     async def _backup(self, update: Update, _) -> None:
-        database = self._telebot_module.database
+        database = self._dsb.database
         if database is None:
             await update.message.reply_text("No database found")
             return

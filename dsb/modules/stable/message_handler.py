@@ -3,7 +3,7 @@
 from telegram import Update
 from telegram.ext import filters
 import telegram.ext
-from .base.base_module import BaseModule, prevent_edited
+from dsb.types.module import BaseModule, prevent_edited
 
 class MessageHandler(BaseModule):
     """ Module for handling text messages """
@@ -14,9 +14,11 @@ class MessageHandler(BaseModule):
                               self._handle_text)
 
     def add_handlers(self) -> None:
+        """ Add handlers """
         self._ptb.add_handler(self._message_handler)
 
     def remove_handlers(self) -> None:
+        """ Remove handlers """
         self._ptb.remove_handler(self._message_handler)
 
     @property

@@ -7,7 +7,7 @@ import scrapetube
 import yt_dlp
 from telegram import Update
 from telegram.ext import ContextTypes
-from .base.base_module import BaseModule, prevent_edited
+from dsb.types.module import BaseModule, prevent_edited
 
 def search(query: str, limit: int | None = None, # pylint: disable=too-many-arguments, too-many-positional-arguments
            sleep: int = 1, sort_by: Literal['relevance',
