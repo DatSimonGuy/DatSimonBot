@@ -1,17 +1,20 @@
 """ Planner module for telebot. """
 
+from typing import TYPE_CHECKING
 from datetime import datetime
 from telegram import Update
 from telegram.ext import ContextTypes
-from dsb_main.modules.stable.planning import Planning
-from dsb_main.modules.stable.types.lesson import Lesson
-from .base.base_module import BaseModule, prevent_edited
+from dsb.types.lesson import Lesson
+from dsb.types.plan import Plan
+from dsb.types.module import BaseModule, prevent_edited
+if TYPE_CHECKING:
+    from dsb.dsb import DSB
 
 class Planner(BaseModule):
     """ Planner module """
-    def __init__(self, ptb, telebot_module) -> None:
-        super().__init__(ptb, telebot_module)
-        self._planning_module: Planning = None
+    def __init__(self, ptb, telebot: 'DSB') -> None:
+        super().__init__(ptb, telebot)
+        self._db = telebot.database
         self._handlers = {
             "create_plan": self._create_plan,
             "delete_plan": self._delete_plan,
@@ -49,6 +52,53 @@ class Planner(BaseModule):
             "transfer_plan": "Transfer a plan to another group"
         }
 
+    def create_plan(self, name: str, group_id: int) -> bool:
+        """ Create a new lesson plan """
+        new_plan = Plan(name)
+        return self._db.save(new_plan, f"{group_id}/plans", name)
+
+    def get_plan(self, name: str, group_id: int) -> Plan | None:
+        """ Get a lesson plan """
+        return self._db.load(f"{group_id}/plans", name)
+
+    def delete_plan(self, name: str, group_id: int) -> bool:
+        """ Delete a lesson plan """
+        return self._db.delete(f"{group_id}/plans", name)
+
+    def get_plans(self, group_id: int) -> dict[str, Plan]:
+        """ Get all lesson plans """
+        plan_list = self._db.list_all(f"{group_id}/plans")
+        plan_list = [plan.split(".")[0] for plan in plan_list]
+        plans = {}
+        for plan_name in plan_list:
+            plans[plan_name] = self.get_plan(plan_name, group_id)
+        return dict(sorted(plans.items()))
+
+    def update_plan(self, name: str, group_id: int, new_plan: Plan, new_name: str = "") -> bool:
+        """ Update a lesson plan """
+        if new_name:
+            self._db.delete(f"{group_id}/plans", name)
+            return self._db.save(new_plan, f"{group_id}/plans", new_name)
+        return self._db.save(new_plan, f"{group_id}/plans", name)
+
+    def who_is_free(self, group_id: int) -> list[tuple[str, str]]:
+        """ Get a list of students who are free at a given time and seconds to the next lesson """
+        plans = self.get_plans(group_id)
+        if not plans:
+            return []
+        free_students = []
+        for plan in plans.values():
+            if plan.is_free():
+                next_lesson = plan.next_lesson
+                if not next_lesson:
+                    time_diff = "No lessons left"
+                else:
+                    diff = next_lesson.time_until.total_seconds()
+                    time_diff = f"{int(diff // 3600)}h {int((diff % 3600) // 60):02}min"
+                for student in plan.students:
+                    free_students.append((student, time_diff))
+        return free_students
+
     @prevent_edited
     async def _transfer_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Transfer a plan to another group """
@@ -63,7 +113,7 @@ class Planner(BaseModule):
             plan_name = " ".join(args)
 
         group_id = update.effective_chat.id
-        plan = self._planning_module.get_plan(plan_name, group_id)
+        plan = self.get_plan(plan_name, group_id)
 
         if not plan:
             await update.message.reply_text(f"Plan {plan_name} not found")
@@ -76,12 +126,12 @@ class Planner(BaseModule):
         new_group = int(kwargs.get("new_group"))
 
         if not kwargs.get("ignore_existing", False) and \
-            self._planning_module.get_plan(plan_name, new_group):
+            self.get_plan(plan_name, new_group):
             await update.message.reply_text("A plan with that name already exists")
             return
 
-        self._planning_module.create_plan(plan_name, new_group)
-        self._planning_module.update_plan(plan_name, new_group, plan)
+        self.create_plan(plan_name, new_group)
+        self.update_plan(plan_name, new_group, plan)
         await update.message.set_reaction("👍")
 
     @prevent_edited
@@ -97,13 +147,17 @@ class Planner(BaseModule):
         else:
             plan_name = " ".join(args)
 
+        if plan_name.isdigit():
+            await update.message.reply_text("Plan name cannot be a number")
+            return
+
         group_id = update.effective_chat.id
 
-        if self._planning_module.get_plan(plan_name, group_id):
+        if self.get_plan(plan_name, group_id):
             await update.message.reply_text("A plan with that name already exists")
             return
 
-        if self._planning_module.create_plan(plan_name, group_id):
+        if self.create_plan(plan_name, group_id):
             await update.message.set_reaction("👍")
         else:
             await update.message.reply_text("An error occurred")
@@ -122,7 +176,7 @@ class Planner(BaseModule):
             plan_name = " ".join(args)
 
         group_id = update.effective_chat.id
-        if self._planning_module.delete_plan(plan_name, group_id):
+        if self.delete_plan(plan_name, group_id):
             await update.message.set_reaction("👍")
         else:
             await update.message.reply_text("An error occurred")
@@ -141,25 +195,25 @@ class Planner(BaseModule):
             plan_name = " ".join(args)
 
         group_id = update.effective_chat.id
-        plan = self._planning_module.get_plan(plan_name, group_id)
+        plan = self.get_plan(plan_name, group_id)
 
         if plan is None:
             await update.message.reply_text("Plan not found")
             return
 
-        if self._planning_module.get_plan(kwargs.get("new_name"), group_id):
+        if self.get_plan(kwargs.get("new_name"), group_id):
             await update.message.reply_text("A plan with that name already exists")
 
-        self._planning_module.update_plan(plan_name, group_id, plan, kwargs.get("new_name"))
+        self.update_plan(plan_name, group_id, plan, kwargs.get("new_name"))
         await update.message.set_reaction("👍")
 
     @prevent_edited
     async def _delete_all(self, update: Update, _) -> None:
         """ Delete all lesson plans """
         group_id = update.effective_chat.id
-        plan_names = self._planning_module.get_plans(group_id)
-        for plan in plan_names:
-            if not self._planning_module.delete_plan(plan, group_id):
+        plans = self.get_plans(group_id)
+        for plan in plans:
+            if not self.delete_plan(plan, group_id):
                 await update.message.reply_text("An error occurred")
                 return
         await update.message.set_reaction("👍")
@@ -168,7 +222,15 @@ class Planner(BaseModule):
     async def _get_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Get a lesson plan """
         if not context.args:
-            await update.message.reply_text("Please provide a name for the plan")
+            group_id = update.effective_chat.id
+            plans = self.get_plans(group_id)
+            for plan_name, plan in plans.items():
+                if update.message.from_user.username in plan.students:
+                    plan_image = plan.to_image()
+                    await update.message.reply_photo(plan_image)
+                    return
+            await update.message.reply_text("You do not belong to a plan." + \
+                                            "Please use /join_plan command")
             return
 
         args, kwargs = self._get_args(context)
@@ -177,8 +239,16 @@ class Planner(BaseModule):
         else:
             plan_name = " ".join(args)
 
+        if plan_name.isdigit():
+            plans = self.get_plans(update.effective_chat.id)
+            if int(plan_name) <= len(plans):
+                plan_name = list(plans.keys())[int(plan_name) - 1]
+            else:
+                await update.message.reply_text("Plan not found")
+                return
+
         group_id = update.effective_chat.id
-        plan = self._planning_module.get_plan(plan_name, group_id)
+        plan = self.get_plan(plan_name, group_id)
         if plan:
             if plan.is_empty():
                 await update.message.reply_text("Plan is empty")
@@ -192,10 +262,13 @@ class Planner(BaseModule):
     async def _get_plans(self, update: Update, _) -> None:
         """ Get all lesson plans """
         group_id = update.effective_chat.id
-        plans = self._planning_module.get_plans(group_id)
+        plans = self.get_plans(group_id)
         plans_str = ""
-        for i, plan in enumerate(plans):
-            plans_str += f"{i+1}. {plan}\n"
+        for i, plan in enumerate(plans.items()):
+            students = plan[1].students
+            if not students:
+                students = ["No students in the plan"]
+            plans_str += f"{i+1}. {plan[0]}\n{'\n'.join(students)}\n"
         if plans:
             await update.message.reply_text(plans_str)
         else:
@@ -223,7 +296,7 @@ class Planner(BaseModule):
         group_id = update.effective_chat.id
         plan_name = " ".join(args) if args else kwargs["plan"]
 
-        plan = self._planning_module.get_plan(plan_name, group_id)
+        plan = self.get_plan(plan_name, group_id)
 
         if not plan:
             await update.message.reply_text(f"Plan {plan_name} not found")
@@ -247,7 +320,7 @@ class Planner(BaseModule):
             return
 
         plan.add_lesson(day - 1, new_lesson)
-        self._planning_module.update_plan(plan_name, group_id, plan)
+        self.update_plan(plan_name, group_id, plan)
         await update.message.set_reaction("👍")
 
     @prevent_edited
@@ -264,7 +337,7 @@ class Planner(BaseModule):
             plan_name = " ".join(args)
 
         group_id = update.effective_chat.id
-        plan = self._planning_module.get_plan(plan_name, group_id)
+        plan = self.get_plan(plan_name, group_id)
 
         if not plan:
             await update.message.reply_text(f"Plan {plan_name} not found")
@@ -303,7 +376,7 @@ class Planner(BaseModule):
 
         try:
             plan.remove_lesson_by_index(int(day) - 1, idx)
-            self._planning_module.update_plan(plan_name, group_id, plan)
+            self.update_plan(plan_name, group_id, plan)
             await update.message.set_reaction("👍")
         except IndexError:
             await update.message.reply_text("Lesson not found")
@@ -322,7 +395,7 @@ class Planner(BaseModule):
             plan_name = " ".join(args)
 
         group_id = update.effective_chat.id
-        plan = self._planning_module.get_plan(plan_name, group_id)
+        plan = self.get_plan(plan_name, group_id)
 
         if not plan:
             await update.message.reply_text(f"Plan {plan_name} not found")
@@ -369,7 +442,7 @@ class Planner(BaseModule):
         try:
             plan.remove_lesson_by_index(day - 1, idx)
             plan.add_lesson(new_day - 1 if new_day else day - 1, lesson)
-            self._planning_module.update_plan(plan_name, group_id, plan)
+            self.update_plan(plan_name, group_id, plan)
             await update.message.set_reaction("👍")
         except IndexError:
             await update.message.reply_text("Lesson not found")
@@ -388,7 +461,7 @@ class Planner(BaseModule):
             plan_name = " ".join(args)
 
         group_id = update.effective_chat.id
-        plan = self._planning_module.get_plan(plan_name, group_id)
+        plan = self.get_plan(plan_name, group_id)
 
         if not plan:
             await update.message.reply_text(f"Plan {plan_name} not found")
@@ -416,7 +489,7 @@ class Planner(BaseModule):
             return
 
         plan.clear_day(int(day) - 1)
-        self._planning_module.update_plan(plan_name, group_id, plan)
+        self.update_plan(plan_name, group_id, plan)
         await update.message.set_reaction("👍")
 
     @prevent_edited
@@ -433,20 +506,20 @@ class Planner(BaseModule):
             plan_name = " ".join(args)
 
         group_id = update.effective_chat.id
-        plan = self._planning_module.get_plan(plan_name, group_id)
+        plan = self.get_plan(plan_name, group_id)
 
         if not plan:
             await update.message.reply_text(f"Plan {plan_name} not found")
             return
 
         plan.clear_all()
-        self._planning_module.update_plan(plan_name, group_id, plan)
+        self.update_plan(plan_name, group_id, plan)
         await update.message.set_reaction("👍")
 
     @prevent_edited
     async def _who_is_free(self, update: Update, _) -> None:
         """ Find out who is free at a given time """
-        plans = self._planning_module.get_plans(update.effective_chat.id)
+        plans = self.get_plans(update.effective_chat.id)
 
         if not plans:
             await update.message.reply_text("No plans found")
@@ -458,7 +531,7 @@ class Planner(BaseModule):
             await update.message.reply_text("No lessons today")
             return
 
-        free_students = self._planning_module.who_is_free(update.effective_chat.id)
+        free_students = self.who_is_free(update.effective_chat.id)
 
         student_list = "\n".join(f"{student} - {text}" for student, text in free_students)
         if not student_list:
@@ -480,7 +553,7 @@ class Planner(BaseModule):
             plan_name = " ".join(args)
 
         group_id = update.effective_chat.id
-        plan = self._planning_module.get_plan(plan_name, group_id)
+        plan = self.get_plan(plan_name, group_id)
 
         if not plan:
             await update.message.reply_text(f"Plan {plan_name} not found")
@@ -506,14 +579,14 @@ class Planner(BaseModule):
             plan_name = " ".join(args)
 
         group_id = update.effective_chat.id
-        plan = self._planning_module.get_plan(plan_name, group_id)
+        plan = self.get_plan(plan_name, group_id)
 
         if not plan:
             await update.message.reply_text(f"Plan {plan_name} not found")
             return
 
         plan.add_student(update.effective_user.username)
-        self._planning_module.update_plan(plan_name, group_id, plan)
+        self.update_plan(plan_name, group_id, plan)
         await update.message.set_reaction("👍")
 
     @prevent_edited
@@ -530,20 +603,12 @@ class Planner(BaseModule):
             plan_name = " ".join(args)
 
         group_id = update.effective_chat.id
-        plan = self._planning_module.get_plan(plan_name, group_id)
+        plan = self.get_plan(plan_name, group_id)
 
         if not plan:
             await update.message.reply_text(f"Plan {plan_name} not found")
             return
 
         plan.remove_student(update.effective_user.username)
-        self._planning_module.update_plan(plan_name, group_id, plan)
+        self.update_plan(plan_name, group_id, plan)
         await update.message.set_reaction("👍")
-
-    def prepare(self) -> bool:
-        """ Prepare the module """
-        self._planning_module = self._telebot_module.get_dsb_module("Planning")
-        if not self._planning_module:
-            self._telebot_module.log("ERROR", "Planning module not found")
-            return False
-        return True

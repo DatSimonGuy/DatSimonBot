@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from telegram import Update
 from telegram.ext import CommandHandler, Application, ContextTypes
 if TYPE_CHECKING:
-    from dsb_main.modules.stable.telebot import Telebot
+    from dsb.dsb import DSB
 
 def admin_only(func):
     """ Decorator for admin only commands """
@@ -27,11 +27,11 @@ def prevent_edited(func):
 
 class BaseModule:
     """ Base module for all telegram bot modules. """
-    def __init__(self, bot: Application, telebot_module: 'Telebot') -> None:
+    def __init__(self, bot: Application, dsb: 'DSB') -> None:
         self._ptb = bot
         self._handlers = {}
         self._descriptions = {}
-        self._telebot_module = telebot_module
+        self._dsb = dsb
 
     @property
     def handlers(self) -> dict:
@@ -46,7 +46,19 @@ class BaseModule:
     @property
     def config(self) -> dict:
         """ Get the bot configuration """
-        return self._telebot_module.config
+        return self._dsb.config
+
+    def save(self, data: dict, subdir: str, filename: str, unpickable: bool = True) -> bool:
+        """ Save data to a file using bot database """
+        self._dsb.database.save(data, subdir, filename, unpickable)
+
+    def load(self, subdir: str, filename: str, default: dict = None) -> dict:
+        """ Load data from a file using bot database """
+        return self._dsb.database.load(subdir, filename, default)
+
+    def delete(self, subdir: str, filename: str) -> bool:
+        """ Delete a file using bot database """
+        return self._dsb.database.delete(subdir, filename)
 
     def prep(self) -> None:
         """ Prepare the module """

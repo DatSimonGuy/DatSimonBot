@@ -1,0 +1,122 @@
+""" Telegram bot module """
+
+import os
+import importlib
+from typing import TYPE_CHECKING, Generator
+import logging
+import dotenv
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CallbackContext
+from .types.database import Database
+if TYPE_CHECKING:
+    from .types.module import BaseModule
+
+class DSB:
+    """ DatSimonBot main class """
+    def __init__(self, *, module_src: str, experimental: bool = False) -> None:
+        self._config = dotenv.dotenv_values(".env")
+        self._modules: dict[str, dict[str, 'BaseModule']] = {}
+        self._logger = logging.getLogger("DSB")
+        self.__loger_setup()
+        self._database = Database()
+        self._module_dir = module_src
+        self._experimental = experimental
+        self._bot = ApplicationBuilder().token(self._config["telebot_token"]).build()
+        self._bot.add_error_handler(self._error_handler)
+        self._commands = {}
+        self.__load_modules()
+
+    def __loger_setup(self):
+        self._logger.setLevel(logging.INFO)
+        self._logger.propagate = False
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',
+                                        datefmt='%Y-%m-%d %H:%M:%S')
+        handler = logging.FileHandler("dsb.log")
+        handler.setFormatter(formatter)
+        self._logger.addHandler(handler)
+
+    @property
+    def commands(self) -> dict:
+        """ Get bot command list """
+        return self._commands
+
+    @property
+    def config(self) -> dict:
+        """ Get the bot configuration """
+        return self._config
+
+    @property
+    def database(self) -> 'Database':
+        """ Get the database """
+        return self._database
+
+    def log(self, message: str) -> None:
+        """ Log a message """
+        self._logger.info(message)
+
+    def error(self, message: str) -> None:
+        """ Log an error """
+        self._logger.error(message)
+
+    def __load_dir(self, path: str, reload: bool = False) \
+        -> Generator[tuple[str, 'BaseModule'], None, None]:
+        for module_file in os.listdir(path):
+            if module_file.endswith(".py") and module_file != "__init__.py":
+                module_name = module_file[:-3]
+                try:
+                    if reload:
+                        module = importlib.reload(importlib.import_module(
+                            f"{path.replace('/', '.')}.{module_name}"))
+                    else:
+                        module = importlib.import_module(
+                            f"{path.replace('/', '.')}.{module_name}")
+                except ImportError:
+                    self.error(f"Failed to load module {module_name}")
+                    continue
+                module_name = module_name.title().replace("_", "")
+                module = getattr(module, module_name)
+                new_module: 'BaseModule' = module(self._bot, self)
+                yield module_name, new_module
+
+    def __load_modules(self, reload: bool = False) -> None:
+        """ Loads handlers from files, optionally reloading them """
+        self._modules.clear()
+
+        self._modules["stable"] = {}
+        self._modules["experimental"] = {}
+
+        for module_type in ["stable", "experimental"]:
+            modules_info = self.__load_dir(os.path.join(self._module_dir, module_type), reload)
+            for name, module in modules_info:
+                self._modules[module_type][name] = module
+
+    def get_module(self, module_name: str) -> 'BaseModule':
+        """ Get a telebot module by name """
+        return self._modules.get(module_name, None)
+
+    async def _error_handler(self, update: Update, context: CallbackContext) -> None:
+        """Log the error and send a message to the user."""
+        if update is not None:
+            self.error(context.error)
+            await update.message.reply_text('An error occurred. Please try again later.')
+
+    def run(self) -> None:
+        """ Run the telebot """
+        print("Starting telebot")
+        self.__load_modules(reload=True)
+        if self._experimental:
+            modules = self._modules["stable"].update(self._modules["experimental"])
+        else:
+            modules = self._modules["stable"]
+        for name, module in modules.items():
+            if module.prepare():
+                self._commands.update(module.descriptions)
+                module.add_handlers()
+            else:
+                print(f"Failed to prepeare module {name}")
+        try:
+            print("Modules loaded")
+            self._bot.run_polling()
+        except KeyboardInterrupt:
+            pass
+        self._logger.info("Telebot stopped")
