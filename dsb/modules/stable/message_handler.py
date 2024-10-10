@@ -15,11 +15,11 @@ class MessageHandler(BaseModule):
 
     def add_handlers(self) -> None:
         """ Add handlers """
-        self._ptb.add_handler(self._message_handler)
+        self._bot.add_handler(self._message_handler)
 
     def remove_handlers(self) -> None:
         """ Remove handlers """
-        self._ptb.remove_handler(self._message_handler)
+        self._bot.remove_handler(self._message_handler)
 
     @property
     def messages(self) -> dict:

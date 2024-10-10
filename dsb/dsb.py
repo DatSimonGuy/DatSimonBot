@@ -36,6 +36,11 @@ class DSB:
         self._logger.addHandler(handler)
 
     @property
+    def experimental(self) -> bool:
+        """ Get experimental mode """
+        return self._experimental
+
+    @property
     def commands(self) -> dict:
         """ Get bot command list """
         return self._commands
@@ -104,10 +109,9 @@ class DSB:
         """ Run the telebot """
         print("Starting telebot")
         self.__load_modules(reload=True)
+        modules = self._modules["stable"]
         if self._experimental:
-            modules = self._modules["stable"].update(self._modules["experimental"])
-        else:
-            modules = self._modules["stable"]
+            modules.update(self._modules["experimental"])
         for name, module in modules.items():
             if module.prepare():
                 self._commands.update(module.descriptions)

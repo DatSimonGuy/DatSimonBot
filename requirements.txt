@@ -8,3 +8,4 @@ matplotlib==3.9.2
 rich==13.8.1
 psutil==6.0.0
 yt-dlp==2024.9.27
+PyGithub==2.4.0
