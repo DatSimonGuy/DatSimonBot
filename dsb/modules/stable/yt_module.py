@@ -33,11 +33,9 @@ class YtModule(BaseModule):
     def __init__(self, bot, telebot_module) -> None:
         super().__init__(bot, telebot_module)
         self._handlers = {
-            "download": self._download,
             "ytsearch": self._ytsearch
         }
         self._descriptions = {
-            "download": "Download a youtube video",
             "ytsearch": "Search for a youtube video"
         }
         self._auto_download_groups = set()
