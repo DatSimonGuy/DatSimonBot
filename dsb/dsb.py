@@ -86,7 +86,8 @@ class DSB:
         self._modules["experimental"] = {}
 
         for module_type in ["stable", "experimental"]:
-            for name, module in self.__load_dir(os.path.join(self._module_dir, module_type), reload):
+            modules_info = self.__load_dir(os.path.join(self._module_dir, module_type), reload)
+            for name, module in modules_info:
                 self._modules[module_type][name] = module
 
     def get_module(self, module_name: str) -> 'BaseModule':
