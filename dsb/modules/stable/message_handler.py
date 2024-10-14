@@ -12,6 +12,9 @@ class MessageHandler(BaseModule):
         self._handlers = {
             "who_am_i": self._user_info,
         }
+        self._descriptions = {
+            "who_am_i": "Get user id",
+        }
         self._messages = {}
         self._message_handler = telegram.ext.MessageHandler(filters.ALL & ~filters.COMMAND,
                               self._handle_text)
