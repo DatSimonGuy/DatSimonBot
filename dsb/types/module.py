@@ -32,6 +32,7 @@ class BaseModule:
         self._handlers = {}
         self._descriptions = {}
         self._dsb = dsb
+        self._handler_list = []
 
     @property
     def handlers(self) -> dict:
@@ -66,13 +67,15 @@ class BaseModule:
     def add_handlers(self) -> None:
         """ Add handlers to the dispatcher """
         for command, handler in self._handlers.items():
-            self._bot.add_handler(CommandHandler(command, handler))
+            handler = CommandHandler(command, handler)
+            self._handler_list.append(handler)
+            self._bot.add_handler(handler)
 
     def remove_handlers(self) -> None:
         """ Remove handlers from the dispatcher """
-        for command, handler in self._handlers.items():
+        for handler in self._handler_list:
             try:
-                self._bot.remove_handler(CommandHandler(command, handler))
+                self._bot.remove_handler(handler)
             except ValueError:
                 pass
 

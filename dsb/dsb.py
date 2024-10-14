@@ -52,6 +52,13 @@ class DSB:
         self._logger.addHandler(handler)
 
     @property
+    def modules(self) -> dict[str, 'BaseModule']:
+        """ Get the modules """
+        temp = self._modules["stable"].copy()
+        temp.update(self._modules["experimental"])
+        return temp
+
+    @property
     def scheduler(self) -> schedule.Scheduler:
         """ Get the scheduler """
         return self._scheduler
@@ -87,14 +94,24 @@ class DSB:
     @admin_only
     async def _switch_mode(self, update: Update, _) -> None:
         """ Switch the bot mode """
+        for module in self.modules.values():
+            module.remove_handlers()
         if not self._experimental:
             self._experimental = True
-            self.__load_modules(reload=True)
             await update.message.reply_text("Experimental mode enabled")
         else:
             self._experimental = False
-            self.__load_modules(reload=True)
             await update.message.reply_text("Experimental mode disabled")
+        self.__load_modules(reload=True)
+        modules = self._modules["stable"].copy()
+        if self._experimental:
+            modules.update(self._modules["experimental"])
+        for module in modules.values():
+            if module.prepare():
+                self._commands.update(module.descriptions)
+                module.add_handlers()
+            else:
+                self.error(f"Failed to prepeare module {module}")
 
     def __load_dir(self, path: str, reload: bool = False) \
         -> Generator[tuple[str, 'BaseModule'], None, None]:
@@ -142,7 +159,7 @@ class DSB:
         """ Run the telebot """
         print("Starting telebot")
         self.__load_modules(reload=True)
-        modules = self._modules["stable"]
+        modules = self._modules["stable"].copy()
         if self._experimental:
             modules.update(self._modules["experimental"])
         for name, module in modules.items():
