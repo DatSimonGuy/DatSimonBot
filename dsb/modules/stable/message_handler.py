@@ -34,7 +34,8 @@ class MessageHandler(BaseModule):
     @prevent_edited
     async def _user_info(self, update: Update, _) -> None:
         """ Get user info """
-        await update.message.reply_text(f"User info:\n{update.message.from_user}")
+        await update.message.reply_text(f"User id: ```{update.message.from_user.id}```",
+                                        parse_mode="Markdownv2")
 
     @prevent_edited
     async def _handle_text(self, update: Update, _) -> None:
