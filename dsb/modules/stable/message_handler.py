@@ -9,6 +9,9 @@ class MessageHandler(BaseModule):
     """ Module for handling text messages """
     def __init__(self, ptb, telebot) -> None:
         super().__init__(ptb, telebot)
+        self._handlers = {
+            "who_am_i": self._user_info,
+        }
         self._messages = {}
         self._message_handler = telegram.ext.MessageHandler(filters.ALL & ~filters.COMMAND,
                               self._handle_text)
@@ -25,6 +28,12 @@ class MessageHandler(BaseModule):
     def messages(self) -> dict:
         """ Returns the list of messages """
         return self._messages
+
+    @prevent_edited
+    async def _user_info(self, update: Update, _) -> None:
+        """ Get user info """
+        await self._bot.send_message(update.message.chat_id,
+                                     f"User info: {update.message.from_user}")
 
     @prevent_edited
     async def _handle_text(self, update: Update, _) -> None:

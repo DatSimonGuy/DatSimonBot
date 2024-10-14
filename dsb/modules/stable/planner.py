@@ -32,7 +32,8 @@ class Planner(BaseModule):
             "leave_plan": self.leave_plan,
             "get_students": self._get_students,
             "transfer_plan": self._transfer_plan,
-            "get_owners": self._get_owners
+            "get_owners": self._get_owners,
+            "transfer_plan_ownership": self._transfer_plan_ownership
         }
         self._descriptions = {
             "create_plan": "Create a new lesson plan",
@@ -51,7 +52,8 @@ class Planner(BaseModule):
             "leave_plan": "Leave a lesson plan",
             "get_students": "Get all students in a plan",
             "transfer_plan": "Transfer a plan to another group",
-            "get_owners": "Get all plan owners (Admins only)"
+            "get_owners": "Get all plan owners (Admins only)",
+            "transfer_plan_ownership": "Transfer plan ownership"
         }
 
     def create_plan(self, name: str, group_id: int, user_id: int) -> bool:
@@ -249,6 +251,42 @@ class Planner(BaseModule):
             await update.message.reply_text("No plans found")
             return
         await update.message.reply_text(owners)
+
+    @prevent_edited
+    async def _transfer_plan_ownership(self, update: Update,
+                                       context: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Transfer plan ownership """
+        if not context.args:
+            await update.message.reply_text("Please provide a name for the plan")
+            return
+
+        args, kwargs = self._get_args(context)
+        if "name" in kwargs:
+            plan_name = kwargs.get("name")
+        else:
+            plan_name = " ".join(args)
+
+        group_id = update.effective_chat.id
+        plan = self.get_plan(plan_name, group_id)
+
+        if not plan:
+            await update.message.reply_text(f"Plan {plan_name} not found")
+            return
+
+        user_id = update.effective_user.id
+        if plan.owner != user_id and not str(user_id) in self.config["admins"]:
+            await update.message.reply_text("This plan does not belong to you")
+            return
+
+        if "new_owner" not in kwargs:
+            await update.message.reply_text("Please provide id of a new owner")
+            return
+
+        new_owner = int(kwargs.get("new_owner"))
+
+        plan.owner = new_owner
+        self.update_plan(plan_name, group_id, plan)
+        await update.message.set_reaction("👍")
 
     @prevent_edited
     async def _get_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
