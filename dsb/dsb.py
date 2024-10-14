@@ -1,12 +1,15 @@
 """ Telegram bot module """
 
 import os
+import time
 import importlib
 from typing import TYPE_CHECKING, Generator
 import logging
+import threading
 import dotenv
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CallbackContext, CommandHandler
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext
+import schedule
 from .types.database import Database
 from .types.module import admin_only
 if TYPE_CHECKING:
@@ -27,8 +30,16 @@ class DSB:
         self._commands = {
             "switch_mode": "Switch the bot mode"
         }
+        self._scheduler = schedule.Scheduler()
+        schedule_thread = threading.Thread(target=self.__schedule_timer)
+        schedule_thread.start()
         self._bot.add_handler(CommandHandler("switch_mode", self._switch_mode))
         self.__load_modules()
+
+    def __schedule_timer(self):
+        while True:
+            self._scheduler.run_pending()
+            time.sleep(1)
 
     def __loger_setup(self):
         self._logger.setLevel(logging.INFO)
@@ -38,6 +49,11 @@ class DSB:
         handler = logging.FileHandler("dsb.log")
         handler.setFormatter(formatter)
         self._logger.addHandler(handler)
+
+    @property
+    def scheduler(self) -> schedule.Scheduler:
+        """ Get the scheduler """
+        return self._scheduler
 
     @property
     def experimental(self) -> bool:
