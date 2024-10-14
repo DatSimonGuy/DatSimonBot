@@ -35,7 +35,8 @@ class DailyImages(BaseModule):
         if not args:
             await update.message.reply_text("Please provide a set name")
             return
-        self._dsb.database.create_dir(f"{update.effective_chat.id}/{self._image_dir}/{args}")
+        dir_path = f"{update.effective_chat.id}/{self._image_dir}/{" ".join(args)}"
+        self._dsb.database.create_dir(dir_path)
         await update.message.reply_text("Set created")
 
     async def _delete_set(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -44,7 +45,8 @@ class DailyImages(BaseModule):
         if not args:
             await update.message.reply_text("Please provide a set name")
             return
-        self._dsb.database.delete_dir(f"{update.effective_chat.id}/{self._image_dir}/{args}")
+        dir_path = f"{update.effective_chat.id}/{self._image_dir}/{" ".join(args)}"
+        self._dsb.database.delete_dir(dir_path)
         await update.message.reply_text("Set deleted")
 
     async def _daily_image(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -58,12 +60,13 @@ class DailyImages(BaseModule):
             await update.message.reply_text("Avaible sets:\n" + \
                 "\n".join(self._dsb.database.list_all("daily_images")))
             return
-        self._image_sets[update.message.chat_id] = image_set
+        chat_id = update.effective_chat.id
+        self._image_sets[chat_id] = image_set
         await update.message.reply_text("I will now send images from this set daily at 6 am")
 
     async def _cancel_daily_image(self, update: Update, _) -> None:
         """ Cancel daily image """
-        self._image_sets.pop(update.message.chat_id, None)
+        self._image_sets.pop(update.effective_chat.id, None)
         await update.message.reply_text("Daily image cancelled")
 
     async def _submit_image(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -92,11 +95,11 @@ class DailyImages(BaseModule):
 
     def _get_image(self, image_set: str, chat_id: int) -> bytes:
         """ Get Arthur quote image """
-        images = self._dsb.database.list_all(f"{chat_id}/{self._image_dir}/{image_set}")
+        images_path = f"{chat_id}/{self._image_dir}/{image_set}"
+        images = self._dsb.database.list_all(images_path)
         random_img = random.choice(images)
         random_img = random_img.split(".")[0]
-        image = self._dsb.database.load_image(f"{chat_id}/{self._image_dir}/{image_set}",
-                                              random_img)
+        image = self._dsb.database.load_image(images_path, random_img)
         return image
 
     async def _send_daily_image(self) -> None:
@@ -118,7 +121,7 @@ class DailyImages(BaseModule):
             await update.message.reply_text("Avaible sets:\n" + \
                 "\n".join(self._dsb.database.list_all("daily_images")))
             return
-        image = self._get_image(image_set, update.message.chat_id)
+        image = self._get_image(image_set, update.effective_chat.id)
         await update.message.reply_photo(image)
 
     def add_handlers(self):
