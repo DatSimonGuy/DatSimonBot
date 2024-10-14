@@ -18,10 +18,12 @@ class MessageHandler(BaseModule):
 
     def add_handlers(self) -> None:
         """ Add handlers """
+        super().add_handlers()
         self._bot.add_handler(self._message_handler)
 
     def remove_handlers(self) -> None:
         """ Remove handlers """
+        super().remove_handlers()
         self._bot.remove_handler(self._message_handler)
 
     @property
@@ -32,8 +34,7 @@ class MessageHandler(BaseModule):
     @prevent_edited
     async def _user_info(self, update: Update, _) -> None:
         """ Get user info """
-        await self._bot.send_message(update.message.chat_id,
-                                     f"User info: {update.message.from_user}")
+        await update.message.reply_text(f"User info:\n{update.message.from_user}")
 
     @prevent_edited
     async def _handle_text(self, update: Update, _) -> None:
