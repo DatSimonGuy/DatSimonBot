@@ -60,6 +60,22 @@ class Database:
         except FileNotFoundError:
             return b""
 
+    def create_dir(self, subdir: str) -> bool:
+        """ Create a directory in the database. """
+        try:
+            os.makedirs(f"{self._directory}/{subdir}", exist_ok=True)
+            return True
+        except OSError:
+            return False
+
+    def delete_dir(self, subdir: str) -> bool:
+        """ Delete a directory from the database. """
+        try:
+            shutil.rmtree(f"{self._directory}/{subdir}")
+            return True
+        except FileNotFoundError:
+            return False
+
     def delete(self, subdir: str, filename: str) -> bool:
         """ Delete data from the database. """
         try:
