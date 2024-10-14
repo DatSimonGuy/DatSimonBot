@@ -6,7 +6,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from dsb.types.lesson import Lesson
 from dsb.types.plan import Plan
-from dsb.types.module import BaseModule, prevent_edited
+from dsb.types.module import BaseModule, prevent_edited, admin_only
 if TYPE_CHECKING:
     from dsb.dsb import DSB
 
@@ -31,7 +31,8 @@ class Planner(BaseModule):
             "join_plan": self.join_plan,
             "leave_plan": self.leave_plan,
             "get_students": self._get_students,
-            "transfer_plan": self._transfer_plan
+            "transfer_plan": self._transfer_plan,
+            "get_owners": self._get_owners
         }
         self._descriptions = {
             "create_plan": "Create a new lesson plan",
@@ -49,12 +50,13 @@ class Planner(BaseModule):
             "join_plan": "Join a lesson plan",
             "leave_plan": "Leave a lesson plan",
             "get_students": "Get all students in a plan",
-            "transfer_plan": "Transfer a plan to another group"
+            "transfer_plan": "Transfer a plan to another group",
+            "get_owners": "Get all plan owners (Admins only)"
         }
 
-    def create_plan(self, name: str, group_id: int) -> bool:
+    def create_plan(self, name: str, group_id: int, user_id: int) -> bool:
         """ Create a new lesson plan """
-        new_plan = Plan(name)
+        new_plan = Plan(name, owner=user_id)
         return self._db.save(new_plan, f"{group_id}/plans", name)
 
     def get_plan(self, name: str, group_id: int) -> Plan | None:
@@ -130,7 +132,7 @@ class Planner(BaseModule):
             await update.message.reply_text("A plan with that name already exists")
             return
 
-        self.create_plan(plan_name, new_group)
+        self.create_plan(plan_name, new_group, update.effective_user.id)
         self.update_plan(plan_name, new_group, plan)
         await update.message.set_reaction("👍")
 
@@ -157,7 +159,7 @@ class Planner(BaseModule):
             await update.message.reply_text("A plan with that name already exists")
             return
 
-        if self.create_plan(plan_name, group_id):
+        if self.create_plan(plan_name, group_id, update.effective_user.id):
             await update.message.set_reaction("👍")
         else:
             await update.message.reply_text("An error occurred")
@@ -176,6 +178,17 @@ class Planner(BaseModule):
             plan_name = " ".join(args)
 
         group_id = update.effective_chat.id
+        plan = self.get_plan(plan_name, group_id)
+
+        if plan is None:
+            await update.message.reply_text(f"There is no plan with name {plan_name}")
+            return
+
+        user_id = update.effective_chat.id
+        if user_id != plan.owner and not str(user_id) in self.config["admins"]:
+            await update.message.reply_text("This plan does not belong to you")
+            return
+
         if self.delete_plan(plan_name, group_id):
             await update.message.set_reaction("👍")
         else:
@@ -201,12 +214,19 @@ class Planner(BaseModule):
             await update.message.reply_text("Plan not found")
             return
 
+        user_id = update.effective_user.id
+        if plan.owner != user_id and not str(user_id) in self.config["admins"]:
+            await update.message.reply_text("This is not your plan")
+            return
+
         if self.get_plan(kwargs.get("new_name"), group_id):
             await update.message.reply_text("A plan with that name already exists")
+            return
 
         self.update_plan(plan_name, group_id, plan, kwargs.get("new_name"))
         await update.message.set_reaction("👍")
 
+    @admin_only
     @prevent_edited
     async def _delete_all(self, update: Update, _) -> None:
         """ Delete all lesson plans """
@@ -217,6 +237,18 @@ class Planner(BaseModule):
                 await update.message.reply_text("An error occurred")
                 return
         await update.message.set_reaction("👍")
+
+    @admin_only
+    @prevent_edited
+    async def _get_owners(self, update: Update, _) -> None:
+        """ Get all plan owners """
+        group_id = update.effective_chat.id
+        plans = self.get_plans(group_id)
+        owners = "\n".join(f"{plan[0]} - {plan[1].owner}" for plan in plans.items())
+        if not owners:
+            await update.message.reply_text("No plans found")
+            return
+        await update.message.reply_text(owners)
 
     @prevent_edited
     async def _get_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -343,6 +375,11 @@ class Planner(BaseModule):
             await update.message.reply_text(f"Plan {plan_name} not found")
             return
 
+        user_id = update.effective_user.id
+        if plan.owner != user_id and not str(user_id) in self.config["admins"]:
+            await update.message.reply_text("This plan does not belong to you")
+            return
+
         args, kwargs = self._get_args(context)
         if "idx" in kwargs:
             idx = int(kwargs.get("idx"))
@@ -399,6 +436,11 @@ class Planner(BaseModule):
 
         if not plan:
             await update.message.reply_text(f"Plan {plan_name} not found")
+            return
+
+        user_id = update.effective_user.id
+        if plan.owner != user_id and not str(user_id) in self.config["admins"]:
+            await update.message.reply_text("This plan does not belong to you")
             return
 
         args, kwargs = self._get_args(context)
@@ -465,6 +507,11 @@ class Planner(BaseModule):
 
         if not plan:
             await update.message.reply_text(f"Plan {plan_name} not found")
+            return
+
+        user_id = update.effective_user.id
+        if plan.owner != user_id and not str(user_id) in self.config["admins"]:
+            await update.message.reply_text("This plan does not belong to you")
             return
 
         args, kwargs = self._get_args(context)

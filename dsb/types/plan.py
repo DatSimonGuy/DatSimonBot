@@ -10,40 +10,26 @@ class Plan:
     """ Plan class containing info about lessons """
     _days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, owner: int | None = None) -> None:
         self._name = name
         self._students = []
         self._week: list[list[Lesson]] = [[] for _ in range(5)]
+        self._owner: int | None = owner
+
+    @property
+    def owner(self) -> int | None:
+        """ Returns the owner of the plan """
+        return self._owner
+
+    @owner.setter
+    def owner(self, owner: int) -> None:
+        """ Set the owner of the plan """
+        self._owner = owner
 
     @property
     def students(self) -> list:
         """ Returns the students of the plan """
         return self._students
-
-    @property
-    def monday(self) -> list:
-        """ Returns the lessons for Monday """
-        return self._week[0]
-
-    @property
-    def tuesday(self) -> list:
-        """ Returns the lessons for Tuesday """
-        return self._week[1]
-
-    @property
-    def wednesday(self) -> list:
-        """ Returns the lessons for Wednesday """
-        return self._week[2]
-
-    @property
-    def thursday(self) -> list:
-        """ Returns the lessons for Thursday """
-        return self._week[3]
-
-    @property
-    def friday(self) -> list:
-        """ Returns the lessons for Friday """
-        return self._week[4]
 
     @property
     def next_lesson(self) -> Lesson | None:
