@@ -31,7 +31,8 @@ class Planner(BaseModule):
             "join_plan": self.join_plan,
             "leave_plan": self.leave_plan,
             "get_students": self._get_students,
-            "transfer_plan": self._transfer_plan
+            "transfer_plan": self._transfer_plan,
+            "get_owners": self._get_owners
         }
         self._descriptions = {
             "create_plan": "Create a new lesson plan",
@@ -49,7 +50,8 @@ class Planner(BaseModule):
             "join_plan": "Join a lesson plan",
             "leave_plan": "Leave a lesson plan",
             "get_students": "Get all students in a plan",
-            "transfer_plan": "Transfer a plan to another group"
+            "transfer_plan": "Transfer a plan to another group",
+            "get_owners": "Get all plan owners (Admins only)"
         }
 
     def create_plan(self, name: str, group_id: int, user_id: int) -> bool:
@@ -183,7 +185,7 @@ class Planner(BaseModule):
             return
 
         user_id = update.effective_chat.id
-        if user_id != plan.owner and user_id not in self.config["admins"]:
+        if user_id != plan.owner and not str(user_id) in self.config["admins"]:
             await update.message.reply_text("This plan does not belong to you")
             return
 
@@ -213,11 +215,13 @@ class Planner(BaseModule):
             return
 
         user_id = update.effective_user.id
-        if plan.owner != user_id and user_id not in self.config["admins"]:
+        if plan.owner != user_id and not str(user_id) in self.config["admins"]:
             await update.message.reply_text("This is not your plan")
+            return
 
         if self.get_plan(kwargs.get("new_name"), group_id):
             await update.message.reply_text("A plan with that name already exists")
+            return
 
         self.update_plan(plan_name, group_id, plan, kwargs.get("new_name"))
         await update.message.set_reaction("👍")
@@ -233,6 +237,18 @@ class Planner(BaseModule):
                 await update.message.reply_text("An error occurred")
                 return
         await update.message.set_reaction("👍")
+
+    @admin_only
+    @prevent_edited
+    async def _get_owners(self, update: Update, _) -> None:
+        """ Get all plan owners """
+        group_id = update.effective_chat.id
+        plans = self.get_plans(group_id)
+        owners = "\n".join(f"{plan[0]} - {plan[1].owner}" for plan in plans.items())
+        if not owners:
+            await update.message.reply_text("No plans found")
+            return
+        await update.message.reply_text(owners)
 
     @prevent_edited
     async def _get_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -360,7 +376,7 @@ class Planner(BaseModule):
             return
 
         user_id = update.effective_user.id
-        if plan.owner != user_id and not user_id in self.config["admins"]:
+        if plan.owner != user_id and not str(user_id) in self.config["admins"]:
             await update.message.reply_text("This plan does not belong to you")
             return
 
@@ -423,7 +439,7 @@ class Planner(BaseModule):
             return
 
         user_id = update.effective_user.id
-        if plan.owner != user_id and not user_id in self.config["admins"]:
+        if plan.owner != user_id and not str(user_id) in self.config["admins"]:
             await update.message.reply_text("This plan does not belong to you")
             return
 
@@ -494,7 +510,7 @@ class Planner(BaseModule):
             return
 
         user_id = update.effective_user.id
-        if plan.owner != user_id and not user_id in self.config["admins"]:
+        if plan.owner != user_id and not str(user_id) in self.config["admins"]:
             await update.message.reply_text("This plan does not belong to you")
             return
 
