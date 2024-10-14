@@ -103,12 +103,15 @@ class DSB:
             self._experimental = False
             await update.message.reply_text("Experimental mode disabled")
         self.__load_modules(reload=True)
-        for module in self.modules.values():
+        modules = self._modules["stable"].copy()
+        if self._experimental:
+            modules.update(self._modules["experimental"])
+        for module in modules.values():
             if module.prepare():
                 self._commands.update(module.descriptions)
                 module.add_handlers()
             else:
-                print(f"Failed to prepeare module {module}")
+                self.error(f"Failed to prepeare module {module}")
 
     def __load_dir(self, path: str, reload: bool = False) \
         -> Generator[tuple[str, 'BaseModule'], None, None]:
