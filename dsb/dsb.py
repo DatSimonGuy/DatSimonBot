@@ -87,14 +87,31 @@ class DSB:
     @admin_only
     async def _switch_mode(self, update: Update, _) -> None:
         """ Switch the bot mode """
+        for module in self._modules["stable"].values():
+            module.remove_handlers()
+        if self._experimental:
+            for module in self._modules["experimental"].values():
+                module.remove_handlers()
         if not self._experimental:
             self._experimental = True
-            self.__load_modules(reload=True)
             await update.message.reply_text("Experimental mode enabled")
         else:
             self._experimental = False
-            self.__load_modules(reload=True)
             await update.message.reply_text("Experimental mode disabled")
+        self.__load_modules(reload=True)
+        for module in self._modules["stable"].values():
+            if module.prepare():
+                self._commands.update(module.descriptions)
+                module.add_handlers()
+            else:
+                print(f"Failed to prepeare module {module}")
+        if self._experimental:
+            for module in self._modules["experimental"].values():
+                if module.prepare():
+                    self._commands.update(module.descriptions)
+                    module.add_handlers()
+                else:
+                    print(f"Failed to prepeare module {module}")
 
     def __load_dir(self, path: str, reload: bool = False) \
         -> Generator[tuple[str, 'BaseModule'], None, None]:
