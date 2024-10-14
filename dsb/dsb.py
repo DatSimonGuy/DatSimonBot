@@ -52,6 +52,13 @@ class DSB:
         self._logger.addHandler(handler)
 
     @property
+    def modules(self) -> dict[str, 'BaseModule']:
+        """ Get the modules """
+        temp = self._modules["stable"].copy()
+        temp.update(self._modules["experimental"])
+        return temp
+
+    @property
     def scheduler(self) -> schedule.Scheduler:
         """ Get the scheduler """
         return self._scheduler
@@ -87,11 +94,8 @@ class DSB:
     @admin_only
     async def _switch_mode(self, update: Update, _) -> None:
         """ Switch the bot mode """
-        for module in self._modules["stable"].values():
+        for module in self.modules.values():
             module.remove_handlers()
-        if self._experimental:
-            for module in self._modules["experimental"].values():
-                module.remove_handlers()
         if not self._experimental:
             self._experimental = True
             await update.message.reply_text("Experimental mode enabled")
@@ -99,19 +103,12 @@ class DSB:
             self._experimental = False
             await update.message.reply_text("Experimental mode disabled")
         self.__load_modules(reload=True)
-        for module in self._modules["stable"].values():
+        for module in self.modules.values():
             if module.prepare():
                 self._commands.update(module.descriptions)
                 module.add_handlers()
             else:
                 print(f"Failed to prepeare module {module}")
-        if self._experimental:
-            for module in self._modules["experimental"].values():
-                if module.prepare():
-                    self._commands.update(module.descriptions)
-                    module.add_handlers()
-                else:
-                    print(f"Failed to prepeare module {module}")
 
     def __load_dir(self, path: str, reload: bool = False) \
         -> Generator[tuple[str, 'BaseModule'], None, None]:
@@ -159,7 +156,7 @@ class DSB:
         """ Run the telebot """
         print("Starting telebot")
         self.__load_modules(reload=True)
-        modules = self._modules["stable"]
+        modules = self._modules["stable"].copy()
         if self._experimental:
             modules.update(self._modules["experimental"])
         for name, module in modules.items():
