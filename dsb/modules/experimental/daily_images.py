@@ -57,8 +57,9 @@ class DailyImages(BaseModule):
         else:
             image_set = kwargs["set"]
         if not image_set:
+            dir_path = f"{update.effective_chat.id}/{self._image_dir}"
             await update.message.reply_text("Avaible sets:\n" + \
-                "\n".join(self._dsb.database.list_all("daily_images")))
+                "\n".join(self._dsb.database.list_all(dir_path)))
             return
         chat_id = update.effective_chat.id
         self._image_sets[chat_id] = image_set
@@ -118,8 +119,9 @@ class DailyImages(BaseModule):
         else:
             image_set = kwargs["set"]
         if not image_set:
+            dir_path = f"{update.effective_chat.id}/{self._image_dir}"
             await update.message.reply_text("Avaible sets:\n" + \
-                "\n".join(self._dsb.database.list_all("daily_images")))
+                "\n".join(self._dsb.database.list_all(dir_path)))
             return
         image = self._get_image(image_set, update.effective_chat.id)
         await update.message.reply_photo(image)
