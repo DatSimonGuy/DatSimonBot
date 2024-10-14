@@ -31,13 +31,14 @@ class DSB:
             "switch_mode": "Switch the bot mode"
         }
         self._scheduler = schedule.Scheduler()
-        schedule_thread = threading.Thread(target=self.__schedule_timer)
-        schedule_thread.start()
+        self._schedule_thread = threading.Thread(target=self.__schedule_timer)
+        self._schedule_thread.start()
         self._bot.add_handler(CommandHandler("switch_mode", self._switch_mode))
         self.__load_modules()
 
-    def __schedule_timer(self):
-        while True:
+    def __schedule_timer(self) -> None:
+        is_running = threading.Event().is_set
+        while is_running():
             self._scheduler.run_pending()
             time.sleep(1)
 
@@ -154,5 +155,6 @@ class DSB:
             print("Modules loaded")
             self._bot.run_polling()
         except KeyboardInterrupt:
-            pass
+            threading.Event().set()
+            self._schedule_thread.join()
         self._logger.info("Telebot stopped")
