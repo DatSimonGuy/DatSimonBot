@@ -297,6 +297,9 @@ class Planner(BaseModule):
             for plan_name, plan in plans.items():
                 if update.message.from_user.username in plan.students:
                     plan_image = plan.to_image()
+                    if not plan_image:
+                        await update.message.reply_text("The plan is empty")
+                        return
                     await update.message.reply_photo(plan_image)
                     return
             await update.message.reply_text("You do not belong to a plan." + \
@@ -504,10 +507,12 @@ class Planner(BaseModule):
             return
 
         try:
-            day = days.get(kwargs["day"].lower(), int(kwargs["day"]))
+            day = days.get(kwargs["day"].lower(), None)
+            if day is None:
+                day = int(kwargs["day"])
             new_day = days.get(kwargs.get("new_day", "").lower(),
                                int(kwargs["new_day"])) if kwargs.get("new_day") else None
-        except KeyError:
+        except ValueError:
             await update.message.reply_text("Invalid day")
             return
 
