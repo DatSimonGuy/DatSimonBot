@@ -58,7 +58,7 @@ class Planner(BaseModule):
 
     def create_plan(self, name: str, group_id: int, user_id: int) -> bool:
         """ Create a new lesson plan """
-        new_plan = Plan(name, owner=user_id)
+        new_plan = Plan(user_id)
         plans = self._db.get_table("plans")
         if plans.get_row((name, group_id)):
             return False

@@ -10,8 +10,7 @@ class Plan:
     """ Plan class containing info about lessons """
     _days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
-    def __init__(self, name: str, owner: int | None = None) -> None:
-        self._name = name
+    def __init__(self, owner: int | None = None) -> None:
         self._students = []
         self._week: list[list[Lesson]] = [[] for _ in range(5)]
         self._owner: int | None = owner
