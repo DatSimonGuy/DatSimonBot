@@ -1,6 +1,7 @@
 """ Database for dsb """
 
 import os
+import shutil
 import jsonpickle
 
 class Table:
@@ -134,3 +135,14 @@ class Database:
             return os.listdir(os.path.join(self._directory, path))
         except FileNotFoundError:
             return []
+
+    def backup(self) -> bytes:
+        """ Backup the database """
+        shutil.make_archive(os.path.join(self._directory, "backup"), "zip", self._directory)
+        try:
+            with open(os.path.join(self._directory, "backup.zip"), "rb") as file:
+                return file.read()
+        except FileNotFoundError:
+            return b""
+        finally:
+            os.remove(os.path.join(self._directory, "backup.zip"))
