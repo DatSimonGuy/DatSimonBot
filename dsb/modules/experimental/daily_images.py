@@ -40,7 +40,7 @@ class DailyImages(BaseModule):
         if sets.get_row(check_function=lambda x: x[1] == chat_id and x[2] == set_name):
             await update.message.reply_text("Set already exists")
             return
-        sets.add_row([chat_id, set_name, f"images/{chat_id}/{set_name}"])
+        sets.add_row([chat_id, set_name, f"{chat_id}/images/{set_name}"])
         sets.save()
         await update.message.reply_text("Set created")
 
@@ -122,8 +122,13 @@ class DailyImages(BaseModule):
         """ Get Arthur quote image """
         sets = self._dsb.database.get_table("sets")
         images_path = sets.\
-            get_row(check_function=lambda x: x[1] == chat_id and x[2] == image_set)[3]
+            get_row(check_function=lambda x: x[1] == chat_id and x[2] == image_set)
+        if not images_path:
+            return b""
+        images_path = images_path[3]
         images = self._dsb.database.list_all(images_path)
+        if not images:
+            return b""
         random_img = random.choice(images)
         image = self._dsb.database.load_file(os.path.join(images_path, random_img))
         return image
@@ -148,10 +153,13 @@ class DailyImages(BaseModule):
             chat_id = update.effective_chat.id
             sets = self._dsb.database.get_table("sets")
             chat_sets = sets.get_rows(check_function=lambda x: x[1] == chat_id)
-            chat_sets = [x[1] for x in chat_sets]
+            chat_sets = [x[2] for x in chat_sets]
             await update.message.reply_text("Avaible sets:\n" + "\n".join(chat_sets))
             return
         image = self._get_image(image_set, update.effective_chat.id)
+        if not image:
+            await update.message.reply_text("No images found / no set with this name")
+            return
         await update.message.reply_photo(image)
 
     def add_handlers(self):

@@ -54,7 +54,7 @@ class Table:
 
     def remove_rows(self, check_function: callable = lambda x: False) -> None:
         """ Remove all rows from the table that don't pass the check function """
-        self._rows = [row for row in self._rows if check_function(row)]
+        self._rows = {key: row for key, row in self._rows.items() if check_function(row)}
 
     def replace_row(self, key: tuple, row: list) -> None:
         """ Replace a row in the table """
@@ -62,11 +62,11 @@ class Table:
 
     def get_column(self, index: int) -> list[list]:
         """ Get a column from the table """
-        return [row[index] for row in self._rows]
+        return [row[index] for row in self._rows.values()]
 
     def get_columns(self, columns: list[int]) -> list[list[list]]:
         """ Get all columns from the table """
-        return [[row[i] for row in self._rows] for i in columns]
+        return [[row[i] for row in self._rows.values()] for i in columns]
 
     def save(self) -> None:
         """ Save the table to the file """
@@ -117,8 +117,11 @@ class Database:
 
     def load_file(self, path: str) -> bytes:
         """ Load a file from the database """
-        with open(os.path.join(self._directory, path), "rb") as file:
-            return file.read()
+        try:
+            with open(os.path.join(self._directory, path), "rb") as file:
+                return file.read()
+        except FileNotFoundError:
+            return b""
 
     def remove_file(self, path: str) -> None:
         """ Remove a file from the database """
@@ -126,4 +129,7 @@ class Database:
 
     def list_all(self, path: str) -> list[str]:
         """ List all files in a directory """
-        return os.listdir(os.path.join(self._directory, path))
+        try:
+            return os.listdir(os.path.join(self._directory, path))
+        except FileNotFoundError:
+            return []

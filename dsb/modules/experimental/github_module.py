@@ -18,7 +18,7 @@ class GithubModule(BaseModule):
         commits = self._dsb.database.get_table("last_commits")
         last_commits = commits.get_rows()
         if last_commits:
-            last_commit = last_commits[0][0]
+            last_commit = last_commits[0][1]
             if last_commit == commit.sha:
                 return
         commits.remove_rows(lambda x: True)
