@@ -1,5 +1,6 @@
 """ Fun stuff to play with """
 
+import os
 import random
 from telegram import Update
 from telegram.ext import ContextTypes
@@ -9,8 +10,6 @@ class DailyImages(BaseModule):
     """ Misc module for DSB. """
     def __init__(self, bot, dsb):
         super().__init__(bot, dsb)
-        self._image_sets = {}
-        self._image_dir = "daily_images"
         self._daily_job = None
         self._handlers = {
             "create_set": self._create_set,
@@ -35,8 +34,14 @@ class DailyImages(BaseModule):
         if not args:
             await update.message.reply_text("Please provide a set name")
             return
-        dir_path = f"{update.effective_chat.id}/{self._image_dir}/{" ".join(args)}"
-        self._dsb.database.create_dir(dir_path)
+        sets = self._dsb.database.get_table("sets")
+        chat_id = update.effective_chat.id
+        set_name = " ".join(args)
+        if sets.get_row(check_function=lambda x: x[1] == chat_id and x[2] == set_name):
+            await update.message.reply_text("Set already exists")
+            return
+        sets.add_row([chat_id, set_name, f"images/{chat_id}/{set_name}"])
+        sets.save()
         await update.message.reply_text("Set created")
 
     async def _delete_set(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -45,8 +50,10 @@ class DailyImages(BaseModule):
         if not args:
             await update.message.reply_text("Please provide a set name")
             return
-        dir_path = f"{update.effective_chat.id}/{self._image_dir}/{" ".join(args)}"
-        self._dsb.database.delete_dir(dir_path)
+        sets = self._dsb.database.get_table("sets")
+        chat_id = update.effective_chat.id
+        sets.remove_row(check_function=lambda x: x[1] == chat_id and x[2] == " ".join(args))
+        sets.save()
         await update.message.reply_text("Set deleted")
 
     async def _daily_image(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -56,18 +63,30 @@ class DailyImages(BaseModule):
             image_set = " ".join(args)
         else:
             image_set = kwargs["set"]
-        if not image_set:
-            dir_path = f"{update.effective_chat.id}/{self._image_dir}"
-            await update.message.reply_text("Avaible sets:\n" + \
-                "\n".join(self._dsb.database.list_all(dir_path)))
-            return
         chat_id = update.effective_chat.id
-        self._image_sets[chat_id] = image_set
+        if not image_set:
+            sets = self._dsb.database.get_table("sets")
+            chat_sets = sets.get_rows(check_function=lambda x: x[1] == chat_id)
+            chat_sets = [x[1] for x in chat_sets]
+            await update.message.reply_text("Avaible sets:\n" + "\n".join(chat_sets))
+            return
+        image_toggles = self._dsb.database.get_table("image_toggles")
+        current_toggle = image_toggles\
+            .get_row(check_function=lambda x: x[1] == chat_id and x[2] == image_set)
+        if current_toggle:
+            current_toggle[2] = image_set
+            image_toggles.replace_row(current_toggle[0], current_toggle)
+        else:
+            image_toggles.add_row([chat_id, image_set])
+        image_toggles.save()
         await update.message.reply_text("I will now send images from this set daily at 6 am")
 
     async def _cancel_daily_image(self, update: Update, _) -> None:
         """ Cancel daily image """
-        self._image_sets.pop(update.effective_chat.id, None)
+        chat_id = update.effective_chat.id
+        image_toggles = self._dsb.database.get_table("image_toggles")
+        image_toggles.remove_row(check_function=lambda x: x[1] == chat_id)
+        image_toggles.save()
         await update.message.reply_text("Daily image cancelled")
 
     async def _submit_image(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -89,39 +108,48 @@ class DailyImages(BaseModule):
             await update.message.reply_text("No file found")
             return
         image_bytes = await file.download_as_bytearray()
-        self._dsb.database.save_image(image_bytes,
-                                      f"{update.effective_chat.id}/{self._image_dir}/{image_set}",
-                                      f"{quote.message_id}")
+        sets = self._dsb.database.get_table("sets")
+        chat_id = update.effective_chat.id
+        set_to_update = sets\
+            .get_rows(check_function=lambda x: x[1] == chat_id and x[2] == image_set)
+        if not set_to_update:
+            await update.message.reply_text("Set not found")
+            return
+        self._dsb.database.save_file(image_bytes, set_to_update[3])
         await update.message.reply_text("Image submitted to set")
 
     def _get_image(self, image_set: str, chat_id: int) -> bytes:
         """ Get Arthur quote image """
-        images_path = f"{chat_id}/{self._image_dir}/{image_set}"
+        sets = self._dsb.database.get_table("sets")
+        images_path = sets.\
+            get_row(check_function=lambda x: x[1] == chat_id and x[2] == image_set)[3]
         images = self._dsb.database.list_all(images_path)
         random_img = random.choice(images)
-        random_img = random_img.split(".")[0]
-        image = self._dsb.database.load_image(images_path, random_img)
+        image = self._dsb.database.load_file(os.path.join(images_path, random_img))
         return image
 
     async def _send_daily_image(self) -> None:
-        """ Send Arthur quote """
-        for chat_id, image_set in self._image_sets.items():
+        """ Send daily image quote """
+        image_toggles = self._dsb.database.get_table("image_toggles")
+        for chat_id, image_set in image_toggles.get_rows():
             image = self._get_image(image_set, chat_id)
             if not image:
-                break
+                continue
             await self._bot.bot.send_photo(chat_id, image)
 
     async def _random_image(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """ Send a random Arthur quote """
+        """ Send a random image from a set """
         args, kwargs = self._get_args(context)
         if "set" not in kwargs:
             image_set = " ".join(args)
         else:
             image_set = kwargs["set"]
         if not image_set:
-            dir_path = f"{update.effective_chat.id}/{self._image_dir}"
-            await update.message.reply_text("Avaible sets:\n" + \
-                "\n".join(self._dsb.database.list_all(dir_path)))
+            chat_id = update.effective_chat.id
+            sets = self._dsb.database.get_table("sets")
+            chat_sets = sets.get_rows(check_function=lambda x: x[1] == chat_id)
+            chat_sets = [x[1] for x in chat_sets]
+            await update.message.reply_text("Avaible sets:\n" + "\n".join(chat_sets))
             return
         image = self._get_image(image_set, update.effective_chat.id)
         await update.message.reply_photo(image)
@@ -138,5 +166,7 @@ class DailyImages(BaseModule):
 
     def prepare(self):
         """ Prepare the module """
-        self._image_sets = self._dsb.database.load('misc', 'arthur_toggles')
+        self._dsb.database.add_table("image_toggles", [("chat_id", int), ("image_set", str)])
+        self._dsb.database.add_table("sets", [("chat_id", int),
+                                              ("image_set", str), ("image_dir", str)])
         return super().prepare()
