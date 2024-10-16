@@ -177,6 +177,6 @@ class DailyImages(BaseModule):
         self._dsb.database.add_table("image_toggles", [("chat_id", int, True),
                                                        ("image_set", str, False)], True)
         self._dsb.database.add_table("sets", [("chat_id", int, True),
-                                              ("image_set", str, True), 
+                                              ("image_set", str, True),
                                               ("image_dir", str, False)], True)
         return super().prepare()
