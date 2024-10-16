@@ -10,9 +10,9 @@ class GithubModule(BaseModule):
         super().__init__(bot, dsb)
         try:
             self._github = Github()
-        except Exception as e:
+        except Exception as e: # pylint: disable=broad-except
             self._github = None
-            self._logger.error(f"Failed to connect to Github: {e}")
+            self._dsb.error(f"Failed to connect to Github: {e}")
             return
         repo_name = dsb.config["repo_name"]
         self._repo = self._github.get_repo(repo_name)
