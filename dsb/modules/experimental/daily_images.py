@@ -166,7 +166,9 @@ class DailyImages(BaseModule):
 
     def prepare(self):
         """ Prepare the module """
-        self._dsb.database.add_table("image_toggles", [("chat_id", int), ("image_set", str)])
-        self._dsb.database.add_table("sets", [("chat_id", int),
-                                              ("image_set", str), ("image_dir", str)])
+        self._dsb.database.add_table("image_toggles", [("chat_id", int, True),
+                                                       ("image_set", str, False)], True)
+        self._dsb.database.add_table("sets", [("chat_id", int, True),
+                                              ("image_set", str, True), 
+                                              ("image_dir", str, False)], True)
         return super().prepare()
