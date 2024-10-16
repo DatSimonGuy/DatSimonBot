@@ -111,11 +111,11 @@ class DailyImages(BaseModule):
         sets = self._dsb.database.get_table("sets")
         chat_id = update.effective_chat.id
         set_to_update = sets\
-            .get_rows(check_function=lambda x: x[1] == chat_id and x[2] == image_set)
+            .get_row(check_function=lambda x: x[1] == chat_id and x[2] == image_set)
         if not set_to_update:
             await update.message.reply_text("Set not found")
             return
-        self._dsb.database.save_file(image_bytes, set_to_update[3])
+        self._dsb.database.save_file(image_bytes, set_to_update[3] + f"/{file.file_id}.png")
         await update.message.reply_text("Image submitted to set")
 
     def _get_image(self, image_set: str, chat_id: int) -> bytes:

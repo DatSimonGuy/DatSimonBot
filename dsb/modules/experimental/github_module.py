@@ -8,12 +8,19 @@ class GithubModule(BaseModule):
     """ Github module for DSB. """
     def __init__(self, bot, dsb):
         super().__init__(bot, dsb)
-        self._github = Github()
+        try:
+            self._github = Github()
+        except Exception as e:
+            self._github = None
+            self._logger.error(f"Failed to connect to Github: {e}")
+            return
         repo_name = dsb.config["repo_name"]
         self._repo = self._github.get_repo(repo_name)
 
     async def _get_last_commit(self, chat_id: int):
         """ Get the last commit """
+        if not self._github:
+            return
         commit: Commit.Commit = self._repo.get_commits()[0]
         commits = self._dsb.database.get_table("last_commits")
         last_commits = commits.get_rows()

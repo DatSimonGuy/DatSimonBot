@@ -112,6 +112,7 @@ class Database:
 
     def save_file(self, file: bytes, path: str) -> None:
         """ Save a file to the database """
+        os.makedirs(os.path.join(self._directory, os.path.dirname(path)), exist_ok=True)
         with open(os.path.join(self._directory, path), "wb") as file_:
             file_.write(file)
 
