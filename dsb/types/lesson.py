@@ -56,12 +56,12 @@ class Lesson:
         return self._start_time <= now <= self._end_time
 
     @property
-    def time_left(self) -> time:
+    def time_left(self) -> timedelta:
         """ Returns the time left for the lesson """
         if not self.is_now:
             return time(0, 0)
-        now = datetime.now().time()
-        return self._end_time - now
+        now = datetime.now()
+        return datetime.combine(date.today(), self._end_time) - now
 
     @property
     def time_until(self) -> timedelta:

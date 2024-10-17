@@ -103,7 +103,7 @@ class Planner(BaseModule):
         """ Return complete status of all students in a group """
         plans = self.get_plans(group_id)
         if not plans:
-            return []
+            return [], []
         free_students = []
         busy_students = []
         for plan in plans.values():
@@ -113,16 +113,16 @@ class Planner(BaseModule):
                     time_diff = "No lessons left"
                 else:
                     diff = next_lesson.time_until.total_seconds()
-                    time_diff = f"{int(diff // 3600)}h {int((diff % 3600) // 60):02}min"
+                    time_diff = f"{int(diff // 3600)}h {int(diff.minute//60):02}min"
                 for student in plan.students:
                     free_students.append((student, time_diff))
             else:
                 current_lesson = plan.current_lesson
-                diff = current_lesson.time_left
+                diff = current_lesson.time_left.total_seconds()
                 lesson_info = f"{current_lesson.subject} | {current_lesson.type}\n"
-                time_diff = f"{int(diff // 3600)}h {int((diff % 3600) // 60):02}min"
+                time_diff = f"{int(diff // 3600)}h {int(diff.minute//60):02}min"
                 for student in plan.students:
-                    busy_students.append(student, lesson_info + time_diff)
+                    busy_students.append((student, lesson_info + time_diff))
         return free_students, busy_students
 
     @prevent_edited
@@ -628,6 +628,7 @@ class Planner(BaseModule):
 
         if not plans:
             await update.message.reply_text("No plans found")
+            return
 
         today = datetime.today().weekday()
 
