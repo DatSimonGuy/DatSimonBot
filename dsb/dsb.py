@@ -22,7 +22,7 @@ class DSB:
         self._modules: dict[str, dict[str, 'BaseModule']] = {}
         self._logger = logging.getLogger("DSB")
         self.__loger_setup()
-        self._database = Database()
+        self._database = Database("dsb/database", "dsb")
         self._module_dir = module_src
         self._experimental = experimental
         self._bot = ApplicationBuilder().token(self._config["telebot_token"]).build()

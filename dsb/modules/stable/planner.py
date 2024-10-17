@@ -33,7 +33,7 @@ class Planner(BaseModule):
             "get_students": self._get_students,
             "transfer_plan": self._transfer_plan,
             "get_owners": self._get_owners,
-            "transfer_plan_ownership": self._transfer_plan_ownership
+            "transfer_plan_ownership": self._transfer_plan_ownership,
         }
         self._descriptions = {
             "create_plan": "Create a new lesson plan",
@@ -58,32 +58,46 @@ class Planner(BaseModule):
 
     def create_plan(self, name: str, group_id: int, user_id: int) -> bool:
         """ Create a new lesson plan """
-        new_plan = Plan(name, owner=user_id)
-        return self._db.save(new_plan, f"{group_id}/plans", name)
+        new_plan = Plan(user_id)
+        plans = self._db.get_table("plans")
+        if plans.get_row((name, group_id)):
+            return False
+        plans.add_row([name, group_id, new_plan])
+        plans.save()
+        return True
 
     def get_plan(self, name: str, group_id: int) -> Plan | None:
         """ Get a lesson plan """
-        return self._db.load(f"{group_id}/plans", name)
+        plans = self._db.get_table("plans")
+        row = plans.get_row((name, group_id))
+        if not row:
+            return None
+        return row[3]
 
-    def delete_plan(self, name: str, group_id: int) -> bool:
+    def delete_plan(self, name: str, group_id: int) -> None:
         """ Delete a lesson plan """
-        return self._db.delete(f"{group_id}/plans", name)
+        plans = self._db.get_table("plans")
+        plans.remove_row((name, group_id))
+        plans.save()
 
     def get_plans(self, group_id: int) -> dict[str, Plan]:
         """ Get all lesson plans """
-        plan_list = self._db.list_all(f"{group_id}/plans")
-        plan_list = [plan.split(".")[0] for plan in plan_list]
-        plans = {}
-        for plan_name in plan_list:
-            plans[plan_name] = self.get_plan(plan_name, group_id)
-        return dict(sorted(plans.items()))
+        plans = self._db.get_table("plans")
+        group_plans = plans.get_rows(check_function=lambda x: x[2] == group_id)
+        return {plan[1]: plan[3] for plan in group_plans}
 
     def update_plan(self, name: str, group_id: int, new_plan: Plan, new_name: str = "") -> bool:
         """ Update a lesson plan """
+        plans = self._db.get_table("plans")
+        plan = plans.get_row((name, group_id))
+        if not plan:
+            return False
         if new_name:
-            self._db.delete(f"{group_id}/plans", name)
-            return self._db.save(new_plan, f"{group_id}/plans", new_name)
-        return self._db.save(new_plan, f"{group_id}/plans", name)
+            plan[1] = new_name
+        plan[3] = new_plan
+        plans.replace_row(plan[0], plan)
+        plans.save()
+        return True
 
     def who_is_free(self, group_id: int) -> list[tuple[str, str]]:
         """ Get a list of students who are free at a given time and seconds to the next lesson """
@@ -157,14 +171,10 @@ class Planner(BaseModule):
 
         group_id = update.effective_chat.id
 
-        if self.get_plan(plan_name, group_id):
-            await update.message.reply_text("A plan with that name already exists")
-            return
-
         if self.create_plan(plan_name, group_id, update.effective_user.id):
             await update.message.set_reaction("👍")
         else:
-            await update.message.reply_text("An error occurred")
+            await update.message.reply_text("A plan with that name already exists")
 
     @prevent_edited
     async def _delete_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -191,10 +201,8 @@ class Planner(BaseModule):
             await update.message.reply_text("This plan does not belong to you")
             return
 
-        if self.delete_plan(plan_name, group_id):
-            await update.message.set_reaction("👍")
-        else:
-            await update.message.reply_text("An error occurred")
+        self.delete_plan(plan_name, group_id)
+        await update.message.set_reaction("👍")
 
     @prevent_edited
     async def _edit_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -702,3 +710,9 @@ class Planner(BaseModule):
         plan.remove_student(update.effective_user.username)
         self.update_plan(plan_name, group_id, plan)
         await update.message.set_reaction("👍")
+
+    def prepare(self):
+        self._db.add_table("plans", [("name", str, True),
+                                     ("group_id", int, True),
+                                     ("plan", Plan, False)], True)
+        return super().prepare()

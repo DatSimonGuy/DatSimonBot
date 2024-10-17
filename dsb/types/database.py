@@ -1,120 +1,148 @@
-""" Database module for the DSB project. """
+""" Database for dsb """
 
 import os
 import shutil
-from typing import Any
-from rich.tree import Tree
 import jsonpickle
 
+class Table:
+    """ Table for database """
+    def __init__(self, name: str, columns: list[tuple[str, type, bool]], path: str):
+        self._name = name
+        self._columns = columns
+        self._columns.insert(0, ("id", int, not any(column[2] for column in columns)))
+        self._save_path = path
+        self._rows = {}
+        self._len = 0
+
+    @property
+    def keys(self) -> list[str]:
+        """ Get the keys of the table """
+        return [column[0] for column in self._columns if column[2]]
+
+    def add_row(self, row: list) -> None:
+        """ Add a row to the table """
+        row.insert(0, self._len)
+        for i, element in enumerate(row):
+            if not isinstance(element, self._columns[i][1]):
+                raise ValueError(f"Element {element} is not of declared type {self._columns[i][1]}")
+        key = tuple(row[i] for i, column in enumerate(self._columns) if column[2])
+        self._rows[key] = row
+        self._len += 1
+
+    def remove_row(self, key: tuple | None = None,
+                   check_function: callable = lambda x: True) -> None:
+        """ Remove a row from the table """
+        if key is None:
+            row_iterator = (row for row in self._rows if check_function(row))
+            row = next(row_iterator, None)
+            if not row:
+                return
+            key = tuple(row[i] for i, column in enumerate(self._columns) if column[2])
+        if key is None:
+            return
+        self._rows.pop(key)
+
+    def get_row(self, key: tuple | None = None, check_function: callable = lambda x: True) -> list:
+        """ Get a row from the table """
+        if key is None:
+            row_iterator = (row for row in self._rows.values() if check_function(row))
+            return next(row_iterator, None)
+        return self._rows.get(key, None)
+
+    def get_rows(self, check_function: callable = lambda x: True) -> list[list]:
+        """ Get all rows from the table, skips rows that don't pass the check function """
+        return [row for row in self._rows.values() if check_function(row)]
+
+    def remove_rows(self, check_function: callable = lambda x: False) -> None:
+        """ Remove all rows from the table that don't pass the check function """
+        self._rows = {key: row for key, row in self._rows.items() if check_function(row)}
+
+    def replace_row(self, key: tuple, row: list) -> None:
+        """ Replace a row in the table """
+        self._rows[key] = row
+
+    def get_column(self, index: int) -> list[list]:
+        """ Get a column from the table """
+        return [row[index] for row in self._rows.values()]
+
+    def get_columns(self, columns: list[int]) -> list[list[list]]:
+        """ Get all columns from the table """
+        return [[row[i] for row in self._rows.values()] for i in columns]
+
+    def save(self) -> None:
+        """ Save the table to the file """
+        with open(os.path.join(self._save_path, f"{self._name}.json"),
+                  "w", encoding="utf-8") as file:
+            file.write(jsonpickle.encode(self, keys=True))
+
 class Database:
-    """ Database module for the DSB project """
-    name = "Database"
-    def __init__(self, path = "dsb/database") -> None:
-        self._directory = path
+    """ Database for dsb """
+    def __init__(self, directory: str, name: str):
+        self._directory = directory
+        self._name = name
         os.makedirs(self._directory, exist_ok=True)
 
-    def save(self, data: dict, subdir: str, filename: str, unpickable: bool = True) -> bool:
-        """ Save data to the database. """
-        os.makedirs(f"{self._directory}/{subdir}", exist_ok=True)
-        try:
-            with open(f"{self._directory}/{subdir}/{filename}.json", "w", encoding='utf-8') as file:
-                file.write(jsonpickle.encode(data, keys=True, indent=4, unpicklable=unpickable))
-        except OSError:
-            return False
-        return True
+    @property
+    def directory(self) -> str:
+        """ Directory of the database """
+        return self._directory
 
-    def save_image(self, data: bytes, subdir: str, filename: str) -> bool:
-        """ Save image to the database. """
-        os.makedirs(f"{self._directory}/{subdir}", exist_ok=True)
-        try:
-            with open(f"{self._directory}/{subdir}/{filename}.png", "wb") as file:
-                file.write(data)
-        except OSError:
-            return False
-        return True
+    @property
+    def name(self) -> str:
+        """ Name of the database """
+        return self._name
 
-    def load(self, subdir: str, filename: str, default: Any = None) -> dict:
-        """ Load data from the database. """
+    def add_table(self, name: str, columns: list[tuple[str, type, bool]],
+                  exist_ok: bool = False) -> None:
+        """ Add a table to the database """
+        if os.path.exists(os.path.join(self._directory, f"{name}.json")):
+            if exist_ok:
+                return
+            raise FileExistsError(f"Table {name} already exists")
+        new_table = Table(name, columns, self._directory)
+        new_table.save()
+
+    def remove_table(self, name: str) -> None:
+        """ Remove a table from the database """
+        os.remove(os.path.join(self._directory, name))
+
+    def get_table(self, name: str) -> Table:
+        """ Get a table from the database """
+        with open(os.path.join(self._directory, f"{name}.json"), "r", encoding="utf-8") as file:
+            return jsonpickle.decode(file.read(), keys=True)
+
+    def save_file(self, file: bytes, path: str) -> None:
+        """ Save a file to the database """
+        os.makedirs(os.path.join(self._directory, os.path.dirname(path)), exist_ok=True)
+        with open(os.path.join(self._directory, path), "wb") as file_:
+            file_.write(file)
+
+    def load_file(self, path: str) -> bytes:
+        """ Load a file from the database """
         try:
-            with open(f"{self._directory}/{subdir}/{filename}.json", "r", encoding='utf-8') as file:
-                data = jsonpickle.decode(file.read(), keys=True)
-            return data
+            with open(os.path.join(self._directory, path), "rb") as file:
+                return file.read()
         except FileNotFoundError:
-            if default is None:
-                return {}
-            return default
+            return b""
 
-    def list_all(self, subdir: str) -> list[str]:
-        """ List all files in the directory. """
+    def remove_file(self, path: str) -> None:
+        """ Remove a file from the database """
+        os.remove(os.path.join(self._directory, path))
+
+    def list_all(self, path: str) -> list[str]:
+        """ List all files in a directory """
         try:
-            return os.listdir(f"{self._directory}/{subdir}")
+            return os.listdir(os.path.join(self._directory, path))
         except FileNotFoundError:
             return []
 
-    def load_image(self, subdir: str, filename: str) -> bytes:
-        """ Load image from the database. """
-        try:
-            with open(f"{self._directory}/{subdir}/{filename}.png", "rb") as file:
-                data = file.read()
-            return data
-        except FileNotFoundError:
-            return b""
-
-    def create_dir(self, subdir: str) -> bool:
-        """ Create a directory in the database. """
-        try:
-            os.makedirs(f"{self._directory}/{subdir}", exist_ok=True)
-            return True
-        except OSError:
-            return False
-
-    def delete_dir(self, subdir: str) -> bool:
-        """ Delete a directory from the database. """
-        try:
-            shutil.rmtree(f"{self._directory}/{subdir}")
-            return True
-        except FileNotFoundError:
-            return False
-
-    def delete(self, subdir: str, filename: str) -> bool:
-        """ Delete data from the database. """
-        try:
-            os.unlink(f"{self._directory}/{subdir}/{filename}.json")
-            if not os.listdir(f"{self._directory}/{subdir}"):
-                os.rmdir(f"{self._directory}/{subdir}")
-            return True
-        except FileNotFoundError:
-            return False
-
-    def delete_image(self, subdir: str, filename: str) -> bool:
-        """ Delete image from the database. """
-        try:
-            os.unlink(f"{self._directory}/{subdir}/{filename}.png")
-            if not os.listdir(f"{self._directory}/{subdir}"):
-                os.rmdir(f"{self._directory}/{subdir}")
-            return True
-        except FileNotFoundError:
-            return False
-
-    def tree(self) -> Tree:
-        """ Return the directory tree. """
-        tree = Tree(f"{self._directory}")
-        branches = {f"{self._directory}": tree}
-        for root, _, files in os.walk(self._directory):
-            if root not in branches:
-                branches[root] = branches[os.path.dirname(root)].add(os.path.basename(root))
-            for file in files:
-                branches[root].add(file)
-        return tree
-
     def backup(self) -> bytes:
-        """ Create a backup of the database. """
+        """ Backup the database """
+        shutil.make_archive(os.path.join(self._directory, "backup"), "zip", self._directory)
         try:
-            shutil.make_archive(self._directory, 'zip', self._directory)
-            with open(f"{self._directory}.zip", "rb") as file:
-                data = file.read()
-        except OSError:
+            with open(os.path.join(self._directory, "backup.zip"), "rb") as file:
+                return file.read()
+        except FileNotFoundError:
             return b""
         finally:
-            os.remove(f"{self._directory}.zip")
-        return data
+            os.remove(os.path.join(self._directory, "backup.zip"))
