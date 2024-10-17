@@ -27,7 +27,8 @@ class Planner(BaseModule):
             "clear_day": self._clear_day,
             "clear_all": self._clear_all,
             "edit_plan": self._edit_plan,
-            "status" : self._status,
+            "status": self._status,
+            "where_next": self._get_room,
             "join_plan": self.join_plan,
             "leave_plan": self.leave_plan,
             "get_students": self._get_students,
@@ -48,6 +49,7 @@ class Planner(BaseModule):
             "clear_all": "Clear all lessons for a plan",
             "edit_plan": "Edit a plan name",
             "status": "Get status of all students in the group",
+            "where_next": "Send room you have lessons in next",
             "join_plan": "Join a lesson plan",
             "leave_plan": "Leave a lesson plan",
             "get_students": "Get all students in a plan",
@@ -632,6 +634,27 @@ class Planner(BaseModule):
         plan.clear_all()
         self.update_plan(plan_name, group_id, plan)
         await update.message.set_reaction("👍")
+
+    @prevent_edited
+    async def _get_room(self, update: Update, _) -> None:
+        plans = self.get_plans(update.effective_chat.id)
+
+        if not plans:
+            await update.message.reply_text("No plans found")
+            return
+
+        group_id = update.effective_chat.id
+        plans = self.get_plans(group_id)
+        for plan in plans.values():
+            if update.message.from_user.username in plan.students:
+                lesson = plan.next_lesson
+                if not lesson:
+                    await update.message.reply_text("You don't have any lesson next")
+                    return
+                await update.message.reply_text(f"You have your next lesson in {lesson.room}")
+                return
+        await update.message.reply_text("You do not belong to a plan." + \
+                                        "Please use /join_plan command")
 
     @prevent_edited
     async def _status(self, update: Update, _) -> None:
