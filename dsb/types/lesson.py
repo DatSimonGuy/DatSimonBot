@@ -1,19 +1,55 @@
 """ Class for Lesson """
 
+from typing import Optional
 from datetime import datetime, time, date, timedelta
+
+def get_valid_day(string: str) -> Optional[int]:
+    """ Convert string to a valid day value """
+    if string.isdigit():
+        day = int(string)
+        if day not in range(1, 5):
+            return None
+        return day
+    days = {
+        "monday": 1,
+        "tuesday": 2,
+        "wednesday": 3,
+        "thursday": 4,
+        "friday": 5
+    }
+    day = days.get(string.lower(), None)
+    return day
+
+def get_valid_time(string: str) -> time:
+    """ Get valid datetime.time from string """
+    try:
+        return datetime.strptime(string, "%H:%M").time()
+    except Exception: #pylint: disable=broad-exception-caught
+        return None
 
 class Lesson:
     """ Lesson class containing info about a lesson """
-    def __init__(self, subject: str, teacher: str, room: str, # pylint: disable=too-many-arguments, too-many-positional-arguments
-                 start_time: time, end_time: time, day: int,
-                 lesson_type: str, repeat: bool = False) -> None:
+    def __init__(self, lesson_data: dict[str, str], repeat: bool = False) -> None:
+        day = lesson_data["day"]
+        start = lesson_data["start"]
+        end = lesson_data["end"]
+        subject = lesson_data["subject"]
+        day = get_valid_day(day)
+        if not day:
+            raise ValueError("Invalid day")
+        start = get_valid_time(start)
+        end = get_valid_time(end)
+        if not all((start, end)):
+            raise ValueError("Invalid start time / end time")
+        if len(subject) >= 20:
+            raise ValueError("Subject name cannot be more than 20 characters long")
         self._subject = subject
-        self._teacher = teacher
+        self._start_time = start
+        self._end_time = end
         self._day = day
-        self._room = room
-        self._start_time = start_time
-        self._end_time = end_time
-        self._type = lesson_type
+        self._type = lesson_data["type"]
+        self._room = lesson_data["room"]
+        self._teacher = lesson_data["teacher"]
         self._repeat = repeat
 
     @property
@@ -76,17 +112,18 @@ class Lesson:
         """ Returns the type of the lesson """
         return self._type
 
-    def update(self, data: dict):
-        """ Update the lesson with new data """
-        self._subject = data.get("subject", self._subject)
-        self._teacher = data.get("teacher", self._teacher)
-        self._room = data.get("room", self._room)
-        self._day = int(data.get("day", self._day))
-        if "start" in data:
-            self._start_time = datetime.strptime(data["start"], "%H:%M").time()
-        if "end" in data:
-            self._end_time = datetime.strptime(data["end"], "%H:%M").time()
-        self._type = data.get("type", self._type)
+    def to_dict(self) -> dict[str, str]:
+        """ Returns the lesson as a dictionary """
+        return {
+            "subject": self._subject,
+            "teacher": self._teacher,
+            "room": self._room,
+            "start": self._start_time.strftime("%H:%M"),
+            "end": self._end_time.strftime("%H:%M"),
+            "day": self._day,
+            "type": self._type,
+            "repeat": self._repeat if hasattr(self, "_repeat") else False
+        }
 
     def __str__(self) -> str:
         s_time = datetime.combine(date.today(), self._start_time)

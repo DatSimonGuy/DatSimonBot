@@ -58,7 +58,10 @@ class Plan:
 
     def add_student(self, student_id: int) -> None:
         """ Add a student to the plan """
-        self._students.append(student_id)
+        if student_id not in self._students:
+            self._students.append(student_id)
+        else:
+            raise ValueError("Student already in plan")
 
     def remove_student(self, student_id: int) -> None:
         """ Remove a student from the plan """

@@ -12,6 +12,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext
 import schedule
 from .types.database import Database
 from .types.module import admin_only
+from .types.dsb_error import DSBError
 if TYPE_CHECKING:
     from .types.module import BaseModule
 
@@ -151,6 +152,10 @@ class DSB:
 
     async def _error_handler(self, update: Update, context: CallbackContext) -> None:
         """Log the error and send a message to the user."""
+        if isinstance(context.error, DSBError) and update is not None:
+            self.error(context.error)
+            await update.message.reply_text(str(context.error))
+            return
         if update is not None:
             self.error(context.error)
             await update.message.reply_text('An error occurred. Please try again later.')

@@ -49,17 +49,15 @@ class BaseModule:
         """ Get the bot configuration """
         return self._dsb.config
 
-    def save(self, data: dict, subdir: str, filename: str, unpickable: bool = True) -> bool:
-        """ Save data to a file using bot database """
-        self._dsb.database.save(data, subdir, filename, unpickable)
+    async def _affirm(self, update: Update) -> None:
+        """ React to message with thumbs up """
+        await update.message.set_reaction("👍")
 
-    def load(self, subdir: str, filename: str, default: dict = None) -> dict:
-        """ Load data from a file using bot database """
-        return self._dsb.database.load(subdir, filename, default)
-
-    def delete(self, subdir: str, filename: str) -> bool:
-        """ Delete a file using bot database """
-        return self._dsb.database.delete(subdir, filename)
+    async def _reply_t(self, update: Update, message: str) -> None:
+        """ Reply to message with text """
+        if len(message) == 0:
+            return
+        await update.message.reply_text(message)
 
     def prep(self) -> None:
         """ Prepare the module """

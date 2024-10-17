@@ -19,6 +19,10 @@ class Table:
         """ Get the keys of the table """
         return [column[0] for column in self._columns if column[2]]
 
+    def generate_key(self, row: list) -> tuple:
+        """ Generate a key for a row """
+        return tuple(row[i] for i, column in enumerate(self._columns) if column[2])
+
     def add_row(self, row: list) -> None:
         """ Add a row to the table """
         row.insert(0, self._len)
