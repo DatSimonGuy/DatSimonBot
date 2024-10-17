@@ -49,8 +49,8 @@ class Lesson:
     @property
     def is_now(self) -> bool:
         """ Returns True if the lesson is now """
-        today = datetime.now().weekday()
-        if today != self._day:
+        today = datetime.now().weekday() + 1
+        if today != int(self._day):
             return False
         now = datetime.now().time()
         return self._start_time <= now <= self._end_time
@@ -59,7 +59,7 @@ class Lesson:
     def time_left(self) -> timedelta:
         """ Returns the time left for the lesson """
         if not self.is_now:
-            return time(0, 0)
+            return timedelta(0, 0, 0)
         now = datetime.now()
         return datetime.combine(date.today(), self._end_time) - now
 
@@ -67,7 +67,7 @@ class Lesson:
     def time_until(self) -> timedelta:
         """ Returns the time until the lesson """
         if self.is_now or datetime.now().time() > self._start_time:
-            return time(0, 0)
+            return timedelta(0, 0, 0)
         now = datetime.now()
         return datetime.combine(date.today(), self._start_time) - now
 
@@ -81,6 +81,7 @@ class Lesson:
         self._subject = data.get("subject", self._subject)
         self._teacher = data.get("teacher", self._teacher)
         self._room = data.get("room", self._room)
+        self._day = int(data.get("day", self._day))
         if "start" in data:
             self._start_time = datetime.strptime(data["start"], "%H:%M").time()
         if "end" in data:

@@ -113,14 +113,14 @@ class Planner(BaseModule):
                     time_diff = "No lessons left"
                 else:
                     diff = next_lesson.time_until.total_seconds()
-                    time_diff = f"{int(diff // 3600)}h {int(diff.minute//60):02}min"
+                    time_diff = f"{int(diff // 3600)}h {int(diff//60):02}min"
                 for student in plan.students:
                     free_students.append((student, time_diff))
             else:
                 current_lesson = plan.current_lesson
                 diff = current_lesson.time_left.total_seconds()
                 lesson_info = f"{current_lesson.subject} | {current_lesson.type}\n"
-                time_diff = f"{int(diff // 3600)}h {int(diff.minute//60):02}min"
+                time_diff = f"{int(diff // 3600)}h {int(diff//60):02}min"
                 for student in plan.students:
                     busy_students.append((student, lesson_info + time_diff))
         return free_students, busy_students
@@ -374,9 +374,20 @@ class Planner(BaseModule):
             if len(kwargs["subject"].split()) > 2:
                 await update.message.reply_text("Subject must be one or two words")
                 return
+            days = {
+                "monday": 1,
+                "tuesday": 2,
+                "wednesday": 3,
+                "thursday": 4,
+                "friday": 5
+            }
+            if not kwargs["day"].isdigit():
+                day = days.get(kwargs["day"], 1)
+            else:
+                day = int(kwargs["day"])
             new_lesson = Lesson(kwargs["subject"], kwargs["teacher"], kwargs["room"],
                                 datetime.strptime(kwargs["start"], "%H:%M").time(),
-                                datetime.strptime(kwargs["end"], "%H:%M").time(), kwargs["day"],
+                                datetime.strptime(kwargs["end"], "%H:%M").time(), day,
                                 kwargs["type"])
         except KeyError as key:
             await update.message.reply_text(f"Missing argument: {key}")
@@ -640,7 +651,7 @@ class Planner(BaseModule):
 
         student_list = "Free right now:\n" + \
             "\n".join(f"{student} - {text}" for student, text in free_students) + \
-            "Busy right now: \n" + \
+            "\n\nBusy right now: \n" + \
             "\n".join(f"{student} - {text}" for student, text in busy_students)
 
         await update.message.reply_text(student_list)
