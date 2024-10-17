@@ -539,6 +539,7 @@ class Planner(BaseModule):
             day = days.get(kwargs["day"].lower(), None)
             if day is None:
                 day = int(kwargs["day"])
+            kwargs["day"] = day
             new_day = days.get(kwargs.get("new_day", "").lower(),
                                int(kwargs["new_day"])) if kwargs.get("new_day") else None
         except ValueError:
