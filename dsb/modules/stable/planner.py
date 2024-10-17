@@ -27,7 +27,7 @@ class Planner(BaseModule):
             "clear_day": self._clear_day,
             "clear_all": self._clear_all,
             "edit_plan": self._edit_plan,
-            "who_is_free": self._who_is_free,
+            "status" : self._status,
             "join_plan": self.join_plan,
             "leave_plan": self.leave_plan,
             "get_students": self._get_students,
@@ -47,7 +47,7 @@ class Planner(BaseModule):
             "clear_day": "Clear all lessons for a day",
             "clear_all": "Clear all lessons for a plan",
             "edit_plan": "Edit a plan name",
-            "who_is_free": "Find out who is free at a given time",
+            "status": "Get status of all students in the group",
             "join_plan": "Join a lesson plan",
             "leave_plan": "Leave a lesson plan",
             "get_students": "Get all students in a plan",
@@ -99,12 +99,13 @@ class Planner(BaseModule):
         plans.save()
         return True
 
-    def who_is_free(self, group_id: int) -> list[tuple[str, str]]:
-        """ Get a list of students who are free at a given time and seconds to the next lesson """
+    def get_status(self, group_id: int) -> tuple[list[tuple[str, str]]]:
+        """ Return complete status of all students in a group """
         plans = self.get_plans(group_id)
         if not plans:
             return []
         free_students = []
+        busy_students = []
         for plan in plans.values():
             if plan.is_free():
                 next_lesson = plan.next_lesson
@@ -115,7 +116,14 @@ class Planner(BaseModule):
                     time_diff = f"{int(diff // 3600)}h {int((diff % 3600) // 60):02}min"
                 for student in plan.students:
                     free_students.append((student, time_diff))
-        return free_students
+            else:
+                current_lesson = plan.current_lesson
+                diff = current_lesson.time_left
+                lesson_info = f"{current_lesson.subject} | {current_lesson.type}\n"
+                time_diff = f"{int(diff // 3600)}h {int((diff % 3600) // 60):02}min"
+                for student in plan.students:
+                    busy_students.append(student, lesson_info + time_diff)
+        return free_students, busy_students
 
     @prevent_edited
     async def _transfer_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -615,27 +623,26 @@ class Planner(BaseModule):
         await update.message.set_reaction("👍")
 
     @prevent_edited
-    async def _who_is_free(self, update: Update, _) -> None:
-        """ Find out who is free at a given time """
+    async def _status(self, update: Update, _) -> None:
         plans = self.get_plans(update.effective_chat.id)
 
         if not plans:
             await update.message.reply_text("No plans found")
-            return
 
         today = datetime.today().weekday()
 
         if today > 4:
-            await update.message.reply_text("No lessons today")
+            await update.message.reply_text("No lessons tooday")
             return
 
-        free_students = self.who_is_free(update.effective_chat.id)
+        free_students, busy_students = self.get_status(update.effective_chat.id)
 
-        student_list = "\n".join(f"{student} - {text}" for student, text in free_students)
-        if not student_list:
-            await update.message.reply_text("No students are free")
-            return
-        await update.message.reply_text(f"Free students:\n{student_list}")
+        student_list = "Free right now:\n" + \
+            "\n".join(f"{student} - {text}" for student, text in free_students) + \
+            "Busy right now: \n" + \
+            "\n".join(f"{student} - {text}" for student, text in busy_students)
+
+        await update.message.reply_text(student_list)
 
     @prevent_edited
     async def _get_students(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
