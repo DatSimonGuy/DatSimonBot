@@ -9,6 +9,7 @@ from dsb.types.plan import Plan
 from dsb.types.module import BaseModule, prevent_edited, admin_only
 from dsb.types.errors import DSBError, InvalidValueError
 from dsb.utils.transforms import str_to_i
+from dsb.utils.button_picker import ButtonPicker
 if TYPE_CHECKING:
     from dsb.dsb import DSB
 
@@ -263,9 +264,20 @@ class Planner(BaseModule):
         -----------
         name : str
             Name of the plan
+        buttons : optional
+            Whether to show button format
         """
+        _, kwargs = self._get_args(context)
         plan_name = self.__get_plan_name(context)
         group_id = update.effective_chat.id
+
+        if kwargs.get("buttons"):
+            plans = self.__get_plans(group_id)
+            buttons = [[name] for name in plans.keys()]
+            picker = ButtonPicker(buttons, self._delete_plan, False)
+            await update.message.reply_text("Choose a plan to delete:",
+                                            reply_markup=picker.get_markup())
+            return
 
         self.__delete_plan(plan_name, group_id, update.effective_user.id)
 
