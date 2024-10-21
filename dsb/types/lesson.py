@@ -1,56 +1,41 @@
 """ Class for Lesson """
 
-from typing import Optional
 from datetime import datetime, time, date, timedelta
+from dsb.utils.transforms import str_to_day, str_to_time
+from dsb.types.errors import InvalidValueError, DSBError
 
-def get_valid_day(string: str) -> Optional[int]:
-    """ Convert string to a valid day value """
-    if string.isdigit():
-        day = int(string)
-        if day not in range(1, 5):
-            return None
-        return day
-    days = {
-        "monday": 1,
-        "tuesday": 2,
-        "wednesday": 3,
-        "thursday": 4,
-        "friday": 5
-    }
-    day = days.get(string.lower(), None)
-    return day
-
-def get_valid_time(string: str) -> time:
-    """ Get valid datetime.time from string """
-    try:
-        return datetime.strptime(string, "%H:%M").time()
-    except Exception: #pylint: disable=broad-exception-caught
-        return None
+class NameTooLongError(DSBError):
+    """ Raised when the name of the lesson is too long """
+    def __init__(self) -> None:
+        super().__init__("Subject name cannot be more than 20 characters long")
 
 class Lesson:
     """ Lesson class containing info about a lesson """
     def __init__(self, lesson_data: dict[str, str], repeat: bool = False) -> None:
-        day = lesson_data["day"]
-        start = lesson_data["start"]
-        end = lesson_data["end"]
-        subject = lesson_data["subject"]
-        day = get_valid_day(day)
-        if not day:
-            raise ValueError("Invalid day")
-        start = get_valid_time(start)
-        end = get_valid_time(end)
-        if not all((start, end)):
-            raise ValueError("Invalid start time / end time")
-        if len(subject) >= 20:
-            raise ValueError("Subject name cannot be more than 20 characters long")
-        self._subject = subject
-        self._start_time = start
-        self._end_time = end
-        self._day = day
-        self._type = lesson_data["type"]
-        self._room = lesson_data["room"]
-        self._teacher = lesson_data["teacher"]
-        self._repeat = repeat
+        try:
+            day = lesson_data["day"]
+            start = lesson_data["start"]
+            end = lesson_data["end"]
+            subject = lesson_data["subject"]
+            day = str_to_day(day)
+            if not day:
+                raise InvalidValueError("day")
+            start = str_to_time(start)
+            end = str_to_time(end)
+            if not all((start, end)):
+                raise InvalidValueError("time")
+            if len(subject) >= 20:
+                raise NameTooLongError()
+            self._subject = subject
+            self._start_time = start
+            self._end_time = end
+            self._day = day
+            self._type = lesson_data["type"]
+            self._room = lesson_data["room"]
+            self._teacher = lesson_data["teacher"]
+            self._repeat = repeat
+        except KeyError as key:
+            raise InvalidValueError(key) from key
 
     @property
     def subject(self) -> str:

@@ -4,7 +4,18 @@ from datetime import datetime
 from io import BytesIO
 import matplotlib.pyplot as plt
 import matplotlib
+from dsb.types.errors import DSBError
 from .lesson import Lesson
+
+class AlreadyInPlanError(DSBError):
+    """ Raised when the student is already in the plan """
+    def __init__(self) -> None:
+        super().__init__("You are already in the plan")
+
+class NotInPlanError(DSBError):
+    """ Raised when the student is not in the plan """
+    def __init__(self) -> None:
+        super().__init__("You are not in the plan")
 
 class Plan:
     """ Plan class containing info about lessons """
@@ -61,11 +72,14 @@ class Plan:
         if student_id not in self._students:
             self._students.append(student_id)
         else:
-            raise ValueError("Student already in plan")
+            raise AlreadyInPlanError()
 
     def remove_student(self, student_id: int) -> None:
         """ Remove a student from the plan """
-        self._students.remove(student_id)
+        try:
+            self._students.remove(student_id)
+        except ValueError as exc:
+            raise NotInPlanError() from exc
 
     def add_lesson(self, day: int, lesson: Lesson) -> None:
         """ Add a lesson to the plan """

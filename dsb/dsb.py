@@ -12,7 +12,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, CallbackContext
 import schedule
 from .types.database import Database
 from .types.module import admin_only
-from .types.dsb_error import DSBError
+from .types.errors import DSBError
 if TYPE_CHECKING:
     from .types.module import BaseModule
 

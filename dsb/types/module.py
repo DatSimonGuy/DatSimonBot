@@ -49,7 +49,7 @@ class BaseModule:
         """ Get the bot configuration """
         return self._dsb.config
 
-    async def _affirm(self, update: Update) -> None:
+    async def _like(self, update: Update) -> None:
         """ React to message with thumbs up """
         await update.message.set_reaction("👍")
 
