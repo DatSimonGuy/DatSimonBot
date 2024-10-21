@@ -1,20 +1,41 @@
 """ Class for Lesson """
 
 from datetime import datetime, time, date, timedelta
+from dsb.utils.transforms import str_to_day, str_to_time
+from dsb.types.errors import InvalidValueError, DSBError
+
+class NameTooLongError(DSBError):
+    """ Raised when the name of the lesson is too long """
+    def __init__(self) -> None:
+        super().__init__("Subject name cannot be more than 20 characters long")
 
 class Lesson:
     """ Lesson class containing info about a lesson """
-    def __init__(self, subject: str, teacher: str, room: str, # pylint: disable=too-many-arguments, too-many-positional-arguments
-                 start_time: time, end_time: time, day: int,
-                 lesson_type: str, repeat: bool = False) -> None:
-        self._subject = subject
-        self._teacher = teacher
-        self._day = day
-        self._room = room
-        self._start_time = start_time
-        self._end_time = end_time
-        self._type = lesson_type
-        self._repeat = repeat
+    def __init__(self, lesson_data: dict[str, str], repeat: bool = False) -> None:
+        try:
+            day = lesson_data["day"]
+            start = lesson_data["start"]
+            end = lesson_data["end"]
+            subject = lesson_data["subject"]
+            day = str_to_day(day)
+            if not day:
+                raise InvalidValueError("day")
+            start = str_to_time(start)
+            end = str_to_time(end)
+            if not all((start, end)):
+                raise InvalidValueError("time")
+            if len(subject) >= 20:
+                raise NameTooLongError()
+            self._subject = subject
+            self._start_time = start
+            self._end_time = end
+            self._day = day
+            self._type = lesson_data["type"]
+            self._room = lesson_data["room"]
+            self._teacher = lesson_data["teacher"]
+            self._repeat = repeat
+        except KeyError as key:
+            raise InvalidValueError(key) from key
 
     @property
     def subject(self) -> str:
@@ -76,17 +97,18 @@ class Lesson:
         """ Returns the type of the lesson """
         return self._type
 
-    def update(self, data: dict):
-        """ Update the lesson with new data """
-        self._subject = data.get("subject", self._subject)
-        self._teacher = data.get("teacher", self._teacher)
-        self._room = data.get("room", self._room)
-        self._day = int(data.get("day", self._day))
-        if "start" in data:
-            self._start_time = datetime.strptime(data["start"], "%H:%M").time()
-        if "end" in data:
-            self._end_time = datetime.strptime(data["end"], "%H:%M").time()
-        self._type = data.get("type", self._type)
+    def to_dict(self) -> dict[str, str]:
+        """ Returns the lesson as a dictionary """
+        return {
+            "subject": self._subject,
+            "teacher": self._teacher,
+            "room": self._room,
+            "start": self._start_time.strftime("%H:%M"),
+            "end": self._end_time.strftime("%H:%M"),
+            "day": self._day,
+            "type": self._type,
+            "repeat": self._repeat if hasattr(self, "_repeat") else False
+        }
 
     def __str__(self) -> str:
         s_time = datetime.combine(date.today(), self._start_time)
