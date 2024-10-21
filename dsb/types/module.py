@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING
 from telegram import Update
-from telegram.ext import CommandHandler, Application, ContextTypes
+from telegram.ext import CommandHandler, Application, ContextTypes, CallbackQueryHandler
 if TYPE_CHECKING:
     from dsb.dsb import DSB
 
@@ -31,6 +31,7 @@ class BaseModule:
         self._bot = bot
         self._handlers = {}
         self._descriptions = {}
+        self._callback_handlers = {}
         self._dsb = dsb
         self._handler_list = []
 
@@ -66,6 +67,10 @@ class BaseModule:
         """ Add handlers to the dispatcher """
         for command, handler in self._handlers.items():
             handler = CommandHandler(command, handler)
+            self._handler_list.append(handler)
+            self._bot.add_handler(handler)
+        for pattern, handler in self._callback_handlers.items():
+            handler = CallbackQueryHandler(handler, pattern=pattern)
             self._handler_list.append(handler)
             self._bot.add_handler(handler)
 

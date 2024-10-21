@@ -1,30 +1,18 @@
 """ Button picker for telegram """
 
-from typing import Callable, Any
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import CallbackQueryHandler, CallbackContext
-from telegram import Update
 
-class ButtonPicker:
+class ButtonPicker(InlineKeyboardMarkup):
     """ Button picker class """
-    def __init__(self, buttons: list[list[str]],
-                 callback: Callable[[Update, CallbackContext, Any], None], *args) -> None:
-        self._buttons = buttons
-        self._callback = callback
-        self._args = args
+    def __init__(self, buttons: list[dict[str, InlineKeyboardButton]], prefix: str) -> None:
+        """ Initialize the button picker """
+        inline_buttons = []
+        for button in buttons:
+            inline_buttons.append([InlineKeyboardButton(text, callback_data=prefix + ":" + data)
+                                   for text, data in button.items()])
+        super().__init__(inline_buttons)
 
-    def get_markup(self) -> InlineKeyboardMarkup:
-        """ Get the markup """
-        keyboard = []
-        for row in self._buttons:
-            keyboard.append([InlineKeyboardButton(text=button, callback_data=button)
-                             for button in row])
-        return InlineKeyboardMarkup(keyboard)
-
-    def get_handler(self) -> CallbackQueryHandler:
-        """ Get the handler """
-        async def handler(update: Update, context: CallbackContext) -> None:
-            query = update.callback_query
-            await query.answer()
-            self._callback(update, context, query.data, *self._args)
-        return CallbackQueryHandler(handler)
+    @property
+    def is_empty(self) -> bool:
+        """ Check if the button picker is empty """
+        return len(self.inline_keyboard) == 0

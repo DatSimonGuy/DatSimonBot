@@ -105,6 +105,9 @@ class Planner(BaseModule):
             "get_owners": "Get all plan owners (Admins only)",
             "transfer_plan_ownership": "Transfer plan ownership"
         }
+        self._callback_handlers = {
+            "^delete_plan:": self._delete_plan_callback
+        }
 
     def __is_owner(self, plan: Plan, user_id: int) -> bool:
         return user_id == plan.owner or str(user_id) in self.config["admins"]
@@ -254,35 +257,35 @@ class Planner(BaseModule):
 
         await self._like(update)
 
+    async def _delete_plan_callback(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Callback for plan deletion """
+        data = update.callback_query.data
+        group_id = update.effective_chat.id
+        user_id = update.effective_user.id
+
+        plan_name = data.split(":")[1]
+        self.__delete_plan(plan_name, group_id, user_id)
+        await self._bot.bot.delete_message(update.effective_chat.id,
+                                           update.effective_message.message_id)
+        await self._bot.bot.send_message(update.effective_chat.id, "Plan deleted")
+
     @prevent_edited
-    async def _delete_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def _delete_plan(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Delete a lesson plan
 
-        Usage: /delete_plan <name>
-
-        Command parameters
-        -----------
-        name : str
-            Name of the plan
-        buttons : optional
-            Whether to show button format
         """
-        _, kwargs = self._get_args(context)
-        plan_name = self.__get_plan_name(context)
         group_id = update.effective_chat.id
 
-        if kwargs.get("buttons"):
-            plans = self.__get_plans(group_id)
-            buttons = [[name] for name in plans.keys()]
-            picker = ButtonPicker(buttons, self._delete_plan, False)
-            await update.message.reply_text("Choose a plan to delete:",
-                                            reply_markup=picker.get_markup())
-            return
-
-        self.__delete_plan(plan_name, group_id, update.effective_user.id)
-
-        await self._like(update)
+        plans = self.__get_plans(group_id)
+        user_id = update.effective_user.id
+        picker = ButtonPicker([{name: name} for name,
+                               plan in plans.keys() if self.__is_owner(plan, user_id)],
+                              "delete_plan")
+        if picker.is_empty:
+            raise NoPlansFoundError()
+        await update.message.reply_text("Choose a plan to delete:", reply_markup=picker)
+        return
 
     @prevent_edited
     async def _get_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -620,7 +623,7 @@ class Planner(BaseModule):
         if not row:
             raise DoesNotBelongError()
 
-        plan = row[3]
+        plan: Plan = row[3]
         lesson = plan.next_lesson
         if not lesson:
             await update.message.reply_text("You don't have any lesson next")
