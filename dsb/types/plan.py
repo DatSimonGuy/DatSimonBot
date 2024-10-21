@@ -126,7 +126,7 @@ class Plan:
                 plan += f"{str(lesson)}\n"
         return plan
 
-    def to_image(self) -> bytes:
+    def to_image(self, title: str = "Plan") -> bytes:
         """ Create an image of the plan """
         if self.is_empty():
             return b""
@@ -145,6 +145,7 @@ class Plan:
 
         matplotlib.use('Agg')
         fig, ax = plt.subplots()
+        ax.set_title(title, fontsize=16, color="black")
         fig.legend(handles=[plt.Rectangle((0, 0), 1, 1,
                                           color=color) for color in colors_by_type.values()],
                    labels=colors_by_type.keys(), loc="upper right", fontsize=6)

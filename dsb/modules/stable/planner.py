@@ -175,7 +175,8 @@ class Planner(BaseModule):
         if new_name:
             plan[1] = new_name
         plan[3] = new_plan
-        plans.replace_row((name, group_id), plan)
+        plans.remove_row((name, group_id))
+        plans.add_row(plan[1:])
         plans.save()
         return True
 
@@ -309,11 +310,12 @@ class Planner(BaseModule):
             if not row:
                 raise DoesNotBelongError()
             plan: Plan = row[3]
+            plan_name = row[1]
 
         if plan.is_empty():
             raise PlanEmptyError()
 
-        plan_image = plan.to_image()
+        plan_image = plan.to_image(plan_name)
         await update.message.reply_photo(plan_image)
 
     @prevent_edited
