@@ -430,18 +430,9 @@ class Planner(BaseModule):
         """
         Remove a lesson from a plan
 
-        Usage: /remove_lesson <plan_name> --idx <idx> --day <day>
-
-        Command parameters
-        -----------
-        idx : int
-            Index of the lesson, counting from 0
-        day : int
-            Day of the lesson, 1-5 or monday-friday
+        Usage: /remove_lesson <plan_name>
         """
-        # _, kwargs = self._get_args(context)
         plan_name, plan = self.__get_plan_from_update(update, context)
-        # group_id = update.effective_chat.id
 
         if not plan:
             raise PlanNotFoundError(plan_name)
@@ -450,26 +441,6 @@ class Planner(BaseModule):
         picker = ButtonPicker([{day: f"{i+1}:{plan_name}"} for i,
                                day in enumerate(days)], "remove_lesson")
         await update.message.reply_text("Pick a day to remove a lesson", reply_markup=picker)
-
-        # user_id = update.effective_user.id
-        # if not self.__is_owner(plan, user_id):
-        #     raise PlanOwnershipError()
-
-        # idx = str_to_i(kwargs.get("idx", ""))
-        # day = str_to_day(kwargs.get("day", ""))
-
-        # if not idx:
-        #     raise InvalidValueError("idx")
-
-        # if not day:
-        #     raise InvalidValueError("day")
-
-        # try:
-        #     plan.remove_lesson_by_index(day - 1, idx)
-        #     self.__update_plan(plan_name, group_id, plan)
-        #     await self._like(update)
-        # except IndexError as exc:
-        #     raise LessonNotFoundError() from exc
 
     @prevent_edited
     async def _edit_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
