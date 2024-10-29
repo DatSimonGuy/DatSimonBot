@@ -67,10 +67,10 @@ class Plan:
             return False
         return True
 
-    def add_student(self, student_id: int) -> None:
+    def add_student(self, username: str) -> None:
         """ Add a student to the plan """
-        if student_id not in self._students:
-            self._students.append(student_id)
+        if username not in self._students:
+            self._students.append(username)
         else:
             raise AlreadyInPlanError()
 

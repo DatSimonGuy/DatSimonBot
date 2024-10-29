@@ -106,7 +106,11 @@ class Planner(BaseModule):
             "transfer_plan_ownership": "Transfer plan ownership"
         }
         self._callback_handlers = {
-            "^delete_plan:": self._delete_plan_callback
+            "^delete_plan:": self._delete_plan_callback,
+            "^clear_day:": self._clear_day_callback,
+            "^join_plan:": self._join_plan_callback,
+            "^transfer_plan_ownership:": self._transfer_plan_ownership,
+            "^remove_lesson:": self._remove_lesson_callback
         }
 
     def __is_owner(self, plan: Plan, user_id: int) -> bool:
@@ -400,6 +404,26 @@ class Planner(BaseModule):
         self.__update_plan(plan_name, group_id, plan)
         await self._like(update)
 
+    async def _remove_lesson_callback(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+        data = update.callback_query.data
+        group_id = update.effective_chat.id
+        day = str_to_day(data.split(":")[1])
+        plan_name = data.split(":")[2]
+        plan = self.__get_plan(plan_name, group_id)
+        if not self.__is_owner(plan, update.effective_user.id):
+            raise PlanOwnershipError()
+        if len(data.split(":")) < 4:
+            lessons = plan.get_day(day-1)
+            picker = ButtonPicker([{f"{lesson.subject}: {lesson.type}":
+                                    f"{data.replace("remove_lesson:", "")}:{i}"} for i,
+                                   lesson in enumerate(lessons)], "remove_lesson")
+            await update.effective_message.edit_text("Pick a lesson to remove", reply_markup=picker)
+            return
+        idx = str_to_i(data.split(":")[3])
+        plan.remove_lesson_by_index(day - 1, idx)
+        await self._bot.bot.delete_message(group_id, update.effective_message.id)
+        await self._bot.bot.send_message(group_id, "Lesson removed")
+
     @prevent_edited
     async def _remove_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
@@ -414,32 +438,37 @@ class Planner(BaseModule):
         day : int
             Day of the lesson, 1-5 or monday-friday
         """
-        _, kwargs = self._get_args(context)
+        # _, kwargs = self._get_args(context)
         plan_name, plan = self.__get_plan_from_update(update, context)
-        group_id = update.effective_chat.id
+        # group_id = update.effective_chat.id
 
         if not plan:
             raise PlanNotFoundError(plan_name)
 
-        user_id = update.effective_user.id
-        if not self.__is_owner(plan, user_id):
-            raise PlanOwnershipError()
+        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+        picker = ButtonPicker([{day: f"{i+1}:{plan_name}"} for i,
+                               day in enumerate(days)], "remove_lesson")
+        await update.message.reply_text("Pick a day to remove a lesson", reply_markup=picker)
 
-        idx = str_to_i(kwargs.get("idx", ""))
-        day = str_to_day(kwargs.get("day", ""))
+        # user_id = update.effective_user.id
+        # if not self.__is_owner(plan, user_id):
+        #     raise PlanOwnershipError()
 
-        if not idx:
-            raise InvalidValueError("idx")
+        # idx = str_to_i(kwargs.get("idx", ""))
+        # day = str_to_day(kwargs.get("day", ""))
 
-        if not day:
-            raise InvalidValueError("day")
+        # if not idx:
+        #     raise InvalidValueError("idx")
 
-        try:
-            plan.remove_lesson_by_index(day - 1, idx)
-            self.__update_plan(plan_name, group_id, plan)
-            await self._like(update)
-        except IndexError as exc:
-            raise LessonNotFoundError() from exc
+        # if not day:
+        #     raise InvalidValueError("day")
+
+        # try:
+        #     plan.remove_lesson_by_index(day - 1, idx)
+        #     self.__update_plan(plan_name, group_id, plan)
+        #     await self._like(update)
+        # except IndexError as exc:
+        #     raise LessonNotFoundError() from exc
 
     @prevent_edited
     async def _edit_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -512,21 +541,25 @@ class Planner(BaseModule):
         self.__update_plan(plan_name, update.effective_chat.id, plan)
         await self._like(update)
 
+    async def _clear_day_callback(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+        data = update.callback_query.data
+        plan_name = data.split(data.split(":")[1])
+        day = str_to_day(data.split(":")[2])
+        group_id = update.effective_chat.id
+        plan = self.__get_plan(plan_name, group_id)
+        plan.clear_day(day)
+        self.__update_plan(plan_name, group_id, plan)
+        await self._bot.bot.delete_message(group_id, update.message.id)
+        await self._bot.bot.send_message(group_id, "Day cleared")
+
     @prevent_edited
     async def _clear_day(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Clear all lessons for a day
         
-        Usage: /clear_day <plan_name> --day <day>
-        
-        Command parameters
-        -----------
-        day : int
-            Day of the lesson, 1-5 or monday-friday
+        Usage: /clear_day <plan_name>
         """
-        _, kwargs = self._get_args(context)
         plan_name, plan = self.__get_plan_from_update(update, context)
-        group_id = update.effective_chat.id
 
         if not plan:
             raise PlanNotFoundError(plan_name)
@@ -535,14 +568,9 @@ class Planner(BaseModule):
         if not self.__is_owner(plan, user_id):
             raise PlanOwnershipError()
 
-        day = str_to_day(kwargs.get("day"))
-
-        if not day:
-            raise InvalidValueError("day")
-
-        plan.clear_day(day - 1)
-        self.__update_plan(plan_name, group_id, plan)
-        await self._like(update)
+        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+        picker = ButtonPicker([{day: i} for i, day in enumerate(days)], "clear_day")
+        await update.message.reply_text("Pick a day to clear", reply_markup=picker)
 
     @prevent_edited
     async def _clear_all(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -589,6 +617,10 @@ class Planner(BaseModule):
 
     @prevent_edited
     async def _status(self, update: Update, _) -> None:
+        """
+        Get status of all students in this group
+
+        """
         today = datetime.today().weekday() + 1
         if today > 5:
             await update.message.reply_text("No lessons tooday")
@@ -629,6 +661,16 @@ class Planner(BaseModule):
             await update.message.reply_text("You don't have any lesson next")
             return
         await update.message.reply_text(f"You have your next lesson in {lesson.room}")
+
+    async def _join_plan_callback(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+        data = update.callback_query.data
+        group_id = update.effective_chat.id
+        plan_name = data.split(":")[1]
+        plan = self.__get_plan(plan_name, group_id)
+        plan.add_student(update.effective_user.username)
+        self.__update_plan(plan_name, group_id, plan)
+        await self._bot.bot.delete_message(group_id, update.message.id)
+        await self._bot.bot.send_message(group_id, f"You have joined {plan_name}")
 
     @prevent_edited
     async def _join_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
