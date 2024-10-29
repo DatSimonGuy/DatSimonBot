@@ -1,5 +1,6 @@
 """ telegram bot base module """
 
+import functools
 from typing import TYPE_CHECKING
 from telegram import Update
 from telegram.ext import CommandHandler, Application, ContextTypes, CallbackQueryHandler
@@ -8,6 +9,7 @@ if TYPE_CHECKING:
 
 def admin_only(func):
     """ Decorator for admin only commands """
+    @functools.wraps(func)
     async def wrapper(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """ Wrapper function """
         if str(update.effective_user.id) in self.config.get("admins", []):
@@ -18,6 +20,7 @@ def admin_only(func):
 
 def prevent_edited(func):
     """ Decorator for commands that won't work on edited messages """
+    @functools.wraps(func)
     async def wrapper(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """ Wrapper function """
         if update.edited_message:
@@ -27,6 +30,7 @@ def prevent_edited(func):
 
 def callback_handler(func):
     """ Decorator for callback query handlers """
+    @functools.wraps(func)
     async def wrapper(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """ Wrapper function """
         if update.callback_query.data.split(":")[-1] == "cancel":
