@@ -291,12 +291,11 @@ class Planner(BaseModule):
         plans = self.__get_plans(group_id)
         user_id = update.effective_user.id
         picker = ButtonPicker([{name: name} for name,
-                               plan in plans.keys() if self.__is_owner(plan, user_id)],
+                               plan in plans.items() if self.__is_owner(plan, user_id)],
                               "delete_plan")
         if picker.is_empty:
             raise NoPlansFoundError()
         await update.message.reply_text("Choose a plan to delete:", reply_markup=picker)
-        return
 
     @prevent_edited
     async def _get_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
