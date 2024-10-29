@@ -114,7 +114,8 @@ class Planner(BaseModule):
             "^delete_plan:": self._delete_plan_callback,
             "^clear_day:": self._clear_day_callback,
             "^join_plan:": self._join_plan_callback,
-            "^remove_lesson:": self._remove_lesson_callback
+            "^remove_lesson:": self._remove_lesson_callback,
+            "^get_students": self._get_students_callback
         }
 
     def __is_owner(self, plan: Plan, user_id: int) -> bool:
@@ -284,6 +285,7 @@ class Planner(BaseModule):
         """
         Delete a lesson plan
 
+        Usage: /delete_plan
         """
         group_id = update.effective_chat.id
 
@@ -668,7 +670,7 @@ class Planner(BaseModule):
         """
         Join a lesson plan
         
-        Usage: /join_plan <plan_name>
+        Usage: /join_plan
         """
         plans = self.__get_plans(update.effective_chat.id)
         user_id = update.effective_user.id
@@ -730,23 +732,33 @@ class Planner(BaseModule):
             raise NoPlansFoundError()
         await update.message.reply_text(owners)
 
+    @callback_handler
+    async def _get_students_callback(self, update: Update,
+                                     context: ContextTypes.DEFAULT_TYPE) -> None:
+        data = update.callback_query.data
+        group_id = update.effective_chat.id
+        plan_name = data.split(":")[1]
+        plan = self.__get_plan(plan_name, group_id)
+        if not plan:
+            raise PlanNotFoundError(plan_name)
+        students = plan.students
+        await context.bot.delete_message(group_id, update.effective_message.id)
+        await context.bot.send_message(group_id, f"Students:\n{'\n'.join(students)}")
+
     @prevent_edited
-    async def _get_students(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def _get_students(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Get all students in a plan
         
-        Usage: /get_students <plan_name>
+        Usage: /get_students
         """
-        plan_name, plan = self.__get_plan_from_update(update, context)
-
-        if not plan:
-            raise PlanNotFoundError(plan_name)
-
-        student_list = "\n".join(f"{i+1}. {student}" for i, student in enumerate(plan.students))
-        if not student_list:
-            raise NoStudentsError()
-
-        await update.message.reply_text(f"Students:\n{student_list}")
+        plans = self.__get_plans(update.effective_chat.id)
+        user_id = update.effective_user.id
+        picker = ButtonPicker([{name: name} for name, plan in plans.items()
+                               if self.__is_owner(plan, user_id)], "get_students")
+        if picker.is_empty:
+            raise NoPlansFoundError()
+        await update.message.reply_text("Choose a plan to get students from:", reply_markup=picker)
 
     @prevent_edited
     async def _transfer_plan_ownership(self, update: Update,
