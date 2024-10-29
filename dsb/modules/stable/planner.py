@@ -681,22 +681,22 @@ class Planner(BaseModule):
         await update.message.reply_text("Choose a plan to join:", reply_markup=picker)
 
     @prevent_edited
-    async def _leave_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def _leave_plan(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Leave a lesson plan
         
-        Usage: /leave_plan <plan_name>
+        Usage: /leave_plan
         """
-        plan_name, plan = self.__get_plan_from_update(update, context)
-
         group_id = update.effective_chat.id
-
-        if not plan:
-            raise PlanNotFoundError(plan_name)
-
-        plan.remove_student(update.effective_user.username)
-        self.__update_plan(plan_name, group_id, plan)
-        await self._like(update)
+        plans = self.__get_plans(group_id)
+        for name, current_plan in plans.items():
+            if update.effective_user.username not in current_plan.students:
+                continue
+            current_plan.remove_student(update.effective_user.username)
+            self.__update_plan(name, group_id, current_plan)
+            await self._like(update)
+            return
+        await update.message.reply_text("You are not in any plan")
 
     @prevent_edited
     async def _transfer_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
