@@ -421,6 +421,7 @@ class Planner(BaseModule):
             return
         idx = str_to_i(data.split(":")[3])
         plan.remove_lesson_by_index(day - 1, idx)
+        self.__update_plan(plan_name, group_id, plan)
         await self._bot.bot.delete_message(group_id, update.effective_message.id)
         await self._bot.bot.send_message(group_id, "Lesson removed")
 
