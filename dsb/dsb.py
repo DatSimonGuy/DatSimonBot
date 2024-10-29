@@ -3,7 +3,7 @@
 import os
 import time
 import importlib
-from typing import TYPE_CHECKING, Generator
+from typing import TYPE_CHECKING, Generator, Optional
 import logging
 import threading
 import dotenv
@@ -149,6 +149,13 @@ class DSB:
     def get_module(self, module_name: str) -> 'BaseModule':
         """ Get a telebot module by name """
         return self._modules.get(module_name, None)
+
+    def get_handler(self, command_name: str) -> Optional[callable]:
+        """ Get a telebot handler by command name """
+        for module in self.modules.values():
+            if command_name in module.handlers:
+                return module.handlers[command_name]
+        return None
 
     async def _error_handler(self, update: Update, context: CallbackContext) -> None:
         """Log the error and send a message to the user."""

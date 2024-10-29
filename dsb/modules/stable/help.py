@@ -30,3 +30,10 @@ class Help(BaseModule):
             for command, desc in self._dsb.commands.items():
                 help_message += f"/{command} - {desc}\n"
             await update.message.reply_text(help_message)
+        if args:
+            command = args[0]
+            handler = self._dsb.get_handler(command)
+            if not handler:
+                await update.message.reply_text(f"Unknown command {command}")
+                return
+            await update.message.reply_text(handler.__doc__)
