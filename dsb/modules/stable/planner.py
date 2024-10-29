@@ -553,7 +553,7 @@ class Planner(BaseModule):
             raise PlanOwnershipError()
 
         days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-        picker = ButtonPicker([{day: i} for i, day in enumerate(days)], "clear_day")
+        picker = ButtonPicker([{day: f"{i+1}"} for i, day in enumerate(days)], "clear_day")
         await update.message.reply_text("Pick a day to clear", reply_markup=picker)
 
     @prevent_edited
