@@ -114,7 +114,6 @@ class Planner(BaseModule):
             "^delete_plan:": self._delete_plan_callback,
             "^clear_day:": self._clear_day_callback,
             "^join_plan:": self._join_plan_callback,
-            "^transfer_plan_ownership:": self._transfer_plan_ownership,
             "^remove_lesson:": self._remove_lesson_callback
         }
 
