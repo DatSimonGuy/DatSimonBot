@@ -662,7 +662,7 @@ class Planner(BaseModule):
                 break
         plan.add_student(update.effective_user.username)
         self.__update_plan(plan_name, group_id, plan)
-        await context.bot.delete_message(group_id, update.message.id)
+        await context.bot.delete_message(group_id, update.effective_message.id)
         await context.bot.send_message(group_id, f"You have joined {plan_name}")
 
     @prevent_edited
