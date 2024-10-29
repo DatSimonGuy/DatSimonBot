@@ -652,35 +652,33 @@ class Planner(BaseModule):
         group_id = update.effective_chat.id
         plan_name = data.split(":")[1]
         plan = self.__get_plan(plan_name, group_id)
+        if not plan:
+            raise PlanNotFoundError(plan_name)
+        plans = self.__get_plans(group_id)
+        for name, current_plan in plans.items():
+            if update.effective_user.username in current_plan.students:
+                current_plan.remove_student(update.effective_user.username)
+                self.__update_plan(name, group_id, current_plan)
+                break
         plan.add_student(update.effective_user.username)
         self.__update_plan(plan_name, group_id, plan)
         await context.bot.delete_message(group_id, update.message.id)
         await context.bot.send_message(group_id, f"You have joined {plan_name}")
 
     @prevent_edited
-    async def _join_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def _join_plan(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Join a lesson plan
         
         Usage: /join_plan <plan_name>
         """
-        plan_name, plan = self.__get_plan_from_update(update, context)
-
-        group_id = update.effective_chat.id
-
-        if not plan:
-            raise PlanNotFoundError(plan_name)
-
-        plans = self.__get_plans(group_id)
-        for name, current_plan in plans.items():
-            if update.effective_user.username in current_plan.students:
-                current_plan.remove_student(update.effective_user.username)
-                self.__update_plan(name, group_id, current_plan)
-
-        plan.add_student(update.effective_user.username)
-
-        self.__update_plan(plan_name, group_id, plan)
-        await self._like(update)
+        plans = self.__get_plans(update.effective_chat.id)
+        user_id = update.effective_user.id
+        picker = ButtonPicker([{name: name} for name, plan in plans.items()
+                               if user_id not in plan.students], "join_plan")
+        if picker.is_empty:
+            raise NoPlansFoundError()
+        await update.message.reply_text("Choose a plan to join:", reply_markup=picker)
 
     @prevent_edited
     async def _leave_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
