@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING
 from telegram import Update
-from telegram.ext import CommandHandler, Application, ContextTypes
+from telegram.ext import CommandHandler, Application, ContextTypes, CallbackQueryHandler
 if TYPE_CHECKING:
     from dsb.dsb import DSB
 
@@ -25,12 +25,24 @@ def prevent_edited(func):
         await func(self, update, context)
     return wrapper
 
+def callback_handler(func):
+    """ Decorator for callback query handlers """
+    async def wrapper(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """ Wrapper function """
+        if update.callback_query.data.split(":")[-1] == "cancel":
+            await context.bot.delete_message(chat_id=update.effective_chat.id,
+                                       message_id=update.effective_message.id)
+            return
+        await func(self, update, context)
+    return wrapper
+
 class BaseModule:
     """ Base module for all telegram bot modules. """
     def __init__(self, bot: Application, dsb: 'DSB') -> None:
         self._bot = bot
         self._handlers = {}
         self._descriptions = {}
+        self._callback_handlers = {}
         self._dsb = dsb
         self._handler_list = []
 
@@ -66,6 +78,10 @@ class BaseModule:
         """ Add handlers to the dispatcher """
         for command, handler in self._handlers.items():
             handler = CommandHandler(command, handler)
+            self._handler_list.append(handler)
+            self._bot.add_handler(handler)
+        for pattern, handler in self._callback_handlers.items():
+            handler = CallbackQueryHandler(handler, pattern=pattern)
             self._handler_list.append(handler)
             self._bot.add_handler(handler)
 

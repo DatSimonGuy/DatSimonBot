@@ -67,10 +67,10 @@ class Plan:
             return False
         return True
 
-    def add_student(self, student_id: int) -> None:
+    def add_student(self, username: str) -> None:
         """ Add a student to the plan """
-        if student_id not in self._students:
-            self._students.append(student_id)
+        if username not in self._students:
+            self._students.append(username)
         else:
             raise AlreadyInPlanError()
 
@@ -126,7 +126,7 @@ class Plan:
                 plan += f"{str(lesson)}\n"
         return plan
 
-    def to_image(self) -> bytes:
+    def to_image(self, title: str = "Plan") -> bytes:
         """ Create an image of the plan """
         if self.is_empty():
             return b""
@@ -145,6 +145,7 @@ class Plan:
 
         matplotlib.use('Agg')
         fig, ax = plt.subplots()
+        ax.set_title(title, fontsize=16, color="black")
         fig.legend(handles=[plt.Rectangle((0, 0), 1, 1,
                                           color=color) for color in colors_by_type.values()],
                    labels=colors_by_type.keys(), loc="upper right", fontsize=6)
