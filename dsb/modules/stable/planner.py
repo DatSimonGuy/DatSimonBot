@@ -535,13 +535,13 @@ class Planner(BaseModule):
                 raise NoLessonsError()
             await update.effective_message.edit_text("Pick a day to clear", reply_markup=picker)
             return
-        plan_name = data.split(data.split(":")[1])
+        plan_name = data.split(":")[1]
         day = str_to_day(data.split(":")[2])
         group_id = update.effective_chat.id
         plan = self.__get_plan(plan_name, group_id)
-        plan.clear_day(day)
+        plan.clear_day(day - 1)
         self.__update_plan(plan_name, group_id, plan)
-        await context.bot.delete_message(group_id, update.message.id)
+        await context.bot.delete_message(group_id, update.effective_message.id)
         await context.bot.send_message(group_id, "Day cleared")
 
     @prevent_edited
