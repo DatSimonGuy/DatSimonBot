@@ -449,8 +449,7 @@ class Planner(BaseModule):
             raise PlanNotFoundError(plan_name)
 
         days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-        picker = ButtonPicker([{day: f"{i+1}:{plan_name}"} for i,
-                               day in enumerate(days)], "remove_lesson")
+        picker = ButtonPicker([{day: f"{day}:{plan_name}"} for day in days], "remove_lesson")
         await update.message.reply_text("Pick a day to remove a lesson", reply_markup=picker)
 
     @prevent_edited
