@@ -6,7 +6,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from dsb.types.lesson import Lesson, str_to_day
 from dsb.types.plan import Plan
-from dsb.types.module import BaseModule, prevent_edited, admin_only
+from dsb.types.module import BaseModule, prevent_edited, admin_only, callback_handler
 from dsb.types.errors import DSBError, InvalidValueError
 from dsb.utils.transforms import str_to_i
 from dsb.utils.button_picker import ButtonPicker
@@ -52,6 +52,11 @@ class LessonNotFoundError(DSBError):
     """ Raised when lesson is not found """
     def __init__(self, *args) -> None:
         super().__init__("Lesson not found", *args)
+
+class NoLessonsError(DSBError):
+    """ Raised when no lessons are found """
+    def __init__(self, *args) -> None:
+        super().__init__("No lessons found", *args)
 
 class NoStudentsError(DSBError):
     """ Raised when no students are found """
@@ -261,7 +266,9 @@ class Planner(BaseModule):
 
         await self._like(update)
 
-    async def _delete_plan_callback(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+    @callback_handler
+    async def _delete_plan_callback(self, update: Update,
+                                    context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Callback for plan deletion """
         data = update.callback_query.data
         group_id = update.effective_chat.id
@@ -269,9 +276,9 @@ class Planner(BaseModule):
 
         plan_name = data.split(":")[1]
         self.__delete_plan(plan_name, group_id, user_id)
-        await self._bot.bot.delete_message(update.effective_chat.id,
+        await context.bot.delete_message(update.effective_chat.id,
                                            update.effective_message.message_id)
-        await self._bot.bot.send_message(update.effective_chat.id, "Plan deleted")
+        await context.bot.send_message(update.effective_chat.id, "Plan deleted")
 
     @prevent_edited
     async def _delete_plan(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
@@ -404,7 +411,9 @@ class Planner(BaseModule):
         self.__update_plan(plan_name, group_id, plan)
         await self._like(update)
 
-    async def _remove_lesson_callback(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+    @callback_handler
+    async def _remove_lesson_callback(self, update: Update,
+                                      context: ContextTypes.DEFAULT_TYPE) -> None:
         data = update.callback_query.data
         group_id = update.effective_chat.id
         day = str_to_day(data.split(":")[1])
@@ -417,13 +426,15 @@ class Planner(BaseModule):
             picker = ButtonPicker([{f"{lesson.subject}: {lesson.type}":
                                     f"{data.replace("remove_lesson:", "")}:{i}"} for i,
                                    lesson in enumerate(lessons)], "remove_lesson")
+            if picker.is_empty:
+                raise NoLessonsError()
             await update.effective_message.edit_text("Pick a lesson to remove", reply_markup=picker)
             return
         idx = str_to_i(data.split(":")[3])
         plan.remove_lesson_by_index(day - 1, idx)
         self.__update_plan(plan_name, group_id, plan)
-        await self._bot.bot.delete_message(group_id, update.effective_message.id)
-        await self._bot.bot.send_message(group_id, "Lesson removed")
+        await context.bot.delete_message(group_id, update.effective_message.id)
+        await context.bot.send_message(group_id, "Lesson removed")
 
     @prevent_edited
     async def _remove_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -513,7 +524,8 @@ class Planner(BaseModule):
         self.__update_plan(plan_name, update.effective_chat.id, plan)
         await self._like(update)
 
-    async def _clear_day_callback(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+    @callback_handler
+    async def _clear_day_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         data = update.callback_query.data
         plan_name = data.split(data.split(":")[1])
         day = str_to_day(data.split(":")[2])
@@ -521,8 +533,8 @@ class Planner(BaseModule):
         plan = self.__get_plan(plan_name, group_id)
         plan.clear_day(day)
         self.__update_plan(plan_name, group_id, plan)
-        await self._bot.bot.delete_message(group_id, update.message.id)
-        await self._bot.bot.send_message(group_id, "Day cleared")
+        await context.bot.delete_message(group_id, update.message.id)
+        await context.bot.send_message(group_id, "Day cleared")
 
     @prevent_edited
     async def _clear_day(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -634,15 +646,16 @@ class Planner(BaseModule):
             return
         await update.message.reply_text(f"You have your next lesson in {lesson.room}")
 
-    async def _join_plan_callback(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+    @callback_handler
+    async def _join_plan_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         data = update.callback_query.data
         group_id = update.effective_chat.id
         plan_name = data.split(":")[1]
         plan = self.__get_plan(plan_name, group_id)
         plan.add_student(update.effective_user.username)
         self.__update_plan(plan_name, group_id, plan)
-        await self._bot.bot.delete_message(group_id, update.message.id)
-        await self._bot.bot.send_message(group_id, f"You have joined {plan_name}")
+        await context.bot.delete_message(group_id, update.message.id)
+        await context.bot.send_message(group_id, f"You have joined {plan_name}")
 
     @prevent_edited
     async def _join_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

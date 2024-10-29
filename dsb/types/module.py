@@ -25,6 +25,16 @@ def prevent_edited(func):
         await func(self, update, context)
     return wrapper
 
+def callback_handler(func):
+    """ Decorator for callback query handlers """
+    async def wrapper(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """ Wrapper function """
+        if update.callback_query.data.split(":")[-1] == "cancel":
+            context.bot.delete_message(chat_id=update.effective_chat.id,
+                                       message_id=update.effective_message.id)
+        await func(self, update, context)
+    return wrapper
+
 class BaseModule:
     """ Base module for all telegram bot modules. """
     def __init__(self, bot: Application, dsb: 'DSB') -> None:
