@@ -31,7 +31,7 @@ class Help(BaseModule):
             if not handler:
                 await update.message.reply_text(f"Unknown command {command}")
                 return
-            await update.message.reply_text(handler.__doc__)
+            await update.message.reply_text(str(handler.__doc__).replace("    ", ""))
         else:
             help_message = "Available commands:\n"
             for command, desc in self._dsb.commands.items():
