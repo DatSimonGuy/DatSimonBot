@@ -494,7 +494,7 @@ class Planner(BaseModule):
         day = str_to_day(kwargs.get("day", ""))
         new_day = str_to_day(kwargs.get("new_day", ""))
 
-        if not idx:
+        if idx is None:
             raise InvalidValueError("idx")
 
         if not day:
