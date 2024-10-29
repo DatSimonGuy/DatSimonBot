@@ -527,6 +527,14 @@ class Planner(BaseModule):
     @callback_handler
     async def _clear_day_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         data = update.callback_query.data
+        if len(data.split(":")) < 3:
+            days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+            picker = ButtonPicker([{day: f"{data.replace("clear_day:", "")}:{day}"}
+                                   for day in days], "clear_day")
+            if picker.is_empty:
+                raise NoLessonsError()
+            await update.effective_message.edit_text("Pick a day to clear", reply_markup=picker)
+            return
         plan_name = data.split(data.split(":")[1])
         day = str_to_day(data.split(":")[2])
         group_id = update.effective_chat.id
@@ -537,41 +545,45 @@ class Planner(BaseModule):
         await context.bot.send_message(group_id, "Day cleared")
 
     @prevent_edited
-    async def _clear_day(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def _clear_day(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Clear all lessons for a day
         
-        Usage: /clear_day <plan_name>
+        Usage: /clear_day
         """
-        plan_name, plan = self.__get_plan_from_update(update, context)
-
-        if not plan:
-            raise PlanNotFoundError(plan_name)
-
+        plans = self.__get_plans(update.effective_chat.id)
         user_id = update.effective_user.id
-        if not self.__is_owner(plan, user_id):
-            raise PlanOwnershipError()
+        picker = ButtonPicker([{name: name} for name, plan in plans.items()
+                                 if self.__is_owner(plan, user_id)], "clear_day")
+        if picker.is_empty:
+            raise NoPlansFoundError()
+        await update.message.reply_text("Choose a plan to clear", reply_markup=picker)
 
-        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-        picker = ButtonPicker([{day: f"{i+1}"} for i, day in enumerate(days)], "clear_day")
-        await update.message.reply_text("Pick a day to clear", reply_markup=picker)
+    @callback_handler
+    async def _clear_all_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        data = update.callback_query.data
+        plan_name = data.split(":")[1]
+        group_id = update.effective_chat.id
+        plan = self.__get_plan(plan_name, group_id)
+        plan.clear_all()
+        self.__update_plan(plan_name, group_id, plan)
+        await context.bot.delete_message(group_id, update.message.id)
+        await context.bot.send_message(group_id, "All lessons cleared")
 
     @prevent_edited
-    async def _clear_all(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def _clear_all(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Clear all lessons for a plan
         
-        Usage: /clear_all <plan_name>
+        Usage: /clear_all
         """
-        plan_name, plan = self.__get_plan_from_update(update, context)
-        group_id = update.effective_chat.id
-
-        if not plan:
-            raise PlanNotFoundError(plan_name)
-
-        plan.clear_all()
-        self.__update_plan(plan_name, group_id, plan)
-        await self._like(update)
+        plans = self.__get_plans(update.effective_chat.id)
+        user_id = update.effective_user.id
+        picker = ButtonPicker([{name: name} for name, plan in plans.items()
+                                 if self.__is_owner(plan, user_id)], "clear_all")
+        if picker.is_empty:
+            raise NoPlansFoundError()
+        await update.message.reply_text("Choose a plan to clear", reply_markup=picker)
 
     @prevent_edited
     async def _edit_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
