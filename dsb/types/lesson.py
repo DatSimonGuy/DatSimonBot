@@ -11,7 +11,7 @@ class NameTooLongError(DSBError):
 
 class Lesson:
     """ Lesson class containing info about a lesson """
-    def __init__(self, lesson_data: dict[str, str], repeat: bool = False) -> None:
+    def __init__(self, lesson_data: dict[str, str]) -> None:
         try:
             day = lesson_data["day"]
             start = lesson_data["start"]
@@ -33,7 +33,7 @@ class Lesson:
             self._type = lesson_data["type"]
             self._room = lesson_data["room"]
             self._teacher = lesson_data["teacher"]
-            self._repeat = repeat
+            self._repeat = lesson_data.get("repeat", "not")
         except KeyError as key:
             raise InvalidValueError(key) from key
 
@@ -96,6 +96,18 @@ class Lesson:
     def type(self) -> str:
         """ Returns the type of the lesson """
         return self._type
+
+    @property
+    def active(self) -> bool:
+        """ Returns True if the lesson is active """
+        if not hasattr(self, "_repeat"):
+            self._repeat = "not"
+        if self._repeat == "not":
+            return True
+        today = datetime.now().isocalendar()[1]
+        if self._repeat == "even":
+            return today % 2 == 0
+        return today % 2 != 0
 
     def to_dict(self) -> dict[str, str]:
         """ Returns the lesson as a dictionary """

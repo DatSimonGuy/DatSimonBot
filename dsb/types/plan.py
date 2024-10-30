@@ -47,6 +47,8 @@ class Plan:
         today = datetime.now().weekday()
         now = datetime.now().time()
         for lesson in self._week[today]:
+            if not lesson.active:
+                continue
             if lesson.start_time > now:
                 return lesson
         return None
@@ -57,6 +59,8 @@ class Plan:
         today = datetime.now().weekday()
         now = datetime.now().time()
         for lesson in self._week[today]:
+            if not lesson.active:
+                continue
             if lesson.start_time <= now <= lesson.end_time:
                 return lesson
         return None
@@ -138,9 +142,9 @@ class Plan:
             "exam": "#f7b731",
             "lab": "#9f7dde",
             "project": "#ee9e57",
-            "seminar": "lightgreen",
+            "seminar": "#90ee90",
             "lektorat": "#11c5ae",
-            "other": "grey"
+            "other": "#808080"
         }
 
         matplotlib.use('Agg')
@@ -161,9 +165,12 @@ class Plan:
             for lesson in day:
                 start = lesson.start_time
                 end = lesson.end_time
+                color = colors_by_type.get(lesson.type, "#808080")
+                if not lesson.active:
+                    color = matplotlib.colors.to_rgba(color, alpha=0.3)
                 ax.fill_between([i+0.01, i + 0.99], [start.hour - 7 + start.minute / 60],
                                 [end.hour - 7 + end.minute / 60],
-                                color=colors_by_type.get(lesson.type, "grey"), zorder=2,
+                                color=color, zorder=2,
                                 edgecolor="black", linewidth=0.5)
                 start_d = lesson.start_time.strftime("%H:%M")
                 end_d = lesson.end_time.strftime("%H:%M")
