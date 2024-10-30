@@ -481,6 +481,8 @@ class Planner(BaseModule):
             End time of the lesson
         type : str
             Type of the lesson
+        weeks : "even" or "odd"
+            Repeat the lesson every even or odd week
         """
         _, kwargs = self._get_args(context)
         plan_name, plan = self.__get_plan_from_update(update, context)
