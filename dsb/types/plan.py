@@ -1,6 +1,6 @@
 """ Class for Plan """
 
-from datetime import datetime
+from datetime import datetime, time
 from io import BytesIO
 import matplotlib.pyplot as plt
 import matplotlib
@@ -47,6 +47,8 @@ class Plan:
         today = datetime.now().weekday()
         now = datetime.now().time()
         for lesson in self._week[today]:
+            if not lesson.active:
+                continue
             if lesson.start_time > now:
                 return lesson
         return None
@@ -57,9 +59,19 @@ class Plan:
         today = datetime.now().weekday()
         now = datetime.now().time()
         for lesson in self._week[today]:
+            if not lesson.active:
+                continue
             if lesson.start_time <= now <= lesson.end_time:
                 return lesson
         return None
+
+    def get_lessons(self, day: int, lesson_time: time) -> list[Lesson]:
+        """ Get the lessons at a specific time """
+        lessons = []
+        for lesson in self._week[day]:
+            if lesson.start_time <= lesson_time <= lesson.end_time:
+                lessons.append(lesson)
+        return lessons
 
     def is_free(self) -> bool:
         """ Returns True if the students are free """
@@ -138,9 +150,9 @@ class Plan:
             "exam": "#f7b731",
             "lab": "#9f7dde",
             "project": "#ee9e57",
-            "seminar": "lightgreen",
+            "seminar": "#90ee90",
             "lektorat": "#11c5ae",
-            "other": "grey"
+            "other": "#808080"
         }
 
         matplotlib.use('Agg')
@@ -161,13 +173,17 @@ class Plan:
             for lesson in day:
                 start = lesson.start_time
                 end = lesson.end_time
+                color = colors_by_type.get(lesson.type, "#808080")
+                if not lesson.active:
+                    if len(self.get_lessons(i, start)) > 1:
+                        continue
+                    color = matplotlib.colors.to_rgba(color, alpha=0.3)
                 ax.fill_between([i+0.01, i + 0.99], [start.hour - 7 + start.minute / 60],
                                 [end.hour - 7 + end.minute / 60],
-                                color=colors_by_type.get(lesson.type, "grey"), zorder=2,
+                                color=color, zorder=2,
                                 edgecolor="black", linewidth=0.5)
-                start_d = lesson.start_time.strftime("%H:%M")
-                end_d = lesson.end_time.strftime("%H:%M")
-                lesson_text = f"{lesson.subject}\n{lesson.room}\n{start_d}-{end_d}"
+                lesson_text = f"{lesson.subject}\n{lesson.room}\n" + \
+                    f"{start.strftime("%H:%M")}-{end.strftime("%H:%M")}"
                 text_y = min(start.hour - 7 + start.minute / 60 + 0.5 + 0.4, 13.5)
                 ax.text(i + 0.5, text_y, lesson_text, color="black",
                         fontdict={"fontsize": 5, "ha": "center", "va": "bottom"},
