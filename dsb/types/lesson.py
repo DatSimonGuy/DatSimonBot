@@ -34,6 +34,8 @@ class Lesson:
             self._room = lesson_data["room"]
             self._teacher = lesson_data["teacher"]
             self._repeat = lesson_data.get("repeat", "not")
+            if self._repeat not in ["not", "even", "odd"]:
+                raise InvalidValueError("repeat")
         except KeyError as key:
             raise InvalidValueError(key) from key
 

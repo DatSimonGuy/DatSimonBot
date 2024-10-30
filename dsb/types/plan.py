@@ -1,6 +1,6 @@
 """ Class for Plan """
 
-from datetime import datetime
+from datetime import datetime, time
 from io import BytesIO
 import matplotlib.pyplot as plt
 import matplotlib
@@ -64,6 +64,14 @@ class Plan:
             if lesson.start_time <= now <= lesson.end_time:
                 return lesson
         return None
+
+    def get_lessons(self, day: int, lesson_time: time) -> list[Lesson]:
+        """ Get the lessons at a specific time """
+        lessons = []
+        for lesson in self._week[day]:
+            if lesson.start_time <= lesson_time <= lesson.end_time:
+                lessons.append(lesson)
+        return lessons
 
     def is_free(self) -> bool:
         """ Returns True if the students are free """
@@ -167,6 +175,8 @@ class Plan:
                 end = lesson.end_time
                 color = colors_by_type.get(lesson.type, "#808080")
                 if not lesson.active:
+                    if len(self.get_lessons(i, start)) > 1:
+                        continue
                     color = matplotlib.colors.to_rgba(color, alpha=0.3)
                 ax.fill_between([i+0.01, i + 0.99], [start.hour - 7 + start.minute / 60],
                                 [end.hour - 7 + end.minute / 60],
