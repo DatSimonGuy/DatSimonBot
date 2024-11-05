@@ -61,7 +61,7 @@ class MessageHandler(BaseModule):
             user = update.message.from_user
             user_data = await context.bot.get_chat_member(update.message.chat_id, user.id)
             is_admin = user_data.status in ["creator", "administrator"]
-            if not user.id in self._dsb.config.get("admins", []) and not is_admin:
+            if not str(user.id) in self._dsb.config.get("admins", []) and not is_admin:
                 return
             if update.message.reply_to_message:
                 await context.bot.delete_message(chat_id=update.message.chat_id,
