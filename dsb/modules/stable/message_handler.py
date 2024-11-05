@@ -57,7 +57,7 @@ class MessageHandler(BaseModule):
     @prevent_edited
     async def _handle_text(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Handle text messages """
-        if "🫰" in update.message.text:
+        if update.message.text and "🫰" in update.message.text:
             user = update.message.from_user
             user_data = await context.bot.get_chat_member(update.message.chat_id, user.id)
             is_admin = user_data.status in ["creator", "administrator"]
