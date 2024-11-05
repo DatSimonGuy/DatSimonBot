@@ -91,7 +91,7 @@ class MessageHandler(BaseModule):
         if update.message.text in self._handled_emotes:
             await self._handled_emotes[update.message.text](update, context)
             return
-        if len(update.message.text) > 200:
+        if update.message.text and len(update.message.text) > 200:
             await self._nerd_detection(update, context)
             return
         if update.message.chat_id not in self._messages:
