@@ -3,7 +3,7 @@
 from telegram import Update
 from telegram.ext import filters, ContextTypes
 import telegram.ext
-from dsb.types.module import BaseModule, prevent_edited
+from dsb.types.module import BaseModule, prevent_edited, admin_only
 
 class MessageHandler(BaseModule):
     """ Module for handling text messages """
@@ -12,10 +12,12 @@ class MessageHandler(BaseModule):
         self._handlers = {
             "who_am_i": self._user_info,
             "whoami": self._user_info,
+            "what_broke": self._what_broke,
         }
         self._descriptions = {
             "who_am_i": "Get user id",
             "whoami": "Get user id (alias)",
+            "what_broke": "Get the last 10 messages in the chat",
         }
         self._messages = {}
         self._message_handler = telegram.ext.MessageHandler(filters.ALL & ~filters.COMMAND,
@@ -35,6 +37,16 @@ class MessageHandler(BaseModule):
     def messages(self) -> dict:
         """ Returns the list of messages """
         return self._messages
+
+    @admin_only
+    @prevent_edited
+    async def _what_broke(self, update: Update, _) -> None:
+        """ Get last log message """
+        if not self._dsb.logs:
+            await update.message.reply_text("No logs available")
+            return
+        message = self._dsb.logs[-1]
+        await update.message.reply_text(f"```{message}```", parse_mode="Markdownv2")
 
     @prevent_edited
     async def _user_info(self, update: Update, _) -> None:

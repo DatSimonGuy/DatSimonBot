@@ -53,6 +53,12 @@ class DSB:
         self._logger.addHandler(handler)
 
     @property
+    def logs(self) -> list[str]:
+        """ Get the logs """
+        with open("dsb.log", 'r', encoding="utf-8") as log_file:
+            return log_file.readlines()
+
+    @property
     def modules(self) -> dict[str, 'BaseModule']:
         """ Get the modules """
         temp = self._modules["stable"].copy()
