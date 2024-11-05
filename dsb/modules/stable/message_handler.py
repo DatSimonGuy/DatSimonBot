@@ -1,9 +1,9 @@
 """ Module for handling text messages """
 
+import asyncio
 from telegram import Update
 from telegram.ext import filters, ContextTypes
 import telegram.ext
-import asyncio
 from dsb.types.module import BaseModule, prevent_edited, admin_only
 
 class MessageHandler(BaseModule):
@@ -22,6 +22,7 @@ class MessageHandler(BaseModule):
         }
         self._handled_emotes = {
             "🫰": self._snap,
+            "📊": self._ynpoll
         }
         self._messages = {}
         self._message_handler = telegram.ext.MessageHandler(filters.ALL & ~filters.COMMAND,
@@ -71,6 +72,15 @@ class MessageHandler(BaseModule):
             await context.bot.delete_message(chat_id=update.message.chat_id,
                                                 message_id=to_delete)
             return
+
+    async def _ynpoll(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Send a yes/no poll """
+        if not update.message.reply_to_message:
+            return
+        question = update.message.reply_to_message.text
+        poll = await context.bot.send_poll(update.message.chat_id, question,
+                                           ["Yes", "No"], is_anonymous=False)
+        await context.bot.pin_chat_message(update.message.chat_id, poll.message_id)
 
     @prevent_edited
     async def _handle_text(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
