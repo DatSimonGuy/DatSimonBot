@@ -59,7 +59,7 @@ class MessageHandler(BaseModule):
         """ Handle text messages """
         if "🫰" in update.message.text:
             user = update.message.from_user
-            is_admin = context.bot.get_chat_member(update.message.chat_id,
+            is_admin = await context.bot.get_chat_member(update.message.chat_id,
                                                    user.id).status in ["creator", "administrator"]
             if not user.id in self._dsb.config.get("admins", []) and not is_admin:
                 return
