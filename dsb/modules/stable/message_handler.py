@@ -18,7 +18,7 @@ class MessageHandler(BaseModule):
         self._descriptions = {
             "who_am_i": "Get user id",
             "whoami": "Get user id (alias)",
-            "what_broke": "Get the last 10 messages in the chat",
+            "what_broke": "Get last log message",
         }
         self._handled_emotes = {
             "🫰": self._snap,
