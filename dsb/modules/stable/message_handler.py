@@ -3,6 +3,7 @@
 from telegram import Update
 from telegram.ext import filters, ContextTypes
 import telegram.ext
+import asyncio
 from dsb.types.module import BaseModule, prevent_edited, admin_only
 
 class MessageHandler(BaseModule):
@@ -65,6 +66,7 @@ class MessageHandler(BaseModule):
         if not str(user.id) in self._dsb.config.get("admins", []) and not is_admin:
             return
         if update.message.reply_to_message:
+            await asyncio.sleep(1)
             to_delete = update.message.reply_to_message.message_id
             await context.bot.delete_message(chat_id=update.message.chat_id,
                                                 message_id=to_delete)
