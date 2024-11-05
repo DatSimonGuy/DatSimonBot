@@ -19,6 +19,9 @@ class MessageHandler(BaseModule):
             "whoami": "Get user id (alias)",
             "what_broke": "Get the last 10 messages in the chat",
         }
+        self._handled_emotes = {
+            "🫰": self._snap,
+        }
         self._messages = {}
         self._message_handler = telegram.ext.MessageHandler(filters.ALL & ~filters.COMMAND,
                               self._handle_text)
@@ -54,20 +57,25 @@ class MessageHandler(BaseModule):
         id_info = f"```user_id:\n{update.message.from_user.id}\n```"
         await update.message.reply_text(f"{id_info}", parse_mode="Markdownv2")
 
+    async def _snap(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Send a message """
+        user = update.message.from_user
+        user_data = await context.bot.get_chat_member(update.message.chat_id, user.id)
+        is_admin = user_data.status in ["creator", "administrator"]
+        if not str(user.id) in self._dsb.config.get("admins", []) and not is_admin:
+            return
+        if update.message.reply_to_message:
+            to_delete = update.message.reply_to_message.message_id
+            await context.bot.delete_message(chat_id=update.message.chat_id,
+                                                message_id=to_delete)
+            return
+
     @prevent_edited
     async def _handle_text(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Handle text messages """
-        if update.message.text and "🫰" in update.message.text:
-            user = update.message.from_user
-            user_data = await context.bot.get_chat_member(update.message.chat_id, user.id)
-            is_admin = user_data.status in ["creator", "administrator"]
-            if not str(user.id) in self._dsb.config.get("admins", []) and not is_admin:
-                return
-            if update.message.reply_to_message:
-                to_delete = update.message.reply_to_message.message_id
-                await context.bot.delete_message(chat_id=update.message.chat_id,
-                                                 message_id=to_delete)
-                return
+        if update.message.text in self._handled_emotes:
+            await self._handled_emotes[update.message.text](update, context)
+            return
         if update.message.chat_id not in self._messages:
             self._messages[update.message.chat_id] = [update.message]
         else:
