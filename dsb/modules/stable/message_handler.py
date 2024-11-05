@@ -78,9 +78,8 @@ class MessageHandler(BaseModule):
         if not update.message.reply_to_message:
             return
         question = update.message.reply_to_message.text
-        poll = await context.bot.send_poll(update.message.chat_id, question,
+        await context.bot.send_poll(update.message.chat_id, question,
                                            ["Yes", "No"], is_anonymous=False)
-        await context.bot.pin_chat_message(update.message.chat_id, poll.message_id)
 
     @prevent_edited
     async def _handle_text(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
