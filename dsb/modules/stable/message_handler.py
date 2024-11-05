@@ -1,7 +1,7 @@
 """ Module for handling text messages """
 
 from telegram import Update
-from telegram.ext import filters
+from telegram.ext import filters, ContextTypes
 import telegram.ext
 from dsb.types.module import BaseModule, prevent_edited
 
@@ -11,9 +11,11 @@ class MessageHandler(BaseModule):
         super().__init__(ptb, telebot)
         self._handlers = {
             "who_am_i": self._user_info,
+            "whoami": self._user_info,
         }
         self._descriptions = {
             "who_am_i": "Get user id",
+            "whoami": "Get user id (alias)",
         }
         self._messages = {}
         self._message_handler = telegram.ext.MessageHandler(filters.ALL & ~filters.COMMAND,
@@ -41,8 +43,18 @@ class MessageHandler(BaseModule):
         await update.message.reply_text(f"{id_info}", parse_mode="Markdownv2")
 
     @prevent_edited
-    async def _handle_text(self, update: Update, _) -> None:
+    async def _handle_text(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Handle text messages """
+        if "🫰" in update.message.text:
+            user = update.message.from_user
+            is_admin = context.bot.get_chat_member(update.message.chat_id,
+                                                   user.id).status in ["creator", "administrator"]
+            if not user.id in self._dsb.config.get("admins", []) and not is_admin:
+                return
+            if update.message.reply_to_message:
+                await context.bot.delete_message(chat_id=update.message.chat_id,
+                                                  message_id=update.message.message_id)
+                return
         if update.message.chat_id not in self._messages:
             self._messages[update.message.chat_id] = [update.message]
         else:
