@@ -81,11 +81,18 @@ class MessageHandler(BaseModule):
         await context.bot.send_poll(update.message.chat_id, question,
                                            ["Yes", "No"], is_anonymous=False)
 
+    async def _nerd_detection(self, update: Update, _) -> None:
+        """ Detect nerds """
+        await update.message.set_reaction("🤓")
+
     @prevent_edited
     async def _handle_text(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Handle text messages """
         if update.message.text in self._handled_emotes:
             await self._handled_emotes[update.message.text](update, context)
+            return
+        if len(update.message.text) > 200:
+            await self._nerd_detection(update, context)
             return
         if update.message.chat_id not in self._messages:
             self._messages[update.message.chat_id] = [update.message]
