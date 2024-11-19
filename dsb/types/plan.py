@@ -69,7 +69,7 @@ class Plan:
         """ Get the lessons at a specific time """
         lessons = []
         for lesson in self._week[day]:
-            if lesson.start_time <= lesson_time <= lesson.end_time:
+            if lesson.start_time <= lesson_time < lesson.end_time:
                 lessons.append(lesson)
         return lessons
 
