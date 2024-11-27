@@ -62,8 +62,9 @@ class MessageHandler(BaseModule):
         await update.message.reply_text(f"{id_info}", parse_mode="Markdownv2")
 
     @prevent_edited
-    async def _unsilly(self, update: Update, _) -> None:
+    async def _unsilly(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Decode from silly language """
+        args, _ = self._get_args(context)
         qwerty = "qwertyuiopasdfg hjklzxcvbnm"
         symbols1 = '1234567890@#$_&-+()/*"' + "'" + ':;!?'
         symbols2 = r'~`|•√π÷×§∆£¢€¥^°={}\%©®™✓[]'
@@ -76,6 +77,11 @@ class MessageHandler(BaseModule):
             text = text.replace(char, qwerty[i])
         for i, char in enumerate(symbols2):
             text = text.replace(char, qwerty[i])
+        for i, char in enumerate(qwerty):
+            if args and args[0] == "2":
+                text = text.replace(char, symbols2[i])
+            else:
+                text = text.replace(char, symbols1[i])
         await update.message.reply_text(text)
 
     async def _snap(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
