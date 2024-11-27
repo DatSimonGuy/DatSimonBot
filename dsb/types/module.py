@@ -92,6 +92,8 @@ class BaseModule:
             self._bot.add_handler(handler)
         for command, handler in self._inline_handlers.items():
             handler = InlineQueryHandler(handler, pattern=command)
+            self._handler_list.append(handler)
+            self._bot.add_handler(handler)
 
     def remove_handlers(self) -> None:
         """ Remove handlers from the dispatcher """
