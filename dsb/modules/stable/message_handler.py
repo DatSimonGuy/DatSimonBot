@@ -73,11 +73,13 @@ class MessageHandler(BaseModule):
         if not update.message.reply_to_message.text:
             return
         text = update.message.reply_to_message.text
-        for i, char in enumerate(qwerty):
+        for char in text:
+            if char not in qwerty:
+                continue
             if args and args[0] == "2":
-                text = text.replace(char, symbols2[i])
+                char = symbols2[qwerty.index(char)]
             else:
-                text = text.replace(char, symbols1[i])
+                char = symbols1[qwerty.index(char)]
         for i, char in enumerate(symbols1):
             text = text.replace(char, qwerty[i])
         for i, char in enumerate(symbols2):
