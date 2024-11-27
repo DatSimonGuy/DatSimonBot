@@ -14,6 +14,7 @@ class MessageHandler(BaseModule):
             "who_am_i": self._user_info,
             "whoami": self._user_info,
             "what_broke": self._what_broke,
+            "unsilly": self._unsilly
         }
         self._descriptions = {
             "who_am_i": "Get user id",
@@ -22,7 +23,8 @@ class MessageHandler(BaseModule):
         }
         self._handled_emotes = {
             "🫰": self._snap,
-            "📊": self._ynpoll
+            "📊": self._ynpoll,
+            "➕": self._repeat
         }
         self._messages = {}
         self._message_handler = telegram.ext.MessageHandler(filters.ALL & ~filters.COMMAND,
@@ -59,6 +61,23 @@ class MessageHandler(BaseModule):
         id_info = f"```user_id:\n{update.message.from_user.id}\n```"
         await update.message.reply_text(f"{id_info}", parse_mode="Markdownv2")
 
+    @prevent_edited
+    async def _unsilly(self, update: Update, _) -> None:
+        """ Decode from silly language """
+        qwerty = "qwertyuiopasdfg hjklzxcvbnm"
+        symbols1 = '1234567890@#$_&-+()/*"' + "'" + ':;!?'
+        symbols2 = r'~`|•√π÷×§∆£¢€¥^°={}\%©®™✓[]'
+        if not update.message.reply_to_message:
+            return
+        if not update.message.reply_to_message.text:
+            return
+        text = update.message.reply_to_message.text
+        for i, char in enumerate(symbols1):
+            text = text.replace(char, qwerty[i])
+        for i, char in enumerate(symbols2):
+            text = text.replace(char, qwerty[i])
+        await update.message.reply_text(text)
+
     async def _snap(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Send a message """
         user = update.message.from_user
@@ -80,6 +99,15 @@ class MessageHandler(BaseModule):
         question = update.message.reply_to_message.text
         await context.bot.send_poll(update.message.chat_id, question,
                                            ["Yes", "No"], is_anonymous=False)
+
+    async def _repeat(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Repeat a message """
+        if not update.message.reply_to_message:
+            return
+        if not update.message.reply_to_message.text:
+            return
+        await context.bot.send_message(update.message.chat_id,
+                                        update.message.reply_to_message.text)
 
     async def _nerd_detection(self, update: Update, _) -> None:
         """ Detect nerds """
