@@ -20,6 +20,7 @@ class MessageHandler(BaseModule):
             "who_am_i": "Get user id",
             "whoami": "Get user id (alias)",
             "what_broke": "Get last log message",
+            "silly_cipher": "Decode or encode from silly language"
         }
         self._handled_emotes = {
             "🫰": self._snap,
