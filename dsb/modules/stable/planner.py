@@ -106,7 +106,7 @@ class Planner(BaseModule):
             "edit_plan": "Edit a plan name",
             "status": "Get status of all students in the group",
             "where_next": "Send room you have lesson in next",
-            "where_now": "Send room you have your lesson in now"
+            "where_now": "Send room you have your lesson in now",
             "join_plan": "Join a lesson plan",
             "leave_plan": "Leave a lesson plan",
             "get_students": "Get all students in a plan",
