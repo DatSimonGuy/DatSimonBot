@@ -63,9 +63,8 @@ class MessageHandler(BaseModule):
         await update.message.reply_text(f"{id_info}", parse_mode="Markdownv2")
 
     @prevent_edited
-    async def _silly_cipher(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def _silly_cipher(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """ Decode from silly language """
-        args, _ = self._get_args(context)
         big_qwerty = "QWERTYUIOPASDFG HJKLZXCVBNM"
         qwerty = "qwertyuiopasdfg hjklzxcvbnm"
         symbols1 = '1234567890@#$_&-+()/*"' + "'" + ':;!?'
