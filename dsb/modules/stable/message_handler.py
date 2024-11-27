@@ -65,6 +65,7 @@ class MessageHandler(BaseModule):
     async def _silly_cipher(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Decode from silly language """
         args, _ = self._get_args(context)
+        big_qwerty = "QWERTYUIOPASDFG HJKLZXCVBNM"
         qwerty = "qwertyuiopasdfg hjklzxcvbnm"
         symbols1 = '1234567890@#$_&-+()/*"' + "'" + ':;!?'
         symbols2 = r'~`|•√π÷×§∆£¢€¥^°={}\%©®™✓[]'
@@ -75,14 +76,13 @@ class MessageHandler(BaseModule):
         text = list(update.message.reply_to_message.text)
         for i, char in enumerate(text):
             if char in qwerty:
-                if args and args[0] == "2":
-                    text[i] = symbols2[qwerty.index(char)]
-                else:
-                    text[i] = symbols1[qwerty.index(char)]
+                text[i] = symbols1[qwerty.index(char)]
+            elif char in big_qwerty:
+                text[i] = symbols2[big_qwerty.index(char)]
             elif char in symbols1:
                 text[i] = qwerty[symbols1.index(char)]
             elif char in symbols2:
-                text[i] = qwerty[symbols2.index(char)]
+                text[i] = big_qwerty[symbols2.index(char)]
         text = "".join(text)
         await update.message.reply_text(text)
 
