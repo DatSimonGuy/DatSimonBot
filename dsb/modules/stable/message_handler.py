@@ -1,7 +1,7 @@
 """ Module for handling text messages """
 
 import asyncio
-from telegram import Update, InlineQuery
+from telegram import Update, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import filters, ContextTypes
 import telegram.ext
 from dsb.types.module import BaseModule, prevent_edited, admin_only
@@ -88,10 +88,14 @@ class MessageHandler(BaseModule):
     async def _make_silly(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """ Make silly text """
         query = update.inline_query.query
+        query = " ".join(query.split()[1:])
         if not query:
             return
         text = self.cipher(query)
-        await update.inline_query.answer([text])
+        result = [InlineQueryResultArticle(id="1", title="Silly text",
+                                           description=text,
+                                           input_message_content=InputTextMessageContent(text))]
+        await update.inline_query.answer(result)
 
     @prevent_edited
     async def _silly_cipher(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
