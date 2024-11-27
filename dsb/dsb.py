@@ -31,7 +31,6 @@ class DSB:
         self._commands = {
             "switch_mode": "Switch the bot mode"
         }
-        self._inline_commands = {}
         self._scheduler = schedule.Scheduler()
         self._schedule_thread = threading.Thread(target=self.__schedule_timer)
         self._schedule_thread.start()
@@ -173,16 +172,6 @@ class DSB:
             await self._bot.bot.send_message(update.effective_chat.id, str(context.error))
         elif update.message is not None:
             await update.message.reply_text('An error occurred. Please try again later.')
-
-    async def _inline_query_handler(self, update: Update, _: CallbackContext) -> None:
-        """ Handle inline queries """
-        query = update.inline_query.query.split()
-        command = query[0]
-        if command in self._inline_commands:
-            await self._inline_commands[command](update, query[1:])
-        else:
-            await update.inline_query.answer([])
-            await update.inline_query.answer([self._inline_commands.keys()])
 
     def run(self) -> None:
         """ Run the telebot """

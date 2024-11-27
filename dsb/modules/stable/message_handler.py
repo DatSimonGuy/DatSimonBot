@@ -85,12 +85,13 @@ class MessageHandler(BaseModule):
         return text
 
     @prevent_edited
-    async def _make_silly(self, _: Update, query: InlineQuery):
+    async def _make_silly(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """ Make silly text """
-        if not query.query:
+        query = update.inline_query.query
+        if not query:
             return
-        text = self.cipher(query.query)
-        await query.answer([text])
+        text = self.cipher(query)
+        await update.inline_query.answer([text])
 
     @prevent_edited
     async def _silly_cipher(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
