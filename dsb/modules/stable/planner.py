@@ -82,7 +82,8 @@ class Planner(BaseModule):
             "clear_all": self._clear_all,
             "edit_plan": self._edit_plan,
             "status": self._status,
-            "where_next": self._get_room,
+            "where_next": self._get_roomnxt,
+            "where_now": self._get_roomnow,
             "join_plan": self._join_plan,
             "leave_plan": self._leave_plan,
             "get_students": self._get_students,
@@ -637,7 +638,7 @@ class Planner(BaseModule):
         await update.message.reply_text(student_list)
 
     @prevent_edited
-    async def _get_room(self, update: Update, _) -> None:
+    async def _get_roomnxt(self, update: Update, _) -> None:
         """
         Send room you have lessons in next
 
@@ -662,6 +663,33 @@ class Planner(BaseModule):
             await update.message.reply_text("You don't have any lesson next")
             return
         await update.message.reply_text(f"You have your next lesson in {lesson.room}")
+
+    @prevent_edited
+    async def _get_roomnow(self, update: Update, _) -> None:
+        """
+        Send room you have lessons in now
+
+        """
+        plans = self.__get_plans(update.effective_chat.id)
+
+        if not plans:
+            raise NoPlansFoundError()
+
+        group_id = update.effective_chat.id
+        plans = self._db.get_table("plans")
+        username = update.message.from_user.username
+
+        row = plans.get_row(check_function=lambda x: x[2] == group_id and
+                                username in x[3].students)
+        if not row:
+            raise DoesNotBelongError()
+
+        plan: Plan = row[3]
+        lesson = plan.current_lesson
+        if not lesson:
+            await update.message.reply_text("You don't have any lesson now")
+            return
+        await update.message.reply_text(f"You have your lesson in {lesson.room}")
 
     @callback_handler
     async def _join_plan_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
