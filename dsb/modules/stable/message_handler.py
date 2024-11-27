@@ -14,7 +14,7 @@ class MessageHandler(BaseModule):
             "who_am_i": self._user_info,
             "whoami": self._user_info,
             "what_broke": self._what_broke,
-            "unsilly": self._unsilly
+            "silly_cypher": self._silly_cypher
         }
         self._descriptions = {
             "who_am_i": "Get user id",
@@ -62,7 +62,7 @@ class MessageHandler(BaseModule):
         await update.message.reply_text(f"{id_info}", parse_mode="Markdownv2")
 
     @prevent_edited
-    async def _unsilly(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def _silly_cypher(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Decode from silly language """
         args, _ = self._get_args(context)
         qwerty = "qwertyuiopasdfg hjklzxcvbnm"
