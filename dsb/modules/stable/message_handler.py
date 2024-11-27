@@ -72,7 +72,7 @@ class MessageHandler(BaseModule):
             return
         if not update.message.reply_to_message.text:
             return
-        text = update.message.reply_to_message.text
+        text = list(update.message.reply_to_message.text)
         for i, char in enumerate(text):
             if char in qwerty:
                 if args and args[0] == "2":
@@ -83,6 +83,7 @@ class MessageHandler(BaseModule):
                 text[i] = qwerty[symbols1.index(char)]
             elif char in symbols2:
                 text[i] = qwerty[symbols2.index(char)]
+        text = "".join(text)
         await update.message.reply_text(text)
 
     async def _snap(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
