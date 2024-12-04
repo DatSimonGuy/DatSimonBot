@@ -57,8 +57,8 @@ class Table:
         return [row for row in self._rows.values() if check_function(row)]
 
     def remove_rows(self, check_function: callable = lambda x: False) -> None:
-        """ Remove all rows from the table that don't pass the check function """
-        self._rows = {key: row for key, row in self._rows.items() if check_function(row)}
+        """ Remove all rows from the table that pass the check function """
+        self._rows = {key: row for key, row in self._rows.items() if not check_function(row)}
 
     def replace_row(self, key: tuple, row: list) -> None:
         """ Replace a row in the table """
