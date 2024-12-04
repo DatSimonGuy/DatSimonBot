@@ -190,5 +190,6 @@ class DSB:
             self._bot.run_polling()
         except KeyboardInterrupt:
             threading.Event().set()
+            self.log("Telebot stopped")
             self._schedule_thread.join()
         self._logger.info("Telebot stopped")
