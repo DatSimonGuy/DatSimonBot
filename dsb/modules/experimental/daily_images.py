@@ -143,6 +143,7 @@ class DailyImages(BaseModule):
             image_set = toggle[1]
             image = self._get_image(image_set, chat_id)
             if not image:
+                self._dsb.log(f"No image found for {image_set}")
                 continue
             await self._bot.bot.send_photo(chat_id, image)
 
