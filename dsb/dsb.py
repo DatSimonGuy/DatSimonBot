@@ -38,8 +38,7 @@ class DSB:
         self.__load_modules()
 
     def __schedule_timer(self) -> None:
-        is_running = threading.Event().is_set
-        while is_running():
+        while not threading.Event().is_set():
             self._scheduler.run_pending()
             time.sleep(1)
 
