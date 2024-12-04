@@ -139,8 +139,8 @@ class DailyImages(BaseModule):
         image_toggles = self._dsb.database.get_table("image_toggles")
         self._dsb.log("Sending daily images")
         for toggle in image_toggles.get_rows():
-            chat_id = toggle[0]
-            image_set = toggle[1]
+            chat_id = toggle[1]
+            image_set = toggle[2]
             image = self._get_image(image_set, chat_id)
             if not image:
                 self._dsb.log(f"No image found for {image_set}")
