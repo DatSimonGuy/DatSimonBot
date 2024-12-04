@@ -14,8 +14,8 @@ class GithubModule(BaseModule):
             self._github = None
             self._dsb.error(f"Failed to connect to Github: {e}")
             return
-        repo_name = dsb.config["repo_name"]
-        self._repo = self._github.get_repo(repo_name)
+        self._repo_name = dsb.config["repo_name"]
+        self._repo = None
 
     async def _get_last_commit(self, chat_id: int):
         """ Get the last commit """
@@ -38,6 +38,7 @@ class GithubModule(BaseModule):
         await self._bot.bot.send_message(chat_id, "Last commit:\n" + commit_info)
 
     def prepare(self):
+        self._github.get_repo(self._repo_name)
         self._dsb.database.add_table("last_commits", [("commits", str, False)], True)
         loop = asyncio.get_event_loop()
         loop.create_task(self._get_last_commit(self._dsb.config["update_channel_id"]))
