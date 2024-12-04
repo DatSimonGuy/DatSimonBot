@@ -25,7 +25,7 @@ class GithubModule(BaseModule):
         commits = self._dsb.database.get_table("last_commits")
         last_commits = commits.get_rows()
         if last_commits:
-            last_commit = last_commits[0][1]
+            last_commit = last_commits[-1][1]
             if last_commit == commit.sha:
                 return
         commits.remove_rows(lambda x: True)
@@ -35,7 +35,7 @@ class GithubModule(BaseModule):
             f"\nTitle: {commit.commit.message.split("\n")[0]}" + \
             f"\nPosted at: {commit.commit.author.date}" + \
             f"\nURL: {commit.html_url}"
-        # await self._bot.bot.send_message(chat_id, "Last commit:\n" + commit_info)
+        await self._bot.bot.send_message(chat_id, "Last commit:\n" + commit_info)
 
     def prepare(self):
         self._dsb.database.add_table("last_commits", [("commits", str, False)], True)

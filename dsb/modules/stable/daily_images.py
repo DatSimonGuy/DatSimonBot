@@ -137,13 +137,11 @@ class DailyImages(BaseModule):
     async def _send_daily_image(self) -> None:
         """ Send daily image quote """
         image_toggles = self._dsb.database.get_table("image_toggles")
-        self._dsb.log("Sending daily images")
         for toggle in image_toggles.get_rows():
             chat_id = toggle[1]
             image_set = toggle[2]
             image = self._get_image(image_set, chat_id)
             if not image:
-                self._dsb.log(f"No image found for {image_set}")
                 continue
             await self._bot.bot.send_photo(chat_id, image)
 
@@ -170,7 +168,7 @@ class DailyImages(BaseModule):
     def add_handlers(self):
         """ Add handlers """
         loop = asyncio.get_event_loop()
-        self._daily_job = self._dsb.scheduler.every().minute.do(lambda: loop.create_task(self._send_daily_image()))
+        self._daily_job = self._dsb.scheduler.every().day.at("06:00").do(lambda: loop.create_task(self._send_daily_image()))
         return super().add_handlers()
 
     def remove_handlers(self):
