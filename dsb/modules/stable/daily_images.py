@@ -73,7 +73,7 @@ class DailyImages(BaseModule):
             return
         image_toggles = self._dsb.database.get_table("image_toggles")
         current_toggle = image_toggles\
-            .get_row(check_function=lambda x: x[1] == chat_id and x[2] == image_set)
+            .get_row((chat_id,))
         if current_toggle:
             current_toggle[2] = image_set
             image_toggles.replace_row(current_toggle[0], current_toggle)
