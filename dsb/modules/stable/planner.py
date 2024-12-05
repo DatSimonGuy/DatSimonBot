@@ -417,17 +417,16 @@ class Planner(BaseModule):
         self.__update_plan(plan_name, group_id, plan)
         await self._like(update)
 
-    @callback_handler
     async def _remove_lesson_callback(self, update: Update,
                                       context: ContextTypes.DEFAULT_TYPE) -> None:
         data = update.callback_query.data
         group_id = update.effective_chat.id
-        day = str_to_day(data.split(":")[1])
         plan_name = data.split(":")[2]
         plan = self.__get_plan(plan_name, group_id)
         if not self.__is_owner(plan, update.effective_user.id):
             await update.callback_query.answer("This plan does not belong to you", show_alert=True)
             return
+        day = str_to_day(data.split(":")[1])
         if len(data.split(":")) < 4:
             lessons = plan.get_day(day-1)
             picker = ButtonPicker([{f"{lesson.subject}: {lesson.type}":
