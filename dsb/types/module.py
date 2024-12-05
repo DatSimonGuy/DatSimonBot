@@ -3,7 +3,8 @@
 import functools
 from typing import TYPE_CHECKING
 from telegram import Update
-from telegram.ext import CommandHandler, Application, ContextTypes, CallbackQueryHandler
+from telegram.ext import CommandHandler, Application, ContextTypes, CallbackQueryHandler, \
+    InlineQueryHandler
 if TYPE_CHECKING:
     from dsb.dsb import DSB
 
@@ -47,6 +48,7 @@ class BaseModule:
         self._handlers = {}
         self._descriptions = {}
         self._callback_handlers = {}
+        self._inline_handlers = {}
         self._dsb = dsb
         self._handler_list = []
 
@@ -86,6 +88,10 @@ class BaseModule:
             self._bot.add_handler(handler)
         for pattern, handler in self._callback_handlers.items():
             handler = CallbackQueryHandler(handler, pattern=pattern)
+            self._handler_list.append(handler)
+            self._bot.add_handler(handler)
+        for command, handler in self._inline_handlers.items():
+            handler = InlineQueryHandler(handler, pattern=command)
             self._handler_list.append(handler)
             self._bot.add_handler(handler)
 

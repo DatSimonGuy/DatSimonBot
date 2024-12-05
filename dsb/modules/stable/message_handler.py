@@ -1,7 +1,7 @@
 """ Module for handling text messages """
 
 import asyncio
-from telegram import Update
+from telegram import Update, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import filters, ContextTypes
 import telegram.ext
 from dsb.types.module import BaseModule, prevent_edited, admin_only
@@ -26,6 +26,9 @@ class MessageHandler(BaseModule):
             "🫰": self._snap,
             "📊": self._ynpoll,
             "➕": self._repeat
+        }
+        self._inline_handlers = {
+            "silly": self._make_silly,
         }
         self._messages = {}
         self._message_handler = telegram.ext.MessageHandler(filters.ALL & ~filters.COMMAND,
@@ -62,18 +65,13 @@ class MessageHandler(BaseModule):
         id_info = f"```user_id:\n{update.message.from_user.id}\n```"
         await update.message.reply_text(f"{id_info}", parse_mode="Markdownv2")
 
-    @prevent_edited
-    async def _silly_cipher(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
-        """ Decode from silly language """
+    def cipher(self, text: str) -> str:
+        """ Encode to silly language """
         big_qwerty = "QWERTYUIOPASDFG HJKLZXCVBNM"
         qwerty = "qwertyuiopasdfg hjklzxcvbnm"
         symbols1 = '1234567890@#$_&-+()/*"' + "'" + ':;!?'
         symbols2 = r'~`|•√π÷×§∆£¢€¥^°={}\%©®™✓[]'
-        if not update.message.reply_to_message:
-            return
-        if not update.message.reply_to_message.text:
-            return
-        text = list(update.message.reply_to_message.text)
+        text = list(text)
         for i, char in enumerate(text):
             if char in qwerty:
                 text[i] = symbols1[qwerty.index(char)]
@@ -84,6 +82,29 @@ class MessageHandler(BaseModule):
             elif char in symbols2:
                 text[i] = big_qwerty[symbols2.index(char)]
         text = "".join(text)
+        return text
+
+    @prevent_edited
+    async def _make_silly(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Make silly text """
+        query = update.inline_query.query
+        query = " ".join(query.split()[1:])
+        if not query:
+            return
+        text = self.cipher(query)
+        result = [InlineQueryResultArticle(id="1", title="Silly text",
+                                           description=text,
+                                           input_message_content=InputTextMessageContent(text))]
+        await update.inline_query.answer(result)
+
+    @prevent_edited
+    async def _silly_cipher(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Decode from silly language """
+        if not update.message.reply_to_message:
+            return
+        if not update.message.reply_to_message.text:
+            return
+        text = self.cipher(update.message.reply_to_message.text)
         await update.message.reply_text(text)
 
     async def _snap(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
