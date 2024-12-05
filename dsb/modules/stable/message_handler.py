@@ -72,7 +72,7 @@ class MessageHandler(BaseModule):
     async def _sender_info(self, update: Update, _) -> None:
         """ Get sender info """
         if update.message.reply_to_message:
-            id_info = f"His id: `{update.message.reply_to_message.from_user.id}`"
+            id_info = f"Their id: `{update.message.reply_to_message.from_user.id}`"
             await update.message.reply_text(f"{id_info}", parse_mode="Markdownv2")
         else:
             await update.message.reply_text("Reply to a message to get the sender id")
