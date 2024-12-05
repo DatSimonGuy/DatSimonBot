@@ -426,7 +426,8 @@ class Planner(BaseModule):
         plan_name = data.split(":")[2]
         plan = self.__get_plan(plan_name, group_id)
         if not self.__is_owner(plan, update.effective_user.id):
-            raise PlanOwnershipError()
+            await update.callback_query.answer("This plan does not belong to you", show_alert=True)
+            return
         if len(data.split(":")) < 4:
             lessons = plan.get_day(day-1)
             picker = ButtonPicker([{f"{lesson.subject}: {lesson.type}":
