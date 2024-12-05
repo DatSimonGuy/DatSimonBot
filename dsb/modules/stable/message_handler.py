@@ -29,7 +29,8 @@ class MessageHandler(BaseModule):
         }
         self._inline_handlers = {
             "silly": self._make_silly,
-            "cls": self._clear_chat
+            "cls": self._clear_chat,
+            "clear": self._clear_chat
         }
         self._messages = {}
         self._message_handler = telegram.ext.MessageHandler(filters.ALL & ~filters.COMMAND,
