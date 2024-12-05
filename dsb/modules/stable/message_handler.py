@@ -29,6 +29,7 @@ class MessageHandler(BaseModule):
         }
         self._inline_handlers = {
             "silly": self._make_silly,
+            "cls": self._clear_chat
         }
         self._messages = {}
         self._message_handler = telegram.ext.MessageHandler(filters.ALL & ~filters.COMMAND,
@@ -83,6 +84,15 @@ class MessageHandler(BaseModule):
                 text[i] = big_qwerty[symbols2.index(char)]
         text = "".join(text)
         return text
+
+    @prevent_edited
+    async def _clear_chat(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Clear chat messages """
+        message = "." + "\n" * 100 + "."
+        result = [InlineQueryResultArticle(id="1", title="Clear the chat screen",
+                                           description="Long ahh message",
+                                           input_message_content=InputTextMessageContent(message))]
+        await update.inline_query.answer(result)
 
     @prevent_edited
     async def _make_silly(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
