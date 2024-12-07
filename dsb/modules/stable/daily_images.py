@@ -168,7 +168,8 @@ class DailyImages(BaseModule):
     def add_handlers(self):
         """ Add handlers """
         loop = asyncio.get_event_loop()
-        self._daily_job = self._dsb.scheduler.every().day.at("06:00").do(lambda: loop.create_task(self._send_daily_image()))
+        self._daily_job = self._dsb.scheduler.every().\
+            day.at("06:00").do(lambda: loop.create_task(self._send_daily_image()))
         return super().add_handlers()
 
     def remove_handlers(self):

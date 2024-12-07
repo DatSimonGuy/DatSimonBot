@@ -37,7 +37,8 @@ class Table:
                    check_function: callable = lambda x: True) -> None:
         """ Remove a row from the table """
         if key is None:
-            row_iterator = ((key, value) for key, value in self._rows.items() if check_function(value))
+            row_iterator = ((key, value) for key,
+                            value in self._rows.items() if check_function(value))
             row = next(row_iterator, None)
             if not row:
                 return
