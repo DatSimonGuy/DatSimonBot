@@ -2,6 +2,7 @@
 
 import os
 import random
+import asyncio
 from telegram import Update
 from telegram.ext import ContextTypes
 from dsb.types.module import BaseModule
@@ -72,7 +73,7 @@ class DailyImages(BaseModule):
             return
         image_toggles = self._dsb.database.get_table("image_toggles")
         current_toggle = image_toggles\
-            .get_row(check_function=lambda x: x[1] == chat_id and x[2] == image_set)
+            .get_row((chat_id,))
         if current_toggle:
             current_toggle[2] = image_set
             image_toggles.replace_row(current_toggle[0], current_toggle)
@@ -136,10 +137,9 @@ class DailyImages(BaseModule):
     async def _send_daily_image(self) -> None:
         """ Send daily image quote """
         image_toggles = self._dsb.database.get_table("image_toggles")
-        self._dsb.log("Sending daily images")
         for toggle in image_toggles.get_rows():
-            chat_id = toggle[0]
-            image_set = toggle[1]
+            chat_id = toggle[1]
+            image_set = toggle[2]
             image = self._get_image(image_set, chat_id)
             if not image:
                 continue
@@ -167,7 +167,9 @@ class DailyImages(BaseModule):
 
     def add_handlers(self):
         """ Add handlers """
-        self._daily_job = self._dsb.scheduler.every().day.at("06:00").do(self._send_daily_image)
+        loop = asyncio.get_event_loop()
+        self._daily_job = self._dsb.scheduler.every().\
+            day.at("06:00").do(lambda: loop.create_task(self._send_daily_image()))
         return super().add_handlers()
 
     def remove_handlers(self):

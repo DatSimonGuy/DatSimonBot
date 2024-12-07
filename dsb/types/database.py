@@ -37,12 +37,12 @@ class Table:
                    check_function: callable = lambda x: True) -> None:
         """ Remove a row from the table """
         if key is None:
-            row_iterator = (row for row in self._rows if check_function(row))
+            row_iterator = ((key, value) for key,
+                            value in self._rows.items() if check_function(value))
             row = next(row_iterator, None)
             if not row:
                 return
-            key = tuple(row[i] for i, column in enumerate(self._columns) if column[2])
-        if key is None:
+            self._rows.pop(row[0])
             return
         self._rows.pop(key)
 
@@ -58,8 +58,8 @@ class Table:
         return [row for row in self._rows.values() if check_function(row)]
 
     def remove_rows(self, check_function: callable = lambda x: False) -> None:
-        """ Remove all rows from the table that don't pass the check function """
-        self._rows = {key: row for key, row in self._rows.items() if check_function(row)}
+        """ Remove all rows from the table that pass the check function """
+        self._rows = {key: row for key, row in self._rows.items() if not check_function(row)}
 
     def replace_row(self, key: tuple, row: list) -> None:
         """ Replace a row in the table """
