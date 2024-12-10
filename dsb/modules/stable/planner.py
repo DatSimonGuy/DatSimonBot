@@ -297,7 +297,7 @@ class Planner(BaseModule):
         user_id = update.effective_user.id
         picker = ButtonPicker([{name: name} for name,
                                plan in plans.items() if self.__is_owner(plan, user_id)],
-                              "delete_plan")
+                              "delete_plan", user_id=user_id)
         if picker.is_empty:
             raise NoPlansFoundError()
         await update.message.reply_text("Choose a plan to delete:", reply_markup=picker)
@@ -432,7 +432,8 @@ class Planner(BaseModule):
             lessons = plan.get_day(day-1)
             picker = ButtonPicker([{f"{lesson.subject}: {lesson.type}":
                                     f"{data.replace("remove_lesson:", "")}:{i}"} for i,
-                                   lesson in enumerate(lessons)], "remove_lesson")
+                                   lesson in enumerate(lessons)], "remove_lesson",
+                                  user_id=update.effective_user.id)
             if picker.is_empty:
                 raise NoLessonsError()
             await update.effective_message.edit_text("Pick a lesson to remove", reply_markup=picker)
@@ -456,7 +457,8 @@ class Planner(BaseModule):
             raise PlanNotFoundError(plan_name)
 
         days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-        picker = ButtonPicker([{day: f"{day}:{plan_name}"} for day in days], "remove_lesson")
+        picker = ButtonPicker([{day: f"{day}:{plan_name}"} for day in days],
+                              "remove_lesson", user_id=update.effective_user.id)
         await update.message.reply_text("Pick a day to remove a lesson", reply_markup=picker)
 
     @prevent_edited
@@ -538,7 +540,7 @@ class Planner(BaseModule):
         if len(data.split(":")) < 3:
             days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
             picker = ButtonPicker([{day: f"{data.replace("clear_day:", "")}:{day}"}
-                                   for day in days], "clear_day")
+                                   for day in days], "clear_day", user_id=update.effective_user.id)
             if picker.is_empty:
                 raise NoLessonsError()
             await update.effective_message.edit_text("Pick a day to clear", reply_markup=picker)
@@ -562,7 +564,8 @@ class Planner(BaseModule):
         plans = self.__get_plans(update.effective_chat.id)
         user_id = update.effective_user.id
         picker = ButtonPicker([{name: name} for name, plan in plans.items()
-                                 if self.__is_owner(plan, user_id)], "clear_day")
+                                 if self.__is_owner(plan, user_id)], "clear_day",
+                              user_id=user_id)
         if picker.is_empty:
             raise NoPlansFoundError()
         await update.message.reply_text("Choose a plan to clear", reply_markup=picker)
@@ -588,7 +591,8 @@ class Planner(BaseModule):
         plans = self.__get_plans(update.effective_chat.id)
         user_id = update.effective_user.id
         picker = ButtonPicker([{name: name} for name, plan in plans.items()
-                                 if self.__is_owner(plan, user_id)], "clear_all")
+                                 if self.__is_owner(plan, user_id)], "clear_all",
+                              user_id=user_id)
         if picker.is_empty:
             raise NoPlansFoundError()
         await update.message.reply_text("Choose a plan to clear", reply_markup=picker)
@@ -722,7 +726,8 @@ class Planner(BaseModule):
         plans = self.__get_plans(update.effective_chat.id)
         user_id = update.effective_user.id
         picker = ButtonPicker([{name: name} for name, plan in plans.items()
-                               if user_id not in plan.students], "join_plan")
+                               if user_id not in plan.students], "join_plan",
+                              user_id=user_id)
         if picker.is_empty:
             raise NoPlansFoundError()
         await update.message.reply_text("Choose a plan to join:", reply_markup=picker)
@@ -802,7 +807,8 @@ class Planner(BaseModule):
         plans = self.__get_plans(update.effective_chat.id)
         user_id = update.effective_user.id
         picker = ButtonPicker([{name: name} for name, plan in plans.items()
-                               if self.__is_owner(plan, user_id)], "get_students")
+                               if self.__is_owner(plan, user_id)], "get_students",
+                              user_id=user_id)
         if picker.is_empty:
             raise NoPlansFoundError()
         await update.message.reply_text("Choose a plan to get students from:", reply_markup=picker)

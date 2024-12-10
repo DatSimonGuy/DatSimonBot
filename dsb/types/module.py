@@ -34,7 +34,9 @@ def callback_handler(func):
     @functools.wraps(func)
     async def wrapper(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """ Wrapper function """
-        if update.callback_query.data.split(":")[-1] == "cancel":
+        if update.callback_query.data.split(":")[-2] == "cancel":
+            if update.effective_user.id != int(update.callback_query.data.split(":")[-1]):
+                return
             await context.bot.delete_message(chat_id=update.effective_chat.id,
                                        message_id=update.effective_message.id)
             return
