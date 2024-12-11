@@ -460,7 +460,9 @@ class Planner(BaseModule):
                  if self.__is_owner(plan, update.effective_user.id)]
         user_id = update.effective_user.id
         picker = ButtonPicker([{name: name} for name in plan_names],
-                              "remove_lesson", user_id=user_id)        
+                              "remove_lesson", user_id=user_id)
+        if picker.is_empty:
+            raise DSBError("You do not own any plans")
         await update.message.reply_text("Pick a plan you want to remove a lesson from",
                                         reply_markup=picker)
 
