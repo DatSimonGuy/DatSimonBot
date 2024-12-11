@@ -423,7 +423,7 @@ class Planner(BaseModule):
         data = update.callback_query.data
         group_id = update.effective_chat.id
         plan_name = data.split(":")[1]
-        if len(data.split(":")) < 2:
+        if len(data.split(":")) < 3:
             days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
             picker = ButtonPicker([{day: f"{plan_name}:{day}"} for day in days],
                                 "remove_lesson", user_id=update.effective_user.id)
