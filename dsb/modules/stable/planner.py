@@ -427,6 +427,9 @@ class Planner(BaseModule):
             days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
             picker = ButtonPicker([{day: f"{plan_name}:{day}"} for day in days],
                                 "remove_lesson", user_id=update.effective_user.id)
+            await update.effective_message.edit_text("Pick a day to remove lessons from",
+                                                    reply_markup=picker)
+            return
         day = str_to_day(data.split(":")[2])
         plan = self.__get_plan(plan_name, group_id)
         if len(data.split(":")) < 4:
@@ -458,7 +461,8 @@ class Planner(BaseModule):
         user_id = update.effective_user.id
         picker = ButtonPicker([{name: name} for name in plan_names],
                               "remove_lesson", user_id=user_id)        
-        await update.message.reply_text("Pick a day to remove a lesson", reply_markup=picker)
+        await update.message.reply_text("Pick a plan you want to remove a lesson from",
+                                        reply_markup=picker)
 
     @prevent_edited
     async def _edit_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
