@@ -422,12 +422,13 @@ class Planner(BaseModule):
                                       context: ContextTypes.DEFAULT_TYPE) -> None:
         data = update.callback_query.data
         group_id = update.effective_chat.id
-        day = str_to_day(data.split(":")[1])
-        plan_name = data.split(":")[2]
+        plan_name = data.split(":")[1]
+        if len(data.split(":")) < 2:
+            days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+            picker = ButtonPicker([{day: f"{plan_name}:{day}"} for day in days],
+                                "remove_lesson", user_id=update.effective_user.id)
+        day = str_to_day(data.split(":")[2])
         plan = self.__get_plan(plan_name, group_id)
-        if not self.__is_owner(plan, update.effective_user.id):
-            await update.callback_query.answer("This plan does not belong to you", show_alert=True)
-            return
         if len(data.split(":")) < 4:
             lessons = plan.get_day(day-1)
             picker = ButtonPicker([{f"{lesson.subject}: {lesson.type}":
@@ -445,20 +446,18 @@ class Planner(BaseModule):
         await context.bot.send_message(group_id, "Lesson removed")
 
     @prevent_edited
-    async def _remove_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def _remove_lesson(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Remove a lesson from a plan
 
         Usage: /remove_lesson <plan_name>
         """
-        plan_name, plan = self.__get_plan_from_update(update, context)
-
-        if not plan:
-            raise PlanNotFoundError(plan_name)
-
-        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-        picker = ButtonPicker([{day: f"{day}:{plan_name}"} for day in days],
-                              "remove_lesson", user_id=update.effective_user.id)
+        plans = self.__get_plans(update.effective_chat.id)
+        plan_names = [name for name, plan in plans.items()
+                 if self.__is_owner(plan, update.effective_user.id)]
+        user_id = update.effective_user.id
+        picker = ButtonPicker([{name: name} for name in plan_names],
+                              "remove_lesson", user_id=user_id)        
         await update.message.reply_text("Pick a day to remove a lesson", reply_markup=picker)
 
     @prevent_edited
