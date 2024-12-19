@@ -339,7 +339,7 @@ class Planner(BaseModule):
         if plan_name is not None and not plan:
             raise PlanNotFoundError(plan_name)
 
-        if not plan and update.message.text == "/get_plan":
+        if not plan and update.message.text.startswith("/get_plan"):
             plans = self._db.get_table("plans")
             plans = plans.get_rows(check_function=lambda x: x[2] == group_id)
             if not plans:
