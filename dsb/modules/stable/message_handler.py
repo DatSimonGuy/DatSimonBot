@@ -12,6 +12,7 @@ class MessageHandler(BaseModule):
         super().__init__(ptb, telebot)
         self._handlers = {
             "who_am_i": self._user_info,
+            "who_are_you": self._sender_info,
             "whoami": self._user_info,
             "what_broke": self._what_broke,
             "silly_cipher": self._silly_cipher
@@ -29,6 +30,8 @@ class MessageHandler(BaseModule):
         }
         self._inline_handlers = {
             "silly": self._make_silly,
+            "cls": self._clear_chat,
+            "clear": self._clear_chat,
         }
         self._messages = {}
         self._message_handler = telegram.ext.MessageHandler(filters.ALL & ~filters.COMMAND,
@@ -62,8 +65,17 @@ class MessageHandler(BaseModule):
     @prevent_edited
     async def _user_info(self, update: Update, _) -> None:
         """ Get user info """
-        id_info = f"```user_id:\n{update.message.from_user.id}\n```"
+        id_info = f"Your id: `{update.message.from_user.id}`"
         await update.message.reply_text(f"{id_info}", parse_mode="Markdownv2")
+
+    @prevent_edited
+    async def _sender_info(self, update: Update, _) -> None:
+        """ Get sender info """
+        if update.message.reply_to_message:
+            id_info = f"Their id: `{update.message.reply_to_message.from_user.id}`"
+            await update.message.reply_text(f"{id_info}", parse_mode="Markdownv2")
+        else:
+            await update.message.reply_text("Reply to a message to get the sender id")
 
     def cipher(self, text: str) -> str:
         """ Encode to silly language """
@@ -83,6 +95,15 @@ class MessageHandler(BaseModule):
                 text[i] = big_qwerty[symbols2.index(char)]
         text = "".join(text)
         return text
+
+    @prevent_edited
+    async def _clear_chat(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Clear chat messages """
+        message = "." + "\n" * 100 + "."
+        result = [InlineQueryResultArticle(id="1", title="Clear the chat screen",
+                                           description="Long ahh message",
+                                           input_message_content=InputTextMessageContent(message))]
+        await update.inline_query.answer(result)
 
     @prevent_edited
     async def _make_silly(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
