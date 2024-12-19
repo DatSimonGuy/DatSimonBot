@@ -344,7 +344,7 @@ class Planner(BaseModule):
             plans = plans.get_rows(check_function=lambda x: x[2] == group_id)
             if not plans:
                 raise NoPlansFoundError()
-            picker = ButtonPicker([{plan[1]: f"{plan[1]}:{update.effective_user.id}"} 
+            picker = ButtonPicker([{plan[1]: f"{plan[1]}:{update.effective_user.id}"}
                                    for plan in plans], "get_plan", user_id=update.effective_user.id)
             await update.message.reply_text("Choose a plan to get:", reply_markup=picker)
             return
