@@ -315,9 +315,11 @@ class Planner(BaseModule):
         plan = self.__get_plan(plan_name, group_id)
         if not plan:
             raise PlanNotFoundError(plan_name)
-        plan_image = plan.to_image(plan_name)
-        await context.bot.send_photo(group_id, photo=plan_image)
         await context.bot.delete_message(group_id, update.effective_message.id)
+        plan_image = plan.to_image(plan_name)
+        if not plan_image:
+            raise PlanEmptyError()
+        await context.bot.send_photo(group_id, photo=plan_image)
 
     @prevent_edited
     async def _get_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
