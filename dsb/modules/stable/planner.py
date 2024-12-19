@@ -305,10 +305,10 @@ class Planner(BaseModule):
     @callback_handler
     async def _get_plan_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         data = update.callback_query.data
-        
-        if data.split(":")[-1] != update.effective_user.id:
+
+        if int(data.split(":")[-1]) != update.effective_user.id:
             return
-        
+
         group_id = update.effective_chat.id
         plan_name = data.split(":")[1]
         plan = self.__get_plan(plan_name, group_id)
