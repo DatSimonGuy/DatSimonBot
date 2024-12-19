@@ -302,6 +302,22 @@ class Planner(BaseModule):
             raise NoPlansFoundError()
         await update.message.reply_text("Choose a plan to delete:", reply_markup=picker)
 
+    @callback_handler
+    async def _get_plan_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        data = update.callback_query.data
+        
+        if data.split(":")[-1] != update.effective_user.id:
+            return
+        
+        group_id = update.effective_chat.id
+        plan_name = data.split(":")[1]
+        plan = self.__get_plan(plan_name, group_id)
+        if not plan:
+            raise PlanNotFoundError(plan_name)
+        plan_image = plan.to_image(plan_name)
+        await context.bot.send_photo(group_id, photo=plan_image)
+        await context.bot.delete_message(group_id, update.effective_message.id)
+
     @prevent_edited
     async def _get_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
@@ -322,13 +338,13 @@ class Planner(BaseModule):
 
         if not plan:
             plans = self._db.get_table("plans")
-            username = update.message.from_user.username
-            row = plans.get_row(check_function=lambda x: x[2] == group_id and
-                                 username in x[3].students)
-            if not row:
-                raise DoesNotBelongError()
-            plan: Plan = row[3]
-            plan_name = row[1]
+            plans = plans.get_rows(check_function=lambda x: x[2] == group_id)
+            if not plans:
+                raise NoPlansFoundError()
+            picker = ButtonPicker([{plan[1]: f"{plan[1]}:{update.effective_user.id}"} 
+                                   for plan in plans], "get_plan", user_id=update.effective_user.id)
+            await update.message.reply_text("Choose a plan to get:", reply_markup=picker)
+            return
 
         if plan.is_empty():
             raise PlanEmptyError()
