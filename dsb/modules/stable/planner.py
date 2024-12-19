@@ -339,7 +339,7 @@ class Planner(BaseModule):
         if plan_name is not None and not plan:
             raise PlanNotFoundError(plan_name)
 
-        if not plan:
+        if not plan and update.message.text == "/get_plan":
             plans = self._db.get_table("plans")
             plans = plans.get_rows(check_function=lambda x: x[2] == group_id)
             if not plans:
@@ -348,6 +348,16 @@ class Planner(BaseModule):
                                    for plan in plans], "get_plan", user_id=update.effective_user.id)
             await update.message.reply_text("Choose a plan to get:", reply_markup=picker)
             return
+
+        if not plan:
+            plans = self._db.get_table("plans")
+            username = update.message.from_user.username
+            row = plans.get_row(check_function=lambda x: x[2] == group_id and
+                                 username in x[3].students)
+            if not row:
+                raise DoesNotBelongError()
+            plan: Plan = row[3]
+            plan_name = row[1]
 
         if plan.is_empty():
             raise PlanEmptyError()
