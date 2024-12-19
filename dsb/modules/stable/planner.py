@@ -119,7 +119,8 @@ class Planner(BaseModule):
             "^clear_day:": self._clear_day_callback,
             "^join_plan:": self._join_plan_callback,
             "^remove_lesson:": self._remove_lesson_callback,
-            "^get_students": self._get_students_callback
+            "^get_students": self._get_students_callback,
+            "^get_plan:": self._get_plan_callback,
         }
 
     def __is_owner(self, plan: Plan, user_id: int) -> bool:
@@ -302,6 +303,24 @@ class Planner(BaseModule):
             raise NoPlansFoundError()
         await update.message.reply_text("Choose a plan to delete:", reply_markup=picker)
 
+    @callback_handler
+    async def _get_plan_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        data = update.callback_query.data
+
+        if int(data.split(":")[-1]) != update.effective_user.id:
+            return
+
+        group_id = update.effective_chat.id
+        plan_name = data.split(":")[1]
+        plan = self.__get_plan(plan_name, group_id)
+        if not plan:
+            raise PlanNotFoundError(plan_name)
+        await context.bot.delete_message(group_id, update.effective_message.id)
+        plan_image = plan.to_image(plan_name)
+        if not plan_image:
+            raise PlanEmptyError()
+        await context.bot.send_photo(group_id, photo=plan_image)
+
     @prevent_edited
     async def _get_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
@@ -319,6 +338,16 @@ class Planner(BaseModule):
 
         if plan_name is not None and not plan:
             raise PlanNotFoundError(plan_name)
+
+        if not plan and update.message.text.startswith("/get_plan"):
+            plans = self._db.get_table("plans")
+            plans = plans.get_rows(check_function=lambda x: x[2] == group_id)
+            if not plans:
+                raise NoPlansFoundError()
+            picker = ButtonPicker([{plan[1]: f"{plan[1]}:{update.effective_user.id}"}
+                                   for plan in plans], "get_plan", user_id=update.effective_user.id)
+            await update.message.reply_text("Choose a plan to get:", reply_markup=picker)
+            return
 
         if not plan:
             plans = self._db.get_table("plans")
@@ -422,12 +451,16 @@ class Planner(BaseModule):
                                       context: ContextTypes.DEFAULT_TYPE) -> None:
         data = update.callback_query.data
         group_id = update.effective_chat.id
-        day = str_to_day(data.split(":")[1])
-        plan_name = data.split(":")[2]
-        plan = self.__get_plan(plan_name, group_id)
-        if not self.__is_owner(plan, update.effective_user.id):
-            await update.callback_query.answer("This plan does not belong to you", show_alert=True)
+        plan_name = data.split(":")[1]
+        if len(data.split(":")) < 3:
+            days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+            picker = ButtonPicker([{day: f"{plan_name}:{day}"} for day in days],
+                                "remove_lesson", user_id=update.effective_user.id)
+            await update.effective_message.edit_text("Pick a day to remove lessons from",
+                                                    reply_markup=picker)
             return
+        day = str_to_day(data.split(":")[2])
+        plan = self.__get_plan(plan_name, group_id)
         if len(data.split(":")) < 4:
             lessons = plan.get_day(day-1)
             picker = ButtonPicker([{f"{lesson.subject}: {lesson.type}":
@@ -445,21 +478,22 @@ class Planner(BaseModule):
         await context.bot.send_message(group_id, "Lesson removed")
 
     @prevent_edited
-    async def _remove_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def _remove_lesson(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Remove a lesson from a plan
 
         Usage: /remove_lesson <plan_name>
         """
-        plan_name, plan = self.__get_plan_from_update(update, context)
-
-        if not plan:
-            raise PlanNotFoundError(plan_name)
-
-        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-        picker = ButtonPicker([{day: f"{day}:{plan_name}"} for day in days],
-                              "remove_lesson", user_id=update.effective_user.id)
-        await update.message.reply_text("Pick a day to remove a lesson", reply_markup=picker)
+        plans = self.__get_plans(update.effective_chat.id)
+        plan_names = [name for name, plan in plans.items()
+                 if self.__is_owner(plan, update.effective_user.id)]
+        user_id = update.effective_user.id
+        picker = ButtonPicker([{name: name} for name in plan_names],
+                              "remove_lesson", user_id=user_id)
+        if picker.is_empty:
+            raise DSBError("You do not own any plans")
+        await update.message.reply_text("Pick a plan you want to remove a lesson from",
+                                        reply_markup=picker)
 
     @prevent_edited
     async def _edit_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
