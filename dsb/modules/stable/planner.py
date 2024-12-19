@@ -119,7 +119,8 @@ class Planner(BaseModule):
             "^clear_day:": self._clear_day_callback,
             "^join_plan:": self._join_plan_callback,
             "^remove_lesson:": self._remove_lesson_callback,
-            "^get_students": self._get_students_callback
+            "^get_students": self._get_students_callback,
+            "^get_plan:": self._get_plan_callback,
         }
 
     def __is_owner(self, plan: Plan, user_id: int) -> bool:
