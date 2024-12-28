@@ -104,7 +104,7 @@ class DailyImages(BaseModule):
             sets = [x for x in sets.keys()]
             await update.message.reply_text("Avaible sets:\n" + "\n".join(sets))
             return
-        context.bot_data["daily_images"].add({update.effective_chat.id: image_set})
+        context.bot_data["daily_images"].update({update.effective_chat.id: image_set})
         await update.message.reply_text("I will now send images from this set daily at 6 am")
 
     async def _cancel_daily_image(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -204,5 +204,5 @@ class DailyImages(BaseModule):
 
     def prepare(self):
         """ Prepare the module """
-        self._bot.bot_data["daily_images"] = {}
+        self._dsb.set_value("daily_images", {})
         return super().prepare()
