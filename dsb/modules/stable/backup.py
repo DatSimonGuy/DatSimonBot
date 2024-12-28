@@ -45,4 +45,5 @@ class Backup(BaseModule):
         database_path = self._dsb.config["database_path"]
         shutil.unpack_archive("backup.zip", database_path)
         os.remove("backup.zip")
+        self._dsb.reload_data()
         await update.message.reply_text("Database restored")
