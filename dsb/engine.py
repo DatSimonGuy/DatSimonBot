@@ -2,6 +2,7 @@
 
 import os
 import time
+import asyncio
 import logging
 import threading
 import importlib.util
@@ -196,6 +197,12 @@ class DSBEngine:
         self._app.user_data = await self._app.persistence.get_user_data()
         self._app.chat_data = await self._app.persistence.get_chat_data()
         self._app.callback_data = await self._app.persistence.get_callback_data()
+
+    def set_value(self, key, value) -> None:
+        """ Set bot data value """
+        self._app.bot_data[key] = value
+        event_loop = asyncio.get_event_loop()
+        event_loop.create_task(self._app.persistence.update_bot_data(self._app.bot_data))
 
     def start_modules(self) -> tuple[int, int]:
         """ Start all modules """

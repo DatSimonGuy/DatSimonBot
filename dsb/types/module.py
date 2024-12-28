@@ -13,7 +13,7 @@ def admin_only(func):
     @functools.wraps(func)
     async def wrapper(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """ Wrapper function """
-        if update.effective_user.id in self._dsb.admins:
+        if update.effective_user.id in self._dsb.admins: # pylint: disable=protected-access
             await func(self, update, context)
         else:
             await update.message.reply_text("You are not an admin")
@@ -35,7 +35,7 @@ def callback_handler(func):
     async def wrapper(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """ Wrapper function """
         if update.effective_user.id != int(update.callback_query.data.split(":")[-1]):
-                return
+            return
         if update.callback_query.data.split(":")[-2] == "cancel":
             await context.bot.delete_message(chat_id=update.effective_chat.id,
                                        message_id=update.effective_message.id)
