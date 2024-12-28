@@ -190,6 +190,12 @@ class DSBEngine:
                 progress.advance(task)
         return success, len(modules_to_load) - success
 
+    async def reload_data(self) -> None:
+        """ Reload the data """
+        self._app.persistence.refresh_chat_data()
+        self._app.persistence.refresh_user_data()
+        self._app.persistence.refresh_bot_data()
+
     def start_modules(self) -> tuple[int, int]:
         """ Start all modules """
         success, fail = 0, 0
