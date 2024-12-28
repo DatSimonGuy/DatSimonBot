@@ -192,9 +192,10 @@ class DSBEngine:
 
     async def reload_data(self) -> None:
         """ Reload the data """
-        self._app.persistence.refresh_chat_data()
-        self._app.persistence.refresh_user_data()
-        self._app.persistence.refresh_bot_data()
+        self._app.bot_data = await self._app.persistence.get_bot_data()
+        self._app.user_data = await self._app.persistence.get_user_data()
+        self._app.chat_data = await self._app.persistence.get_chat_data()
+        self._app.callback_data = await self._app.persistence.get_callback_data()
 
     def start_modules(self) -> tuple[int, int]:
         """ Start all modules """

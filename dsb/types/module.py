@@ -6,7 +6,7 @@ from telegram import Update
 from telegram.ext import CommandHandler, Application, ContextTypes, CallbackQueryHandler, \
     InlineQueryHandler
 if TYPE_CHECKING:
-    from engine import DSBEngine
+    from dsb.engine import DSBEngine
 
 def admin_only(func):
     """ Decorator for admin only commands """
