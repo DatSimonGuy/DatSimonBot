@@ -7,6 +7,20 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from dsb.types.module import BaseModule
 
+def save_file(file: bytes, path: str) -> None:
+    """ Save a file """
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as file_:
+        file_.write(file)
+
+def load_file(path: str) -> bytes:
+    """ Load a file """
+    try:
+        with open(path, "rb") as file:
+            return file.read()
+    except FileNotFoundError:
+        return b""
+
 def list_all(path: str) -> list[str]:
     """ List all files in a directory """
     try:
@@ -46,12 +60,18 @@ class DailyImages(BaseModule):
         if sets is None:
             context.chat_data["sets"] = {}
             sets = context.chat_data["sets"]
+        sets = context.chat_data.get("sets", None)
+        if sets is None:
+            context.chat_data["sets"] = {}
+            sets = context.chat_data["sets"]
         chat_id = update.effective_chat.id
         set_name = " ".join(args)
         if sets.get(set_name, None):
+        if sets.get(set_name, None):
             await update.message.reply_text("Set already exists")
             return
-        context.chat_data["sets"][set_name] = f"{chat_id}/images/{set_name}"
+        database_path = self._dsb.config["database_path"]
+        context.chat_data["sets"][set_name] = f"{database_path}/{chat_id}/images/{set_name}"
         await update.message.reply_text("Set created")
 
     async def _delete_set(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -60,6 +80,11 @@ class DailyImages(BaseModule):
         if not args:
             await update.message.reply_text("Please provide a set name")
             return
+        sets = context.chat_data.get("sets", None)
+        if not sets:
+            await update.message.reply_text("No sets found")
+            return
+        sets.pop(" ".join(args), None)
         sets = context.chat_data.get("sets", None)
         if not sets:
             await update.message.reply_text("No sets found")
@@ -76,14 +101,16 @@ class DailyImages(BaseModule):
             image_set = kwargs["set"]
         if not image_set:
             sets = context.chat_data.get("sets", None)
-            sets = list(sets.keys())
+            sets = [x for x in sets.keys()]
             await update.message.reply_text("Avaible sets:\n" + "\n".join(sets))
             return
-        context.bot_data["daily_images"].update({update.effective_chat.id: image_set})
+        context.bot_data["daily_images"].add({update.effective_chat.id: image_set})
         await update.message.reply_text("I will now send images from this set daily at 6 am")
 
     async def _cancel_daily_image(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async def _cancel_daily_image(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Cancel daily image """
+        context.bot_data["daily_images"].pop(update.effective_chat.id, None)
         context.bot_data["daily_images"].pop(update.effective_chat.id, None)
         await update.message.reply_text("Daily image cancelled")
 
@@ -99,7 +126,10 @@ class DailyImages(BaseModule):
                 await update.message.reply_text("Reply to a message with the image")
                 return
             msg = update.message.reply_to_message
+            msg = update.message.reply_to_message
         else:
+            msg = update.message
+        file = await msg.photo[-1].get_file()
             msg = update.message
         file = await msg.photo[-1].get_file()
         if not file:
@@ -108,25 +138,33 @@ class DailyImages(BaseModule):
         image_bytes = await file.download_as_bytearray()
         sets = context.chat_data.get("sets", None)
         set_to_update = sets.get(image_set, None)
+        sets = context.chat_data.get("sets", None)
+        set_to_update = sets.get(image_set, None)
         if not set_to_update:
             await update.message.reply_text("Set not found")
             return
-        self.save_file(image_bytes, set_to_update[3] + f"/{file.file_id}.png")
+        database_path = self._dsb.config["database_path"]
+        save_file(image_bytes, database_path + set_to_update[3] + f"/{file.file_id}.png")
         await update.message.reply_text("Image submitted to set")
 
     def _get_image(self, path: str) -> bytes:
+    def _get_image(self, path: str) -> bytes:
         """ Get Arthur quote image """
         if not path:
+        if not path:
             return b""
+        images = list_all(path)
         images = list_all(path)
         if not images:
             return b""
         random_img = random.choice(images)
-        image = self.load_file(os.path.join(path, random_img))
+        image = load_file(os.path.join(path, random_img))
         return image
 
     async def _send_daily_image(self) -> None:
         """ Send daily image quote """
+        for chat_id, image_path in self._bot.bot_data["daily_images"].items():
+            image = self._get_image(image_path)
         for chat_id, image_path in self._bot.bot_data["daily_images"].items():
             image = self._get_image(image_path)
             if not image:
@@ -142,9 +180,10 @@ class DailyImages(BaseModule):
             image_set = kwargs["set"]
         if not image_set:
             sets = context.chat_data.get("sets", None)
-            sets = list(sets.keys())
+            sets = [x for x in sets.keys()]
             await update.message.reply_text("Avaible sets:\n" + "\n".join(sets))
             return
+        image = self._get_image(context.chat_data["sets"][image_set])
         image = self._get_image(context.chat_data["sets"][image_set])
         if not image:
             await update.message.reply_text("No images found / no set with this name")
@@ -165,5 +204,5 @@ class DailyImages(BaseModule):
 
     def prepare(self):
         """ Prepare the module """
-        self._dsb.set_value("daily_images", {})
+        self._bot.bot_data["daily_images"] = {}
         return super().prepare()
