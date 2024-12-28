@@ -4,12 +4,12 @@ import os
 import shutil
 from telegram import Update
 from telegram.ext import Application
-from dsb.dsb import DSB
+from dsb.engine import DSBEngine
 from dsb.types.module import BaseModule, prevent_edited, admin_only
 
 class Backup(BaseModule):
     """ Backup module """
-    def __init__(self, bot: Application, telebot_module: DSB) -> None:
+    def __init__(self, bot: Application, telebot_module: DSBEngine) -> None:
         super().__init__(bot, telebot_module)
         self._handlers = {
             "backup": self._backup,

@@ -12,7 +12,7 @@ from dsb.types.errors import DSBError, InvalidValueError
 from dsb.utils.transforms import str_to_i
 from dsb.utils.button_picker import ButtonPicker
 if TYPE_CHECKING:
-    from dsb.dsb import DSB
+    from dsb.engine import DSBEngine
 
 class PlanNotFoundError(DSBError):
     """ Raised when plan is not found """
@@ -66,7 +66,7 @@ class NoStudentsError(DSBError):
 
 class Planner(BaseModule):
     """ Planner module """
-    def __init__(self, ptb, telebot: 'DSB') -> None:
+    def __init__(self, ptb, telebot: 'DSBEngine') -> None:
         super().__init__(ptb, telebot)
         self._handlers = {
             "create_plan": self._create_plan,
