@@ -153,11 +153,11 @@ class DSBEngine:
         modules_to_load = []
         for dir_path, _, modules in os.walk(self._config["module_src"]):
             for module in modules:
-                if dir_path.split("\\")[-1] == "experimental" and not self._config["experimental"]:
+                if dir_path.endswith("experimental") and not self._config["experimental"]:
                     continue
                 if module.startswith("__"):
                     continue
-                if dir_path.split("\\")[-1].startswith("__"):
+                if dir_path.endswith("__"):
                     continue
                 modules_to_load.append((dir_path, module))
 
