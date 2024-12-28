@@ -163,15 +163,7 @@ class DSB:
                 return module.handlers[command_name]
         return None
 
-    async def _error_handler(self, update: Update, context: CallbackContext) -> None:
-        """Log the error and send a message to the user."""
-        self.error(context.error)
-        if isinstance(context.error, DSBError) and update.message is not None:
-            await update.message.reply_text(str(context.error))
-        elif isinstance(context.error, DSBError):
-            await self._bot.bot.send_message(update.effective_chat.id, str(context.error))
-        elif update.message is not None:
-            await update.message.reply_text('An error occurred. Please try again later.')
+    
 
     def run(self) -> None:
         """ Run the telebot """

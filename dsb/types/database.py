@@ -115,38 +115,6 @@ class Database:
         with open(os.path.join(self._directory, f"{name}.json"), "r", encoding="utf-8") as file:
             return jsonpickle.decode(file.read(), keys=True)
 
-    def save_file(self, file: bytes, path: str) -> None:
-        """ Save a file to the database """
-        os.makedirs(os.path.join(self._directory, os.path.dirname(path)), exist_ok=True)
-        with open(os.path.join(self._directory, path), "wb") as file_:
-            file_.write(file)
-
-    def load_file(self, path: str) -> bytes:
-        """ Load a file from the database """
-        try:
-            with open(os.path.join(self._directory, path), "rb") as file:
-                return file.read()
-        except FileNotFoundError:
-            return b""
-
-    def remove_file(self, path: str) -> None:
-        """ Remove a file from the database """
-        os.remove(os.path.join(self._directory, path))
-
-    def list_all(self, path: str) -> list[str]:
-        """ List all files in a directory """
-        try:
-            return os.listdir(os.path.join(self._directory, path))
-        except FileNotFoundError:
-            return []
-
     def backup(self) -> bytes:
         """ Backup the database """
-        shutil.make_archive(os.path.join(self._directory, "backup"), "zip", self._directory)
-        try:
-            with open(os.path.join(self._directory, "backup.zip"), "rb") as file:
-                return file.read()
-        except FileNotFoundError:
-            return b""
-        finally:
-            os.remove(os.path.join(self._directory, "backup.zip"))
+        
