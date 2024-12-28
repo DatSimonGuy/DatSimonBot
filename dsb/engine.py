@@ -245,7 +245,3 @@ class DSBEngine:
             status_thread.join()
             self._logger.info("DSB Engine stopped!")
             console.print("\n[bold red]DSB Engine stopped![/bold red]")
-
-if __name__ == "__main__":
-    engine = DSBEngine()
-    engine.start()
