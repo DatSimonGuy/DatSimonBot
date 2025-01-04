@@ -364,7 +364,7 @@ class Planner(BaseModule):
         group_id = update.effective_chat.id
         plan_name = data.split(":")[1]
 
-        if len(data.split(":")) < 3:
+        if len(data.split(":")) < 4:
             days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
             picker = ButtonPicker([{day: f"{plan_name}:{day}"} for day in days],
                                 "remove_lesson", user_id=update.effective_user.id)
@@ -373,7 +373,7 @@ class Planner(BaseModule):
             return
         day = str_to_day(data.split(":")[2])
         plan = self.__get_plan(context, plan_name)
-        if len(data.split(":")) < 4:
+        if len(data.split(":")) < 5:
             lessons = plan.get_day(day-1)
             picker = ButtonPicker([{f"{lesson.subject}: {lesson.type}":
                                     f"{data.replace("remove_lesson:", "")}:{i}"} for i,

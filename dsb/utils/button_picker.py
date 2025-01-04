@@ -13,8 +13,8 @@ class ButtonPicker(InlineKeyboardMarkup):
         else:
             buttons.append({"Cancel": f"cancel:{user_id}"})
         for button_list in buttons:
-            inline_buttons.append([InlineKeyboardButton(text, callback_data=prefix + ":" + data)
-                                   for text, data in button_list.items()])
+            inline_buttons.append([InlineKeyboardButton(text, callback_data=prefix + ":"
+                                   + data + str(user_id)) for text, data in button_list.items()])
         super().__init__(inline_buttons)
 
     @property
