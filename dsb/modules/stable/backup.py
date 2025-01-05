@@ -3,7 +3,7 @@
 import os
 import shutil
 from telegram import Update
-from telegram.ext import Application
+from telegram.ext import Application, ContextTypes
 from dsb.engine import DSBEngine
 from dsb.types.module import BaseModule, prevent_edited, admin_only
 
@@ -22,9 +22,18 @@ class Backup(BaseModule):
 
     @admin_only
     @prevent_edited
-    async def _backup(self, update: Update, _) -> None:
+    async def _backup(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         database_path = self._dsb.config["database_path"]
-        shutil.make_archive("backup", "zip", database_path)
+        _, kwargs = self._get_args(context)
+        if "no-images" in kwargs:
+            _ = shutil.copytree(database_path, "temp",
+                                ignore=lambda x, y: [name for name in y
+                                                     if name.endswith(".jpg")
+                                                     or name.endswith(".png")])
+            shutil.make_archive("backup", "zip", "temp")
+            shutil.rmtree("temp")
+        else:
+            shutil.make_archive("backup", "zip", database_path)
         try:
             with open("backup.zip", "rb") as file:
                 await update.message.reply_document(file.read(), filename="backup.zip")
