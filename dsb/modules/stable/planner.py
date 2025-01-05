@@ -10,7 +10,7 @@ from dsb.types.plan import Plan
 from dsb.types.module import BaseModule, prevent_edited, admin_only, callback_handler
 from dsb.types.errors import DSBError, InvalidValueError
 from dsb.utils.transforms import str_to_i
-from dsb.utils.button_picker import ButtonPicker
+from dsb.utils.button_picker import ButtonPicker, CallbackData
 if TYPE_CHECKING:
     from dsb.engine import DSBEngine
 
@@ -117,12 +117,12 @@ class Planner(BaseModule):
             "transfer_plan_ownership": "Transfer plan ownership"
         }
         self._callback_handlers = {
-            "^delete_plan:": self._delete_plan_callback,
-            "^clear_day:": self._clear_day_callback,
-            "^join_plan:": self._join_plan_callback,
-            "^remove_lesson:": self._remove_lesson_callback,
-            "^get_students": self._get_students_callback,
-            "^get_plan:": self._get_plan_callback,
+            "delete_plan": self._delete_plan_callback,
+            "clear_day": self._clear_day_callback,
+            "join_plan": self._join_plan_callback,
+            "remove_lesson": self._remove_lesson_callback,
+            "get_students": self._get_students_callback,
+            "get_plan": self._get_plan_callback,
         }
 
     def __is_owner(self, plan: Plan, user_id: int) -> bool:
@@ -217,8 +217,8 @@ class Planner(BaseModule):
     async def _delete_plan_callback(self, update: Update,
                                     context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Callback for plan deletion """
-        data = update.callback_query.data
-        plan_name = data.split(":")[1]
+        callback: CallbackData = update.callback_query.data[1]
+        plan_name = callback.data[0]
         self.__delete_plan(context, plan_name)
         await context.bot.delete_message(update.effective_chat.id,
                                            update.effective_message.message_id)
@@ -233,7 +233,7 @@ class Planner(BaseModule):
         """
         plans = self.__get_plans(context)
         user_id = update.effective_user.id
-        picker = ButtonPicker([{name: name} for name,
+        picker = ButtonPicker([{name: [name]} for name,
                                plan in plans.items() if self.__is_owner(plan, user_id)],
                               "delete_plan", user_id=user_id)
         if picker.is_empty:
@@ -242,9 +242,10 @@ class Planner(BaseModule):
 
     @callback_handler
     async def _get_plan_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        data = update.callback_query.data
+        callback: CallbackData = update.callback_query.data[1]
+        data = callback.data
         group_id = update.effective_chat.id
-        plan_name = data.split(":")[1]
+        plan_name = data[0]
         plan = self.__get_plan(context, plan_name)
         if not plan:
             raise PlanNotFoundError(plan_name)
@@ -273,7 +274,7 @@ class Planner(BaseModule):
                 plans = context.chat_data.get("plans", {})
                 if not plans:
                     raise NoPlansFoundError() from e
-                picker = ButtonPicker([{plan: f"{plan}:{update.effective_user.id}"}
+                picker = ButtonPicker([{plan: [plan, update.effective_user.id]}
                                     for plan in plans],"get_plan", user_id=update.effective_user.id)
                 await update.message.reply_text("Choose a plan to get:", reply_markup=picker)
                 return
@@ -360,30 +361,31 @@ class Planner(BaseModule):
     @callback_handler
     async def _remove_lesson_callback(self, update: Update,
                                       context: ContextTypes.DEFAULT_TYPE) -> None:
-        data = update.callback_query.data
+        callback: CallbackData = update.callback_query.data[1]
+        data = callback.data
         group_id = update.effective_chat.id
-        plan_name = data.split(":")[1]
+        plan_name = data[0]
 
-        if len(data.split(":")) < 4:
+        if len(data) < 2:
             days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-            picker = ButtonPicker([{day: f"{plan_name}:{day}"} for day in days],
+            picker = ButtonPicker([{day: [plan_name, day]} for day in days],
                                 "remove_lesson", user_id=update.effective_user.id)
             await update.effective_message.edit_text("Pick a day to remove lessons from",
                                                     reply_markup=picker)
             return
-        day = str_to_day(data.split(":")[2])
+        day = str_to_day(data[1])
         plan = self.__get_plan(context, plan_name)
-        if len(data.split(":")) < 5:
+        if len(data) < 3:
             lessons = plan.get_day(day-1)
             picker = ButtonPicker([{f"{lesson.subject}: {lesson.type}":
-                                    f"{data.replace("remove_lesson:", "")}:{i}"} for i,
+                                    callback.add_value(i)} for i,
                                    lesson in enumerate(lessons)], "remove_lesson",
                                   user_id=update.effective_user.id)
             if picker.is_empty:
                 raise NoLessonsError()
             await update.effective_message.edit_text("Pick a lesson to remove", reply_markup=picker)
             return
-        idx = str_to_i(data.split(":")[3])
+        idx = str_to_i(data[2])
         plan.remove_lesson_by_index(day - 1, idx)
         await context.bot.delete_message(group_id, update.effective_message.id)
         await context.bot.send_message(group_id, "Lesson removed")
@@ -399,7 +401,7 @@ class Planner(BaseModule):
         plan_names = [name for name, plan in plans.items()
                  if self.__is_owner(plan, update.effective_user.id)]
         user_id = update.effective_user.id
-        picker = ButtonPicker([{name: name} for name in plan_names],
+        picker = ButtonPicker([{name: [name]} for name in plan_names],
                               "remove_lesson", user_id=user_id)
         if picker.is_empty:
             raise DSBError("You do not own any plans")
@@ -480,17 +482,18 @@ class Planner(BaseModule):
 
     @callback_handler
     async def _clear_day_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        data = update.callback_query.data
-        if len(data.split(":")) < 3:
+        callback: CallbackData = update.callback_query.data[1]
+        data = callback.data
+        if len(data) < 2:
             days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-            picker = ButtonPicker([{day: f"{data.replace("clear_day:", "")}:{day}"}
+            picker = ButtonPicker([{day: data + [day]}
                                    for day in days], "clear_day", user_id=update.effective_user.id)
             if picker.is_empty:
                 raise NoLessonsError()
             await update.effective_message.edit_text("Pick a day to clear", reply_markup=picker)
             return
-        plan_name = data.split(":")[1]
-        day = str_to_day(data.split(":")[2])
+        plan_name = data[0]
+        day = str_to_day(data[1])
         group_id = update.effective_chat.id
         plan = self.__get_plan(context, plan_name)
         plan.clear_day(day - 1)
@@ -506,7 +509,7 @@ class Planner(BaseModule):
         """
         plans = self.__get_plans(context)
         user_id = update.effective_user.id
-        picker = ButtonPicker([{name: name} for name, plan in plans.items()
+        picker = ButtonPicker([{name: [name]} for name, plan in plans.items()
                                  if self.__is_owner(plan, user_id)], "clear_day",
                               user_id=user_id)
         if picker.is_empty:
@@ -515,8 +518,9 @@ class Planner(BaseModule):
 
     @callback_handler
     async def _clear_all_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        data = update.callback_query.data
-        plan_name = data.split(":")[1]
+        callback: CallbackData = update.callback_query.data[1]
+        data = callback.data
+        plan_name = data[0]
         group_id = update.effective_chat.id
         plan = context.chat_data["plans"].get(plan_name, None)
         plan.clear_all()
@@ -532,7 +536,7 @@ class Planner(BaseModule):
         """
         plans = self.__get_plans(context)
         user_id = update.effective_user.id
-        picker = ButtonPicker([{name: name} for name, plan in plans.items()
+        picker = ButtonPicker([{name: [name]} for name, plan in plans.items()
                                  if self.__is_owner(plan, user_id)], "clear_all",
                               user_id=user_id)
         if picker.is_empty:
@@ -626,9 +630,10 @@ class Planner(BaseModule):
 
     @callback_handler
     async def _join_plan_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        data = update.callback_query.data
+        callback: CallbackData = update.callback_query.data[1]
+        data = callback.data
         group_id = update.effective_chat.id
-        plan_name = data.split(":")[1]
+        plan_name = data[0]
         plan = context.chat_data["plans"].get(plan_name, None)
         if not plan:
             raise PlanNotFoundError(plan_name)
@@ -651,7 +656,7 @@ class Planner(BaseModule):
         """
         plans = self.__get_plans(context)
         user_id = update.effective_user.id
-        picker = ButtonPicker([{name: name} for name, plan in plans.items()
+        picker = ButtonPicker([{name: [name]} for name, plan in plans.items()
                                if user_id not in plan.students], "join_plan",
                               user_id=user_id)
         if picker.is_empty:
@@ -723,9 +728,10 @@ class Planner(BaseModule):
     @callback_handler
     async def _get_students_callback(self, update: Update,
                                      context: ContextTypes.DEFAULT_TYPE) -> None:
-        data = update.callback_query.data
+        callback: CallbackData = update.callback_query.data[1]
+        data = callback.data
         group_id = update.effective_chat.id
-        plan_name = data.split(":")[1]
+        plan_name = data[0]
         plan = context.chat_data["plans"].get(plan_name, None)
         if not plan:
             raise PlanNotFoundError(plan_name)
@@ -742,7 +748,7 @@ class Planner(BaseModule):
         """
         plans = self.__get_plans(context)
         user_id = update.effective_user.id
-        picker = ButtonPicker([{name: name} for name, plan in plans.items()
+        picker = ButtonPicker([{name: [name]} for name, plan in plans.items()
                                if self.__is_owner(plan, user_id)], "get_students",
                               user_id=user_id)
         if picker.is_empty:

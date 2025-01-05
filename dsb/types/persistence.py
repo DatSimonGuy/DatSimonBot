@@ -1,3 +1,5 @@
+""" Custom persistence for DSB """
+
 import os
 from telegram.ext import BasePersistence
 import jsonpickle
@@ -53,7 +55,10 @@ class CustomPersistance(BasePersistence):
         return await self.get_data("chat_data")
 
     async def get_callback_data(self):
-        return await self.get_file_data("callback_data")
+        callback_data = await self.get_file_data("callback_data")
+        if not callback_data:
+            return ([], {})
+        return callback_data
 
     async def get_conversations(self, name: str):
         return await self.get_file_data(f"conversations/{name}")

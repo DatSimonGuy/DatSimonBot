@@ -9,7 +9,7 @@ import importlib.util
 from typing import Any
 import requests
 from telegram import Update
-from telegram.ext import Application, CallbackContext
+from telegram.ext import Application, CallbackContext, InvalidCallbackData
 import rich.console
 import rich.progress
 import psutil
@@ -63,6 +63,7 @@ class DSBEngine:
         # Building the application
         builder = Application.builder().token(self._config["telebot_token"])
         builder.persistence(CustomPersistance())
+        builder.arbitrary_callback_data(True)
         self._app = builder.build()
 
         # Error handler
