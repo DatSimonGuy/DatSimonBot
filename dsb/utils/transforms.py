@@ -13,7 +13,7 @@ def str_to_day(string: str) -> Optional[int]:
     """ Convert string to a valid day value """
     if string.isdigit():
         day = int(string)
-        if day not in range(1, 5):
+        if day not in range(1, 6):
             return None
         return day
     days = {

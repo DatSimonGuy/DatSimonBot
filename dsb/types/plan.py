@@ -106,6 +106,10 @@ class Plan:
         """ Remove a lesson from the plan by index """
         self._week[day].pop(index)
 
+    def clear_students(self) -> None:
+        """ Clear all students """
+        self._students.clear()
+
     def clear_day(self, day: int) -> None:
         """ Clear all lessons for a day """
         self._week[day].clear()

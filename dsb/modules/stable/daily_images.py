@@ -7,6 +7,27 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from dsb.types.module import BaseModule
 
+def save_file(file: bytes, path: str) -> None:
+    """ Save a file """
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as file_:
+        file_.write(file)
+
+def load_file(path: str) -> bytes:
+    """ Load a file """
+    try:
+        with open(path, "rb") as file:
+            return file.read()
+    except FileNotFoundError:
+        return b""
+
+def list_all(path: str) -> list[str]:
+    """ List all files in a directory """
+    try:
+        return os.listdir(path)
+    except FileNotFoundError:
+        return []
+
 class DailyImages(BaseModule):
     """ Misc module for DSB. """
     def __init__(self, bot, dsb):
@@ -35,14 +56,17 @@ class DailyImages(BaseModule):
         if not args:
             await update.message.reply_text("Please provide a set name")
             return
-        sets = self._dsb.database.get_table("sets")
+        sets = context.chat_data.get("sets", None)
+        if sets is None:
+            context.chat_data["sets"] = {}
+            sets = context.chat_data["sets"]
         chat_id = update.effective_chat.id
         set_name = " ".join(args)
-        if sets.get_row(check_function=lambda x: x[1] == chat_id and x[2] == set_name):
+        if sets.get(set_name, None):
             await update.message.reply_text("Set already exists")
             return
-        sets.add_row([chat_id, set_name, f"{chat_id}/images/{set_name}"])
-        sets.save()
+        database_path = self._dsb.config["database_path"]
+        context.chat_data["sets"][set_name] = f"{database_path}/{chat_id}/images/{set_name}"
         await update.message.reply_text("Set created")
 
     async def _delete_set(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -51,10 +75,11 @@ class DailyImages(BaseModule):
         if not args:
             await update.message.reply_text("Please provide a set name")
             return
-        sets = self._dsb.database.get_table("sets")
-        chat_id = update.effective_chat.id
-        sets.remove_row(check_function=lambda x: x[1] == chat_id and x[2] == " ".join(args))
-        sets.save()
+        sets = context.chat_data.get("sets", None)
+        if not sets:
+            await update.message.reply_text("No sets found")
+            return
+        sets.pop(" ".join(args), None)
         await update.message.reply_text("Set deleted")
 
     async def _daily_image(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -64,30 +89,17 @@ class DailyImages(BaseModule):
             image_set = " ".join(args)
         else:
             image_set = kwargs["set"]
-        chat_id = update.effective_chat.id
         if not image_set:
-            sets = self._dsb.database.get_table("sets")
-            chat_sets = sets.get_rows(check_function=lambda x: x[1] == chat_id)
-            chat_sets = [x[1] for x in chat_sets]
-            await update.message.reply_text("Avaible sets:\n" + "\n".join(chat_sets))
+            sets = context.chat_data.get("sets", None)
+            sets = list(sets.keys())
+            await update.message.reply_text("Avaible sets:\n" + "\n".join(sets))
             return
-        image_toggles = self._dsb.database.get_table("image_toggles")
-        current_toggle = image_toggles\
-            .get_row((chat_id,))
-        if current_toggle:
-            current_toggle[2] = image_set
-            image_toggles.replace_row(current_toggle[0], current_toggle)
-        else:
-            image_toggles.add_row([chat_id, image_set])
-        image_toggles.save()
+        context.bot_data["daily_images"].update({update.effective_chat.id: image_set})
         await update.message.reply_text("I will now send images from this set daily at 6 am")
 
-    async def _cancel_daily_image(self, update: Update, _) -> None:
+    async def _cancel_daily_image(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Cancel daily image """
-        chat_id = update.effective_chat.id
-        image_toggles = self._dsb.database.get_table("image_toggles")
-        image_toggles.remove_row(check_function=lambda x: x[1] == chat_id)
-        image_toggles.save()
+        context.bot_data["daily_images"].pop(update.effective_chat.id, None)
         await update.message.reply_text("Daily image cancelled")
 
     async def _submit_image(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -101,46 +113,38 @@ class DailyImages(BaseModule):
             if not update.message.reply_to_message:
                 await update.message.reply_text("Reply to a message with the image")
                 return
-            quote = update.message.reply_to_message
+            msg = update.message.reply_to_message
         else:
-            quote = update.message
-        file = await quote.photo[-1].get_file()
+            msg = update.message
+        file = await msg.photo[-1].get_file()
         if not file:
             await update.message.reply_text("No file found")
             return
         image_bytes = await file.download_as_bytearray()
-        sets = self._dsb.database.get_table("sets")
-        chat_id = update.effective_chat.id
-        set_to_update = sets\
-            .get_row(check_function=lambda x: x[1] == chat_id and x[2] == image_set)
+        sets = context.chat_data.get("sets", None)
+        set_to_update = sets.get(image_set, None)
         if not set_to_update:
             await update.message.reply_text("Set not found")
             return
-        self._dsb.database.save_file(image_bytes, set_to_update[3] + f"/{file.file_id}.png")
+        database_path = self._dsb.config["database_path"]
+        save_file(image_bytes, database_path + set_to_update[3] + f"/{file.file_id}.png")
         await update.message.reply_text("Image submitted to set")
 
-    def _get_image(self, image_set: str, chat_id: int) -> bytes:
+    def _get_image(self, path: str) -> bytes:
         """ Get Arthur quote image """
-        sets = self._dsb.database.get_table("sets")
-        images_path = sets.\
-            get_row(check_function=lambda x: x[1] == chat_id and x[2] == image_set)
-        if not images_path:
+        if not path:
             return b""
-        images_path = images_path[3]
-        images = self._dsb.database.list_all(images_path)
+        images = list_all(path)
         if not images:
             return b""
         random_img = random.choice(images)
-        image = self._dsb.database.load_file(os.path.join(images_path, random_img))
+        image = load_file(os.path.join(path, random_img))
         return image
 
     async def _send_daily_image(self) -> None:
         """ Send daily image quote """
-        image_toggles = self._dsb.database.get_table("image_toggles")
-        for toggle in image_toggles.get_rows():
-            chat_id = toggle[1]
-            image_set = toggle[2]
-            image = self._get_image(image_set, chat_id)
+        for chat_id, image_path in self._bot.bot_data["daily_images"].items():
+            image = self._get_image(image_path)
             if not image:
                 continue
             await self._bot.bot.send_photo(chat_id, image)
@@ -153,13 +157,11 @@ class DailyImages(BaseModule):
         else:
             image_set = kwargs["set"]
         if not image_set:
-            chat_id = update.effective_chat.id
-            sets = self._dsb.database.get_table("sets")
-            chat_sets = sets.get_rows(check_function=lambda x: x[1] == chat_id)
-            chat_sets = [x[2] for x in chat_sets]
-            await update.message.reply_text("Avaible sets:\n" + "\n".join(chat_sets))
+            sets = context.chat_data.get("sets", None)
+            sets = list(sets.keys())
+            await update.message.reply_text("Avaible sets:\n" + "\n".join(sets))
             return
-        image = self._get_image(image_set, update.effective_chat.id)
+        image = self._get_image(context.chat_data["sets"][image_set])
         if not image:
             await update.message.reply_text("No images found / no set with this name")
             return
@@ -179,9 +181,5 @@ class DailyImages(BaseModule):
 
     def prepare(self):
         """ Prepare the module """
-        self._dsb.database.add_table("image_toggles", [("chat_id", int, True),
-                                                       ("image_set", str, False)], True)
-        self._dsb.database.add_table("sets", [("chat_id", int, True),
-                                              ("image_set", str, True),
-                                              ("image_dir", str, False)], True)
+        self._dsb.set_value("daily_images", {})
         return super().prepare()

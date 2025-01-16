@@ -4,16 +4,17 @@ import functools
 from typing import TYPE_CHECKING
 from telegram import Update
 from telegram.ext import CommandHandler, Application, ContextTypes, CallbackQueryHandler, \
-    InlineQueryHandler
+    InlineQueryHandler, InvalidCallbackData
+from dsb.utils.button_picker import CallbackData
 if TYPE_CHECKING:
-    from dsb.dsb import DSB
+    from dsb.engine import DSBEngine
 
 def admin_only(func):
     """ Decorator for admin only commands """
     @functools.wraps(func)
     async def wrapper(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """ Wrapper function """
-        if str(update.effective_user.id) in self.config.get("admins", []):
+        if update.effective_user.id in self._dsb.admins: # pylint: disable=protected-access
             await func(self, update, context)
         else:
             await update.message.reply_text("You are not an admin")
@@ -34,9 +35,14 @@ def callback_handler(func):
     @functools.wraps(func)
     async def wrapper(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """ Wrapper function """
-        if update.callback_query.data.split(":")[-2] == "cancel":
-            if update.effective_user.id != int(update.callback_query.data.split(":")[-1]):
-                return
+        if isinstance(update.callback_query.data, InvalidCallbackData):
+            await update.effective_message.delete()
+            await update.callback_query.answer(text="This request was too old", show_alert=True)
+            return
+        callback : CallbackData = update.callback_query.data[1]
+        if update.effective_user.id != callback.caller:
+            return
+        if callback.data[0] == "cancel":
             await context.bot.delete_message(chat_id=update.effective_chat.id,
                                        message_id=update.effective_message.id)
             return
@@ -45,7 +51,7 @@ def callback_handler(func):
 
 class BaseModule:
     """ Base module for all telegram bot modules. """
-    def __init__(self, bot: Application, dsb: 'DSB') -> None:
+    def __init__(self, bot: Application, dsb: 'DSBEngine') -> None:
         self._bot = bot
         self._handlers = {}
         self._descriptions = {}
@@ -88,8 +94,12 @@ class BaseModule:
             handler = CommandHandler(command, handler)
             self._handler_list.append(handler)
             self._bot.add_handler(handler)
-        for pattern, handler in self._callback_handlers.items():
-            handler = CallbackQueryHandler(handler, pattern=pattern)
+        for func, handler in self._callback_handlers.items():
+            handler = CallbackQueryHandler(
+                handler,
+                pattern=lambda x, func=func: isinstance(x, InvalidCallbackData) \
+                    or x[1].prefix == func
+            )
             self._handler_list.append(handler)
             self._bot.add_handler(handler)
         for command, handler in self._inline_handlers.items():
