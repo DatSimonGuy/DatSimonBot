@@ -11,10 +11,10 @@ class Wordle(BaseModule):
     def __init__(self, bot, dsb):
         super().__init__(bot, dsb)
         self._handlers = {
-            "wordleAmongUs": self._get_amogus
+            "wordle_among_us": self._get_amogus
         }
         self._descriptions = {
-            "wordleAmongUs": "Get all words required to get amongus image in wordle"
+            "wordle_among_us": "Get all words required to get amongus image in wordle"
         }
         self._words = self.load_file("wordle_words.txt").decode().split("\n")
         self._answer = ""
