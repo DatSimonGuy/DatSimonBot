@@ -1,5 +1,6 @@
 """ telegram bot base module """
 
+import os
 import functools
 from typing import TYPE_CHECKING
 from telegram import Update
@@ -84,6 +85,21 @@ class BaseModule:
         if len(message) == 0:
             return
         await update.message.reply_text(message)
+
+    def save_file(self, file: bytes, path: str) -> None:
+        """ Save a file """
+        os.makedirs(os.path.join(self._dsb.config["database_path"],
+                                 os.path.dirname(path)), exist_ok=True)
+        with open(path, "wb") as file_:
+            file_.write(file)
+
+    def load_file(self, path: str) -> bytes:
+        """ Load a file """
+        try:
+            with open(os.path.join(self._dsb.config["database_path"], path), "rb") as file:
+                return file.read()
+        except FileNotFoundError:
+            return b""
 
     def prep(self) -> None:
         """ Prepare the module """
