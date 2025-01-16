@@ -9,7 +9,7 @@ import importlib.util
 from typing import Any
 import requests
 from telegram import Update
-from telegram.ext import Application, CallbackContext, InvalidCallbackData
+from telegram.ext import Application, CallbackContext
 import rich.console
 import rich.progress
 import psutil

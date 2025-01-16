@@ -91,7 +91,7 @@ class DailyImages(BaseModule):
             image_set = kwargs["set"]
         if not image_set:
             sets = context.chat_data.get("sets", None)
-            sets = [x for x in sets.keys()]
+            sets = list(sets.keys())
             await update.message.reply_text("Avaible sets:\n" + "\n".join(sets))
             return
         context.bot_data["daily_images"].update({update.effective_chat.id: image_set})
@@ -158,7 +158,7 @@ class DailyImages(BaseModule):
             image_set = kwargs["set"]
         if not image_set:
             sets = context.chat_data.get("sets", None)
-            sets = [x for x in sets.keys()]
+            sets = list(sets.keys())
             await update.message.reply_text("Avaible sets:\n" + "\n".join(sets))
             return
         image = self._get_image(context.chat_data["sets"][image_set])
