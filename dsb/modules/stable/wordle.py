@@ -14,7 +14,7 @@ class Wordle(BaseModule):
             "wordleAmongUs": self._get_amogus
         }
         self._descriptions = {
-            "wordle": "Get all words required to get amongus image in wordle"
+            "wordleAmongUs": "Get all words required to get amongus image in wordle"
         }
         self._words = self.load_file("wordle_words.txt").decode().split("\n")
         self._answer = ""
