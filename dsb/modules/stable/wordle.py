@@ -17,10 +17,7 @@ class Wordle(BaseModule):
             "wordle": "Get all words required to get amongus image in wordle"
         }
         self._words = self.load_file("wordle_words.txt").decode().split("\n")
-
-        date = datetime.date.today()
-        url = f"https://www.nytimes.com/svc/wordle/v2/{date:%Y-%m-%d}.json"
-        self._answer = requests.get(url, timeout=10).json()["solution"]
+        self._answer = ""
 
     async def _get_correct_letters(self, word: str, letter: str | None = None) -> int:
         """ Get the number of correct letters in the word """
@@ -59,11 +56,22 @@ class Wordle(BaseModule):
         representation = ""
         for row in image:
             for pixel in row:
-                representation += ["⬛", "🟨", "🟩"][pixel]
+                representation += ["⬛", "🟩", "🟨", ][pixel]
             representation += "\n"
+        return representation
 
-    async def _get_amogus(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
-        """ Get all words required to get amongus image in wordle """
+    async def _get_amogus(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Get all words required to get amongus image in wordle """ 
+        url = f"https://www.nytimes.com/svc/wordle/v2/{datetime.date.today():%Y-%m-%d}.json"
+        self._answer = requests.get(url, timeout=10).json()["solution"]
+
+        args, _ = self._get_args(context)
+        if args and len(args[0]) != 5:
+            await update.message.reply_text("To słowo nie ma 5 liter")
+            return
+        if args:
+            self._answer = args[0]
+
         base_images = {
             "green_yellow": [
                 [0, 1, 1, 1, 0],
@@ -113,7 +121,11 @@ class Wordle(BaseModule):
             return [row[::-1] for row in image]
 
         def alternate_image(image):
-            return [[(pixel + 1) % 3 for pixel in row] for row in image]
+            bg = image[0][0]
+            new_image = [row[1:] for row in image]
+            for row in new_image:
+                row.append(bg)
+            return new_image
 
         images_dict = {
             key: {
@@ -134,7 +146,8 @@ class Wordle(BaseModule):
                 if words == "Impossible":
                     reply_message += f"{key}: Impossible\n"
                 else:
-                    reply_message += f"{key}: {await self._create_visual_representation(variant)}\n"
+                    reply_message += \
+                        f"{key}: \n{await self._create_visual_representation(variant)}\n"
                     reply_message += f"{', '.join(words)}\n"
             reply_message += "\n"
 
