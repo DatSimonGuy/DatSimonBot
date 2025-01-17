@@ -1,10 +1,13 @@
 """ Module for handling text messages """
 
+import os
+import uuid
 import asyncio
 from telegram import Update, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import filters, ContextTypes
 import telegram.ext
 from dsb.types.module import BaseModule, prevent_edited, admin_only
+from pydub import AudioSegment
 import speech_recognition as sr
 
 class MessageHandler(BaseModule):
@@ -167,27 +170,52 @@ class MessageHandler(BaseModule):
         await update.message.set_reaction("🤓")
 
     @prevent_edited
-    async def _stt(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
-        """ Send a message """
+    async def _stt(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Send a transcription of the voice message"""
         if not update.message.reply_to_message:
             return
         if not update.message.reply_to_message.voice:
             return
+        
         await update.message.reply_text("Transcribing...")
-        file = await update.message.reply_to_message.download()
 
-        with sr.AudioFile(file) as source:
-            r = sr.Recognizer()
-            audio = r.record(source)
-            
+        args, _ = self._get_args(context)
+
+        if args:
+            language=args[0]
+        else:
+            language="pl-PL"
+
+        # Download the voice file
+        file = await update.message.reply_to_message.voice.get_file()
+        os.makedirs("dsb/database/temp", exist_ok=True)
+        oga_path = f"dsb/database/temp/{os.path.basename(file.file_path)}"
+        flac_path = oga_path.replace(".oga", ".flac")
+        await file.download_to_drive(oga_path)
+
         try:
-            text = r.recognize_google(audio)
-        except sr.UnknownValueError:
-            text = "Could not understand"
-        except sr.RequestError:
-            text = "Something went wrong"
+            # Convert OGA (OGG Opus) to FLAC
+            sound = AudioSegment.from_file(oga_path, format="ogg")
+            sound.export(flac_path, format="flac")
 
-        await update.message.reply_text(text)
+            # Transcribe the FLAC file
+            r = sr.Recognizer()
+            with sr.AudioFile(flac_path) as source:
+                audio = r.record(source)
+            text = r.recognize_google(audio, language=language)
+            await update.message.reply_text(f"Transcription: {text}")
+        except sr.UnknownValueError:
+            await update.message.reply_text("Could not understand the audio.")
+        except sr.RequestError:
+            await update.message.reply_text("Error fetching response.")
+        except Exception as e:
+            await update.message.reply_text(f"An error occurred: {e}")
+        finally:
+            # Clean up temporary files
+            if os.path.exists(oga_path):
+                os.remove(oga_path)
+            if os.path.exists(flac_path):
+                os.remove(flac_path)
 
     @prevent_edited
     async def _handle_text(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

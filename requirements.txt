@@ -11,3 +11,4 @@ PyGithub==2.4.0
 schedule==1.2.2
 yt-dlp==2024.12.3
 SpeechRecognition==3.14.0
+pydub==0.25.1
