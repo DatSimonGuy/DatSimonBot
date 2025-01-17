@@ -5,6 +5,7 @@ from telegram import Update, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import filters, ContextTypes
 import telegram.ext
 from dsb.types.module import BaseModule, prevent_edited, admin_only
+import speech_recognition as sr
 
 class MessageHandler(BaseModule):
     """ Module for handling text messages """
@@ -15,13 +16,15 @@ class MessageHandler(BaseModule):
             "who_are_you": self._sender_info,
             "whoami": self._user_info,
             "what_broke": self._what_broke,
-            "silly_cipher": self._silly_cipher
+            "silly_cipher": self._silly_cipher,
+            "stt": self._stt
         }
         self._descriptions = {
             "who_am_i": "Get user id",
             "whoami": "Get user id (alias)",
             "what_broke": "Get last log message",
-            "silly_cipher": "Decode or encode from silly language"
+            "silly_cipher": "Decode or encode from silly language",
+            "stt": "Transcribe voice message"
         }
         self._handled_emotes = {
             "🫰": self._snap,
@@ -162,6 +165,29 @@ class MessageHandler(BaseModule):
     async def _nerd_detection(self, update: Update, _) -> None:
         """ Detect nerds """
         await update.message.set_reaction("🤓")
+
+    @prevent_edited
+    async def _stt(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Send a message """
+        if not update.message.reply_to_message:
+            return
+        if not update.message.reply_to_message.voice:
+            return
+        await update.message.reply_text("Transcribing...")
+        file = await update.message.reply_to_message.download()
+
+        with sr.AudioFile(file) as source:
+            r = sr.Recognizer()
+            audio = r.record(source)
+            
+        try:
+            text = r.recognize_google(audio)
+        except sr.UnknownValueError:
+            text = "Could not understand"
+        except sr.RequestError:
+            text = "Something went wrong"
+
+        await update.message.reply_text(text)
 
     @prevent_edited
     async def _handle_text(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

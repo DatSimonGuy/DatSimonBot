@@ -10,3 +10,4 @@ psutil==6.0.0
 PyGithub==2.4.0
 schedule==1.2.2
 yt-dlp==2024.12.3
+SpeechRecognition==3.14.0
