@@ -29,6 +29,7 @@ class DSBEngine:
 
         # Modules
         self._modules: dict[str, BaseModule] = {}
+        self._command_descriptions = {}
 
         # Memory and CPU usage
         self._process = psutil.Process()
@@ -89,6 +90,11 @@ class DSBEngine:
     def config(self) -> dict[str, Any]:
         """ Get the configuration """
         return self._config
+
+    @property
+    def commands(self) -> dict[str, str]:
+        """ Get command descriptions """
+        return self._command_descriptions
 
     def __parse_config(self, config: dict[str, str]) -> dict[str, Any]:
         """ Parse the environment variables """
@@ -211,6 +217,7 @@ class DSBEngine:
         for module in self._modules.values():
             if module.prepare():
                 module.add_handlers()
+                self._command_descriptions.update(module.descriptions)
                 success += 1
             else:
                 self._logger.error("Failed to prepare module %s", module.__class__.__name__)

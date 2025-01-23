@@ -1,9 +1,12 @@
 """ Module for handling text messages """
 
+import os
 import asyncio
 from telegram import Update, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import filters, ContextTypes
 import telegram.ext
+from pydub import AudioSegment
+import speech_recognition as sr
 from dsb.types.module import BaseModule, prevent_edited, admin_only
 
 class MessageHandler(BaseModule):
@@ -15,13 +18,15 @@ class MessageHandler(BaseModule):
             "who_are_you": self._sender_info,
             "whoami": self._user_info,
             "what_broke": self._what_broke,
-            "silly_cipher": self._silly_cipher
+            "silly_cipher": self._silly_cipher,
+            "stt": self._stt
         }
         self._descriptions = {
             "who_am_i": "Get user id",
             "whoami": "Get user id (alias)",
             "what_broke": "Get last log message",
-            "silly_cipher": "Decode or encode from silly language"
+            "silly_cipher": "Decode or encode from silly language",
+            "stt": "Transcribe voice message"
         }
         self._handled_emotes = {
             "🫰": self._snap,
@@ -162,6 +167,54 @@ class MessageHandler(BaseModule):
     async def _nerd_detection(self, update: Update, _) -> None:
         """ Detect nerds """
         await update.message.set_reaction("🤓")
+
+    @prevent_edited
+    async def _stt(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Send a transcription of the voice message"""
+        if not update.message.reply_to_message:
+            return
+        if not update.message.reply_to_message.voice:
+            return
+
+        await update.message.reply_text("Transcribing...")
+
+        args, _ = self._get_args(context)
+
+        if args:
+            language=args[0]
+        else:
+            language="pl-PL"
+
+        # Download the voice file
+        file = await update.message.reply_to_message.voice.get_file()
+        os.makedirs("dsb/database/temp", exist_ok=True)
+        oga_path = f"dsb/database/temp/{os.path.basename(file.file_path)}"
+        flac_path = oga_path.replace(".oga", ".flac")
+        await file.download_to_drive(oga_path)
+
+        try:
+            # Convert OGA (OGG Opus) to FLAC
+            sound = AudioSegment.from_file(oga_path, format="ogg")
+            sound.export(flac_path, format="flac")
+
+            # Transcribe the FLAC file
+            r = sr.Recognizer()
+            with sr.AudioFile(flac_path) as source:
+                audio = r.record(source)
+            text = r.recognize_google(audio, language=language)
+            await update.message.reply_text(f"Transcription: {text}")
+        except sr.UnknownValueError:
+            await update.message.reply_text("Could not understand the audio.")
+        except sr.RequestError:
+            await update.message.reply_text("Error fetching response.")
+        except Exception as e: # pylint: disable=W0718
+            await update.message.reply_text(f"An error occurred: {e}")
+        finally:
+            # Clean up temporary files
+            if os.path.exists(oga_path):
+                os.remove(oga_path)
+            if os.path.exists(flac_path):
+                os.remove(flac_path)
 
     @prevent_edited
     async def _handle_text(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

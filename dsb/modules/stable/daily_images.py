@@ -7,20 +7,6 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from dsb.types.module import BaseModule
 
-def save_file(file: bytes, path: str) -> None:
-    """ Save a file """
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "wb") as file_:
-        file_.write(file)
-
-def load_file(path: str) -> bytes:
-    """ Load a file """
-    try:
-        with open(path, "rb") as file:
-            return file.read()
-    except FileNotFoundError:
-        return b""
-
 def list_all(path: str) -> list[str]:
     """ List all files in a directory """
     try:
@@ -65,8 +51,7 @@ class DailyImages(BaseModule):
         if sets.get(set_name, None):
             await update.message.reply_text("Set already exists")
             return
-        database_path = self._dsb.config["database_path"]
-        context.chat_data["sets"][set_name] = f"{database_path}/{chat_id}/images/{set_name}"
+        context.chat_data["sets"][set_name] = f"{chat_id}/images/{set_name}"
         await update.message.reply_text("Set created")
 
     async def _delete_set(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -126,8 +111,7 @@ class DailyImages(BaseModule):
         if not set_to_update:
             await update.message.reply_text("Set not found")
             return
-        database_path = self._dsb.config["database_path"]
-        save_file(image_bytes, database_path + set_to_update[3] + f"/{file.file_id}.png")
+        self.save_file(image_bytes, set_to_update[3] + f"/{file.file_id}.png")
         await update.message.reply_text("Image submitted to set")
 
     def _get_image(self, path: str) -> bytes:
@@ -138,7 +122,7 @@ class DailyImages(BaseModule):
         if not images:
             return b""
         random_img = random.choice(images)
-        image = load_file(os.path.join(path, random_img))
+        image = self.load_file(os.path.join(path, random_img))
         return image
 
     async def _send_daily_image(self) -> None:
