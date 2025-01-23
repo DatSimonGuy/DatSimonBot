@@ -7,6 +7,20 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from dsb.types.module import BaseModule
 
+def save_file(file: bytes, path: str) -> None:
+    """ Save a file """
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as file_:
+        file_.write(file)
+
+def load_file(path: str) -> bytes:
+    """ Load a file """
+    try:
+        with open(path, "rb") as file:
+            return file.read()
+    except FileNotFoundError:
+        return b""
+
 def list_all(path: str) -> list[str]:
     """ List all files in a directory """
     try:
@@ -111,18 +125,20 @@ class DailyImages(BaseModule):
         if not set_to_update:
             await update.message.reply_text("Set not found")
             return
-        self.save_file(image_bytes, set_to_update[3] + f"/{file.file_id}.png")
+        database_path = self._dsb.config["database_path"]
+        save_file(image_bytes, database_path + set_to_update[3] + f"/{file.file_id}.png")
         await update.message.reply_text("Image submitted to set")
 
     def _get_image(self, path: str) -> bytes:
         """ Get Arthur quote image """
         if not path:
             return b""
+        path = self._dsb.config["database_path"] + path
         images = list_all(path)
         if not images:
             return b""
         random_img = random.choice(images)
-        image = self.load_file(os.path.join(path, random_img))
+        image = load_file(os.path.join(path, random_img))
         return image
 
     async def _send_daily_image(self) -> None:

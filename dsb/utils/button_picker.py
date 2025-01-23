@@ -4,7 +4,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 class CallbackData:
     """ Data passed in button callback """
-    def __init__(self, prefix: str, user_id: int, data: list[str]):
+    def __init__(self, prefix: str, user_id: int, data: dict):
         self._function = prefix
         self._data = data
         self._user_id = user_id
@@ -15,7 +15,7 @@ class CallbackData:
         return self._function
 
     @property
-    def data(self) -> list:
+    def data(self) -> dict:
         """ Get callback data """
         return self._data
 
@@ -24,22 +24,23 @@ class CallbackData:
         """ Get caller id """
         return self._user_id
 
-    def add_value(self, value) -> list:
-        """ Add value to the data """
-        self._data.append(str(value))
-        return self._data
+    def add_value(self, key, value) -> dict:
+        """ Add value and return data """
+        new_data = self._data.copy()
+        new_data[key] = value
+        return new_data
 
 class ButtonPicker(InlineKeyboardMarkup):
     """ Button picker class """
-    def __init__(self, buttons: list[dict[str, list]],
+    def __init__(self, buttons: list,
                  prefix: str, user_id: int) -> None:
         """ Initialize the button picker """
         inline_buttons = []
-        buttons.append({"Cancel": ["cancel"]})
-        for button_list in buttons:
-            inline_buttons.append([InlineKeyboardButton(item[0],
-                                   callback_data=(i, CallbackData(prefix, user_id, item[1])))
-                                   for i, item in enumerate(button_list.items())])
+        buttons.append(["Cancel", {"cancel": True}])
+        for i, button in enumerate(buttons):
+            inline_buttons.append([InlineKeyboardButton(button[0],
+                                  callback_data=(i, CallbackData(prefix,
+                                  user_id, button[1])))])
         super().__init__(inline_buttons)
 
     @property

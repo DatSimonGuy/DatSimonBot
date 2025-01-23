@@ -18,8 +18,8 @@ class MessageHandler(BaseModule):
             "who_are_you": self._sender_info,
             "whoami": self._user_info,
             "what_broke": self._what_broke,
-            "silly_cipher": self._silly_cipher,
-            "stt": self._stt
+            "stt": self._stt,
+            "silly_cipher": self._silly_cipher
         }
         self._descriptions = {
             "who_am_i": "Get user id",
@@ -193,11 +193,8 @@ class MessageHandler(BaseModule):
         await file.download_to_drive(oga_path)
 
         try:
-            # Convert OGA (OGG Opus) to FLAC
             sound = AudioSegment.from_file(oga_path, format="ogg")
             sound.export(flac_path, format="flac")
-
-            # Transcribe the FLAC file
             r = sr.Recognizer()
             with sr.AudioFile(flac_path) as source:
                 audio = r.record(source)
