@@ -3,11 +3,13 @@
 from datetime import datetime, time
 from typing import Optional
 
-def str_to_i(string: str) -> Optional[int]:
+def to_index(value: str | int) -> Optional[int]:
     """ Get integer from string """
-    if not string.isdigit():
+    if isinstance(value, int):
+        return value
+    if not value.isdigit():
         return None
-    return int(string)
+    return int(value)
 
 def str_to_day(string: str) -> Optional[int]:
     """ Convert string to a valid day value """

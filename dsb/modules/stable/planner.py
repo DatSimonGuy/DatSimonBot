@@ -9,7 +9,7 @@ from dsb.types.lesson import Lesson, str_to_day
 from dsb.types.plan import Plan
 from dsb.types.module import BaseModule, prevent_edited, admin_only, callback_handler
 from dsb.types.errors import DSBError, InvalidValueError
-from dsb.utils.transforms import str_to_i
+from dsb.utils.transforms import to_index
 from dsb.utils.button_picker import ButtonPicker, CallbackData
 if TYPE_CHECKING:
     from dsb.engine import DSBEngine
@@ -274,7 +274,7 @@ class Planner(BaseModule):
                 plans = context.chat_data.get("plans", {})
                 if not plans:
                     raise NoPlansFoundError() from e
-                picker = ButtonPicker([[plan, {"plan_name": plan}] for plan in plans],
+                picker = ButtonPicker([(plan, {"plan_name": plan}) for plan in plans],
                                       "get_plan", user_id=update.effective_user.id)
                 await update.message.reply_text("Choose a plan to get:", reply_markup=picker)
                 return
@@ -366,26 +366,25 @@ class Planner(BaseModule):
         group_id = update.effective_chat.id
         plan_name = data["plan_name"]
 
-        if not data["day"]:
+        if data.get("day", None) is None:
             days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-            picker = ButtonPicker([callback.add_value("day", day) for day in days],
+            picker = ButtonPicker([(day, callback.add_value("day", day)) for day in days],
                                 "remove_lesson", user_id=update.effective_user.id)
             await update.effective_message.edit_text("Pick a day to remove lessons from",
                                                     reply_markup=picker)
             return
         day = str_to_day(data["day"])
         plan = self.__get_plan(context, plan_name)
-        if not data["idx"]:
+        if data.get("idx", None) is None:
             lessons = plan.get_day(day-1)
-            picker = ButtonPicker([{f"{lesson.subject}: {lesson.type}":
-                                    callback.add_value("idx", i)} for i,
+            picker = ButtonPicker([(str(lesson), callback.add_value("idx", i)) for i,
                                    lesson in enumerate(lessons)], "remove_lesson",
                                   user_id=update.effective_user.id)
             if picker.is_empty:
                 raise NoLessonsError()
             await update.effective_message.edit_text("Pick a lesson to remove", reply_markup=picker)
             return
-        idx = str_to_i(data["idx"])
+        idx = to_index(data["idx"])
         plan.remove_lesson_by_index(day - 1, idx)
         await context.bot.delete_message(group_id, update.effective_message.id)
         await context.bot.send_message(group_id, "Lesson removed")
@@ -448,7 +447,7 @@ class Planner(BaseModule):
         if not self.__is_owner(plan, user_id):
             raise PlanOwnershipError()
 
-        idx = str_to_i(kwargs.get("idx", ""))
+        idx = to_index(kwargs.get("idx", ""))
         day = str_to_day(kwargs.get("day", ""))
         new_day = str_to_day(kwargs.get("new_day", ""))
 
@@ -484,7 +483,7 @@ class Planner(BaseModule):
     async def _clear_day_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         callback: CallbackData = update.callback_query.data[1]
         data = callback.data
-        if not data["day"]:
+        if data.get("day", None) is None:
             days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
             picker = ButtonPicker([(day, callback.add_value("day", day)) for day in days],
                                   "clear_day", user_id=update.effective_user.id)
@@ -781,7 +780,7 @@ class Planner(BaseModule):
         if "new_owner" not in kwargs:
             raise InvalidValueError("new_owner")
 
-        new_owner = str_to_i(kwargs.get("new_owner"))
+        new_owner = to_index(kwargs.get("new_owner"))
 
         plan.owner = new_owner
         await self._like(update)

@@ -43,7 +43,7 @@ def callback_handler(func):
         callback : CallbackData = update.callback_query.data[1]
         if update.effective_user.id != callback.caller:
             return
-        if callback.data[0] == "cancel":
+        if callback.data.get("cancel", False):
             await context.bot.delete_message(chat_id=update.effective_chat.id,
                                        message_id=update.effective_message.id)
             return

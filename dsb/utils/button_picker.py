@@ -26,8 +26,9 @@ class CallbackData:
 
     def add_value(self, key, value) -> dict:
         """ Add value and return data """
-        self._data[key] = value
-        return self._data
+        new_data = self._data.copy()
+        new_data[key] = value
+        return new_data
 
 class ButtonPicker(InlineKeyboardMarkup):
     """ Button picker class """
@@ -35,11 +36,11 @@ class ButtonPicker(InlineKeyboardMarkup):
                  prefix: str, user_id: int) -> None:
         """ Initialize the button picker """
         inline_buttons = []
-        buttons.append({"Cancel": ["cancel"]})
+        buttons.append(["Cancel", {"cancel": True}])
         for i, button in enumerate(buttons):
-            inline_buttons.append(InlineKeyboardButton(button[0],
+            inline_buttons.append([InlineKeyboardButton(button[0],
                                   callback_data=(i, CallbackData(prefix,
-                                  user_id, button[1]))))
+                                  user_id, button[1])))])
         super().__init__(inline_buttons)
 
     @property
