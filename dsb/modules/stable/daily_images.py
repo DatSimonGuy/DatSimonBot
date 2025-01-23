@@ -65,8 +65,7 @@ class DailyImages(BaseModule):
         if sets.get(set_name, None):
             await update.message.reply_text("Set already exists")
             return
-        database_path = self._dsb.config["database_path"]
-        context.chat_data["sets"][set_name] = f"{database_path}/{chat_id}/images/{set_name}"
+        context.chat_data["sets"][set_name] = f"{chat_id}/images/{set_name}"
         await update.message.reply_text("Set created")
 
     async def _delete_set(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -134,6 +133,7 @@ class DailyImages(BaseModule):
         """ Get Arthur quote image """
         if not path:
             return b""
+        path = self._dsb.config["database_path"] + path
         images = list_all(path)
         if not images:
             return b""
