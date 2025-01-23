@@ -1,10 +1,13 @@
 """ Module for handling text messages """
 
 import os
+import os
 import asyncio
 from telegram import Update, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import filters, ContextTypes
 import telegram.ext
+from pydub import AudioSegment
+import speech_recognition as sr
 from pydub import AudioSegment
 import speech_recognition as sr
 from dsb.types.module import BaseModule, prevent_edited, admin_only
@@ -20,11 +23,15 @@ class MessageHandler(BaseModule):
             "what_broke": self._what_broke,
             "silly_cipher": self._silly_cipher,
             "stt": self._stt
+            "silly_cipher": self._silly_cipher,
+            "stt": self._stt
         }
         self._descriptions = {
             "who_am_i": "Get user id",
             "whoami": "Get user id (alias)",
             "what_broke": "Get last log message",
+            "silly_cipher": "Decode or encode from silly language",
+            "stt": "Transcribe voice message"
             "silly_cipher": "Decode or encode from silly language",
             "stt": "Transcribe voice message"
         }
@@ -193,11 +200,8 @@ class MessageHandler(BaseModule):
         await file.download_to_drive(oga_path)
 
         try:
-            # Convert OGA (OGG Opus) to FLAC
             sound = AudioSegment.from_file(oga_path, format="ogg")
             sound.export(flac_path, format="flac")
-
-            # Transcribe the FLAC file
             r = sr.Recognizer()
             with sr.AudioFile(flac_path) as source:
                 audio = r.record(source)
