@@ -274,7 +274,7 @@ class Planner(BaseModule):
                 plans = context.chat_data.get("plans", {})
                 if not plans:
                     raise NoPlansFoundError() from e
-                picker = ButtonPicker([(plan, {"plan_name": plan}) for plan in plans],
+                picker = ButtonPicker([[plan, {"plan_name": plan}] for plan in plans],
                                       "get_plan", user_id=update.effective_user.id)
                 await update.message.reply_text("Choose a plan to get:", reply_markup=picker)
                 return
