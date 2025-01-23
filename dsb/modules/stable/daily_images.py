@@ -60,13 +60,8 @@ class DailyImages(BaseModule):
         if sets is None:
             context.chat_data["sets"] = {}
             sets = context.chat_data["sets"]
-        sets = context.chat_data.get("sets", None)
-        if sets is None:
-            context.chat_data["sets"] = {}
-            sets = context.chat_data["sets"]
         chat_id = update.effective_chat.id
         set_name = " ".join(args)
-        if sets.get(set_name, None):
         if sets.get(set_name, None):
             await update.message.reply_text("Set already exists")
             return
@@ -80,11 +75,6 @@ class DailyImages(BaseModule):
         if not args:
             await update.message.reply_text("Please provide a set name")
             return
-        sets = context.chat_data.get("sets", None)
-        if not sets:
-            await update.message.reply_text("No sets found")
-            return
-        sets.pop(" ".join(args), None)
         sets = context.chat_data.get("sets", None)
         if not sets:
             await update.message.reply_text("No sets found")
@@ -108,9 +98,7 @@ class DailyImages(BaseModule):
         await update.message.reply_text("I will now send images from this set daily at 6 am")
 
     async def _cancel_daily_image(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    async def _cancel_daily_image(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Cancel daily image """
-        context.bot_data["daily_images"].pop(update.effective_chat.id, None)
         context.bot_data["daily_images"].pop(update.effective_chat.id, None)
         await update.message.reply_text("Daily image cancelled")
 
@@ -126,18 +114,13 @@ class DailyImages(BaseModule):
                 await update.message.reply_text("Reply to a message with the image")
                 return
             msg = update.message.reply_to_message
-            msg = update.message.reply_to_message
         else:
-            msg = update.message
-        file = await msg.photo[-1].get_file()
             msg = update.message
         file = await msg.photo[-1].get_file()
         if not file:
             await update.message.reply_text("No file found")
             return
         image_bytes = await file.download_as_bytearray()
-        sets = context.chat_data.get("sets", None)
-        set_to_update = sets.get(image_set, None)
         sets = context.chat_data.get("sets", None)
         set_to_update = sets.get(image_set, None)
         if not set_to_update:
@@ -148,12 +131,9 @@ class DailyImages(BaseModule):
         await update.message.reply_text("Image submitted to set")
 
     def _get_image(self, path: str) -> bytes:
-    def _get_image(self, path: str) -> bytes:
         """ Get Arthur quote image """
         if not path:
-        if not path:
             return b""
-        images = list_all(path)
         images = list_all(path)
         if not images:
             return b""
@@ -163,8 +143,6 @@ class DailyImages(BaseModule):
 
     async def _send_daily_image(self) -> None:
         """ Send daily image quote """
-        for chat_id, image_path in self._bot.bot_data["daily_images"].items():
-            image = self._get_image(image_path)
         for chat_id, image_path in self._bot.bot_data["daily_images"].items():
             image = self._get_image(image_path)
             if not image:
@@ -183,7 +161,6 @@ class DailyImages(BaseModule):
             sets = list(sets.keys())
             await update.message.reply_text("Avaible sets:\n" + "\n".join(sets))
             return
-        image = self._get_image(context.chat_data["sets"][image_set])
         image = self._get_image(context.chat_data["sets"][image_set])
         if not image:
             await update.message.reply_text("No images found / no set with this name")

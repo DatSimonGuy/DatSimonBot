@@ -1,13 +1,10 @@
 """ Module for handling text messages """
 
 import os
-import os
 import asyncio
 from telegram import Update, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import filters, ContextTypes
 import telegram.ext
-from pydub import AudioSegment
-import speech_recognition as sr
 from pydub import AudioSegment
 import speech_recognition as sr
 from dsb.types.module import BaseModule, prevent_edited, admin_only
@@ -21,17 +18,13 @@ class MessageHandler(BaseModule):
             "who_are_you": self._sender_info,
             "whoami": self._user_info,
             "what_broke": self._what_broke,
-            "silly_cipher": self._silly_cipher,
-            "stt": self._stt
-            "silly_cipher": self._silly_cipher,
-            "stt": self._stt
+            "stt": self._stt,
+            "silly_cipher": self._silly_cipher
         }
         self._descriptions = {
             "who_am_i": "Get user id",
             "whoami": "Get user id (alias)",
             "what_broke": "Get last log message",
-            "silly_cipher": "Decode or encode from silly language",
-            "stt": "Transcribe voice message"
             "silly_cipher": "Decode or encode from silly language",
             "stt": "Transcribe voice message"
         }
