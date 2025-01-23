@@ -1,14 +1,13 @@
 """ Module for handling text messages """
 
 import os
-import uuid
 import asyncio
 from telegram import Update, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import filters, ContextTypes
 import telegram.ext
-from dsb.types.module import BaseModule, prevent_edited, admin_only
 from pydub import AudioSegment
 import speech_recognition as sr
+from dsb.types.module import BaseModule, prevent_edited, admin_only
 
 class MessageHandler(BaseModule):
     """ Module for handling text messages """
@@ -176,7 +175,7 @@ class MessageHandler(BaseModule):
             return
         if not update.message.reply_to_message.voice:
             return
-        
+
         await update.message.reply_text("Transcribing...")
 
         args, _ = self._get_args(context)
@@ -208,7 +207,7 @@ class MessageHandler(BaseModule):
             await update.message.reply_text("Could not understand the audio.")
         except sr.RequestError:
             await update.message.reply_text("Error fetching response.")
-        except Exception as e:
+        except Exception as e: # pylint: disable=W0718
             await update.message.reply_text(f"An error occurred: {e}")
         finally:
             # Clean up temporary files
