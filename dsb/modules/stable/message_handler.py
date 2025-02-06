@@ -131,8 +131,8 @@ class MessageHandler(BaseModule):
                                      description="Add fire emojis",
                                      input_message_content=InputTextMessageContent(fire_query_text)),
             InlineQueryResultArticle(id="3", title="Random capitalization",
-                                        description="Randomly capitalize",
-                                        input_message_content=InputTextMessageContent(random_capitalized))]
+                                     description="Randomly capitalize",
+                                     input_message_content=InputTextMessageContent(random_capitalized))]
         await update.inline_query.answer(result)
 
     @prevent_edited
