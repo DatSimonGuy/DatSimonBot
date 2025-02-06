@@ -1,7 +1,6 @@
 jsonpickle==3.3.0
 python-dotenv==1.0.1
 aiohttp==3.10.5
-python-telegram-bot[callback-data]==21.5
 scrapetube==2.5.1
 matplotlib==3.9.3
 rich==13.8.1
@@ -11,3 +10,4 @@ schedule==1.2.2
 yt-dlp==2024.12.3
 SpeechRecognition==3.14.0
 pydub==0.25.1
+python-telegram-bot[callback-data]==21.5
