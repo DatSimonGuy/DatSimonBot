@@ -37,6 +37,8 @@ class MessageHandler(BaseModule):
             "silly": self._make_silly,
             "cls": self._clear_chat,
             "clear": self._clear_chat,
+            "f": self._format_text,
+            "format": self._format_text
         }
         self._messages = {}
         self._message_handler = telegram.ext.MessageHandler(filters.ALL & ~filters.COMMAND,
@@ -108,6 +110,19 @@ class MessageHandler(BaseModule):
         result = [InlineQueryResultArticle(id="1", title="Clear the chat screen",
                                            description="Long ahh message",
                                            input_message_content=InputTextMessageContent(message))]
+        await update.inline_query.answer(result)
+
+    @prevent_edited
+    async def _format_text(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Format message in different ways """
+        query = update.inline_query.query
+        query = " ".join(query.split()[1:])
+        if not query:
+            return
+        text = f"{query}\n\n{query}"
+        result = [InlineQueryResultArticle(id="1", title="Geen_Geen",
+                                           description="Double the input",
+                                           input_message_content=InputTextMessageContent(text))]
         await update.inline_query.answer(result)
 
     @prevent_edited
