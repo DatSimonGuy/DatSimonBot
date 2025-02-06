@@ -2,6 +2,7 @@
 
 import os
 import asyncio
+import random
 from telegram import Update, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import filters, ContextTypes
 import telegram.ext
@@ -119,10 +120,19 @@ class MessageHandler(BaseModule):
         query = " ".join(query.split()[1:])
         if not query:
             return
-        text = f"{query}\n\n{query}"
-        result = [InlineQueryResultArticle(id="1", title="Geen_Geen",
-                                           description="Double the input",
-                                           input_message_content=InputTextMessageContent(text))]
+        doubled_query_text = f"{query}\n\n{query}"
+        fire_query_text = "🔥".join(query)
+        random_capitalized = "".join([char.upper() if random.random() > 0.5 else char for char in query])
+        result = [
+            InlineQueryResultArticle(id="1", title="Geen_Geen",
+                                     description="Double the input",
+                                     input_message_content=InputTextMessageContent(doubled_query_text)),
+            InlineQueryResultArticle(id="2", title="Fire",
+                                     description="Add fire emojis",
+                                     input_message_content=InputTextMessageContent(fire_query_text)),
+            InlineQueryResultArticle(id="3", title="Random capitalization",
+                                        description="Randomly capitalize",
+                                        input_message_content=InputTextMessageContent(random_capitalized))]
         await update.inline_query.answer(result)
 
     @prevent_edited
