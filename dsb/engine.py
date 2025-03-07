@@ -4,6 +4,7 @@ import os
 import time
 import asyncio
 import logging
+import dotenv
 import threading
 import importlib.util
 from typing import Any
@@ -18,6 +19,7 @@ from dotenv import dotenv_values, set_key
 from dsb.types.module import BaseModule
 from dsb.types.persistence import CustomPersistance
 from dsb.types.errors import DSBError
+from dsb.api.dsbapi import DSBApiThread
 
 class DSBEngine:
     """ Engine for DatSimonBot """
@@ -31,6 +33,9 @@ class DSBEngine:
         self._modules: dict[str, BaseModule] = {}
         self._command_descriptions = {}
         self._command_handlers = {}
+
+        # Api
+        self._api_task = DSBApiThread()
 
         # Memory and CPU usage
         self._process = psutil.Process()
@@ -243,6 +248,9 @@ class DSBEngine:
 
         try:
             console.print("[bold green]DSB Engine started[/bold green]")
+            console.print("[bold yellow]Launching api[/bold yellow]")
+            self._api_task.start()
+            console.print(f"[bold green]Api running on port {dotenv.get_key(".env", "api_port")}[/bold green]")
             success, fail = self.__load_modules(console)
             if fail > 0:
                 console.print(f"[bold yellow]Loaded {success} modules,"+\
@@ -263,6 +271,8 @@ class DSBEngine:
             pass
         finally:
             self._stop_event.set()
+            self._api_task.shutdown()
+            self._api_task.join()
             self._ticker_thread.join()
             status_thread.join()
             self._logger.info("DSB Engine stopped!")

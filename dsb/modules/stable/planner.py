@@ -39,6 +39,11 @@ class PlanEmptyError(DSBError):
     def __init__(self, *args) -> None:
         super().__init__("Plan is empty", *args)
 
+class InvalidPlanNameError(DSBError):
+    """ Raised when the plan name is invalid """
+    def __init__(self, plan_name: str, *args):
+        super().__init__(f"'{plan_name}' is not a valid plan name", *args)
+
 class DoesNotBelongError(DSBError):
     """ Raised when user does not belong to a plan """
     def __init__(self, *args) -> None:
@@ -210,6 +215,8 @@ class Planner(BaseModule):
             Name of the plan
         """
         plan_name = self.__get_plan_name(context)
+        if len(plan_name) < 1:
+            raise InvalidPlanNameError(plan_name)
         self.__create_plan(update, context, plan_name)
         await self._like(update)
 
