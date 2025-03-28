@@ -11,6 +11,7 @@ from dsb.types.module import BaseModule, prevent_edited, admin_only, callback_ha
 from dsb.types.errors import DSBError, InvalidValueError
 from dsb.utils.transforms import to_index
 from dsb.utils.button_picker import ButtonPicker, CallbackData
+from koleo.api import KoleoAPI
 if TYPE_CHECKING:
     from dsb.engine import DSBEngine
 
@@ -96,7 +97,8 @@ class Planner(BaseModule):
             "paste_plan": self._paste_plan,
             "get_owners": self._get_owners,
             "transfer_plan_ownership": self._transfer_plan_ownership,
-            "week_info": self._get_weekend_parity
+            "week_info": self._get_weekend_parity,
+            "get_next_train": self._get_next_train
         }
         self._descriptions = {
             "create_plan": "Create a new lesson plan",
@@ -121,7 +123,8 @@ class Planner(BaseModule):
             "paste_plan": "Paste plan",
             "get_owners": "Get all plan owners (Admins only)",
             "transfer_plan_ownership": "Transfer plan ownership",
-            "week_info": "Returns if week is odd or even"
+            "week_info": "Returns if week is odd or even",
+            "get_next_train": "Returns the next train"
         }
         self._callback_handlers = {
             "delete_plan": self._delete_plan_callback,
@@ -132,6 +135,7 @@ class Planner(BaseModule):
             "get_students": self._get_students_callback,
             "get_plan": self._get_plan_callback,
         }
+        self.koleo = KoleoAPI()
 
     def __is_owner(self, plan: Plan, user_id: int) -> bool:
         return user_id == plan.owner or user_id in self._dsb.admins
@@ -807,3 +811,21 @@ class Planner(BaseModule):
             await update.message.reply_text("even")
         else:
             await update.message.reply_text("odd")
+
+    @prevent_edited
+    async def _get_next_train(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Returns the next train """
+        _, kwargs = self._get_args(context)
+        if not kwargs.get("from", None):
+            raise DSBError("Please specify the starting station")
+        if not kwargs.get("to", None):
+            raise DSBError("Please specify the destination station")
+        from_station = kwargs["from"]
+        to_station = kwargs["to"]
+        trains = self.koleo.get_connections(from_station, to_station,
+                                            self.koleo.get_brands(), datetime.today())
+        if not trains:
+            raise DSBError("No connections found")
+        train = trains[0]
+        await update.message.reply_text(f"Train from {train['from']['name']} " + \
+            f"to {train['to']['name']} at {train['departure']}")
