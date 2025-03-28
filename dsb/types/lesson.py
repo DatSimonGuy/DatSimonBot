@@ -24,7 +24,7 @@ class Lesson:
             end = str_to_time(end)
             if not all((start, end)):
                 raise InvalidValueError("time")
-            if len(subject) >= 20:
+            if len(subject) > 20:
                 raise NameTooLongError()
             self._subject = subject
             self._start_time = start

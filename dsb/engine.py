@@ -71,6 +71,9 @@ class DSBEngine:
         builder = Application.builder().token(self._config["telebot_token"])
         builder.persistence(CustomPersistance())
         builder.arbitrary_callback_data(True)
+        # builder.local_mode(True)
+        # builder.base_url("http://0.0.0.0:8081/bot")
+        # builder.base_file_url("http://0.0.0.0:8081/bot")
         self._app = builder.build()
 
         # Error handler
@@ -213,7 +216,6 @@ class DSBEngine:
         self._app.bot_data = await self._app.persistence.get_bot_data()
         self._app.user_data = await self._app.persistence.get_user_data()
         self._app.chat_data = await self._app.persistence.get_chat_data()
-        self._app.callback_data = await self._app.persistence.get_callback_data()
 
     def set_value(self, key, value) -> None:
         """ Set bot data value """
@@ -250,7 +252,8 @@ class DSBEngine:
             console.print("[bold green]DSB Engine started[/bold green]")
             console.print("[bold yellow]Launching api[/bold yellow]")
             self._api_task.start()
-            console.print(f"[bold green]Api running on port {dotenv.get_key(".env", "api_port")}[/bold green]")
+            console.print("[bold green]Api running on port" + \
+                f"{dotenv.get_key(".env", "api_port")}[/bold green]")
             success, fail = self.__load_modules(console)
             if fail > 0:
                 console.print(f"[bold yellow]Loaded {success} modules,"+\

@@ -96,6 +96,7 @@ class Planner(BaseModule):
             "paste_plan": self._paste_plan,
             "get_owners": self._get_owners,
             "transfer_plan_ownership": self._transfer_plan_ownership,
+            "week_info": self._get_weekend_parity
         }
         self._descriptions = {
             "create_plan": "Create a new lesson plan",
@@ -119,11 +120,13 @@ class Planner(BaseModule):
             "copy_plan": "Copy plan",
             "paste_plan": "Paste plan",
             "get_owners": "Get all plan owners (Admins only)",
-            "transfer_plan_ownership": "Transfer plan ownership"
+            "transfer_plan_ownership": "Transfer plan ownership",
+            "week_info": "Returns if week is odd or even"
         }
         self._callback_handlers = {
             "delete_plan": self._delete_plan_callback,
             "clear_day": self._clear_day_callback,
+            "clear_all": self._clear_all_callback,
             "join_plan": self._join_plan_callback,
             "remove_lesson": self._remove_lesson_callback,
             "get_students": self._get_students_callback,
@@ -530,7 +533,7 @@ class Planner(BaseModule):
         group_id = update.effective_chat.id
         plan = context.chat_data["plans"].get(plan_name, None)
         plan.clear_all()
-        await context.bot.delete_message(group_id, update.message.id)
+        await context.bot.delete_message(group_id, update.effective_message.id)
         await context.bot.send_message(group_id, "All lessons cleared")
 
     @prevent_edited
@@ -607,14 +610,18 @@ class Planner(BaseModule):
         group_id = update.effective_chat.id
         plan_name =  context.user_data.get(f"{group_id}_plan_name", None)
         if plan_name is not None:
-            plan = context.chat_data["plans"].get(plan_name, None)
+            plan: Plan = context.chat_data["plans"].get(plan_name, None)
         else:
             raise DoesNotBelongError()
         lesson = plan.next_lesson
         if not lesson:
             await update.message.reply_text("You don't have any lesson next")
             return
-        await update.message.reply_text(f"You have your next lesson in {lesson.room}")
+        time_untill = lesson.time_until.seconds
+        h = time_untill//(60**2)
+        m = (time_untill//60)%60
+        await update.message.reply_text(f"You have your next lesson in {lesson.room}" + \
+            f"\nTime left to the beginning: {h}h {m}min")
 
     @prevent_edited
     async def _get_roomnow(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -791,3 +798,12 @@ class Planner(BaseModule):
 
         plan.owner = new_owner
         await self._like(update)
+
+    @prevent_edited
+    async def _get_weekend_parity(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Returns if the weekend is odd or even """
+        this_week = datetime.now().isocalendar()[1]
+        if this_week % 2 == 0:
+            await update.message.reply_text("even")
+        else:
+            await update.message.reply_text("odd")

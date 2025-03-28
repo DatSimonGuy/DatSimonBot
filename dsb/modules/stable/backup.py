@@ -50,9 +50,9 @@ class Backup(BaseModule):
             await update.message.reply_text("Please reply to a valid backup file")
             return
         backup = await update.message.reply_to_message.document.get_file()
-        await backup.download_to_drive("./backup.zip")
+        save_path = await backup.download_to_drive()
         database_path = self._dsb.config["database_path"]
-        shutil.unpack_archive("backup.zip", database_path)
-        os.remove("backup.zip")
+        shutil.unpack_archive(save_path, database_path)
+        os.remove(save_path)
         await self._dsb.reload_data()
         await update.message.reply_text("Database restored")
