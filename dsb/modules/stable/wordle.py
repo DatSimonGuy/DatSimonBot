@@ -70,7 +70,7 @@ class Wordle(BaseModule):
         -----------
         word : text (Optional)
             The word to use as the answer. If not given, the current wordle answer is used.
-        """ 
+        """
         url = f"https://www.nytimes.com/svc/wordle/v2/{datetime.date.today():%Y-%m-%d}.json"
         self._answer = requests.get(url, timeout=10).json()["solution"]
 
