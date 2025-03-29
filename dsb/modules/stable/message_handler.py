@@ -120,19 +120,19 @@ class MessageHandler(BaseModule):
         query = " ".join(query.split()[1:])
         if not query:
             return
-        doubled_query_text = f"{query}\n\n{query}"
-        fire_query_text = "🔥".join(query)
-        random_capitalized = "".join([char.upper() if random.random() > 0.5 else char for char in query])
+        doubled = f"{query}\n\n{query}"
+        fire = "🔥".join(query)
+        random_cap = "".join([char.upper() if random.random() > 0.5 else char for char in query])
         result = [
             InlineQueryResultArticle(id="1", title="Geen_Geen",
                                      description="Double the input",
-                                     input_message_content=InputTextMessageContent(doubled_query_text)),
+                                     input_message_content=InputTextMessageContent(doubled)),
             InlineQueryResultArticle(id="2", title="Fire",
                                      description="Add fire emojis",
-                                     input_message_content=InputTextMessageContent(fire_query_text)),
+                                     input_message_content=InputTextMessageContent(fire)),
             InlineQueryResultArticle(id="3", title="Random capitalization",
                                      description="Randomly capitalize",
-                                     input_message_content=InputTextMessageContent(random_capitalized))]
+                                     input_message_content=InputTextMessageContent(random_cap))]
         await update.inline_query.answer(result)
 
     @prevent_edited

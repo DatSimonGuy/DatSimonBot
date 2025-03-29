@@ -4,10 +4,10 @@ import os
 import time
 import asyncio
 import logging
-import dotenv
 import threading
 import importlib.util
 from typing import Any
+import dotenv
 import requests
 from telegram import Update
 from telegram.ext import Application, CallbackContext
@@ -39,8 +39,7 @@ class DSBEngine:
 
         # Memory and CPU usage
         self._process = psutil.Process()
-        self._cpu_usage = 0.0
-        self._memory_usage = 0.0
+        self._pc_usage = (0.0, 0.0)
 
         # Logger
         self._logger = logging.getLogger("DSB")
@@ -71,9 +70,6 @@ class DSBEngine:
         builder = Application.builder().token(self._config["telebot_token"])
         builder.persistence(CustomPersistance())
         builder.arbitrary_callback_data(True)
-        # builder.local_mode(True)
-        # builder.base_url("http://0.0.0.0:8081/bot")
-        # builder.base_file_url("http://0.0.0.0:8081/bot")
         self._app = builder.build()
 
         # Error handler
@@ -121,8 +117,9 @@ class DSBEngine:
     def __ticker(self, tick_length: int = 1) -> None:
         """ Schedule timer """
         while not self._stop_event.is_set():
-            self._cpu_usage = self._process.cpu_percent()
-            self._memory_usage = self._process.memory_info().rss / 1024 ** 2
+            cpu_usage = self._process.cpu_percent()
+            memory_usage = self._process.memory_info().rss / 1024 ** 2
+            self._pc_usage = (cpu_usage, memory_usage)
             self._scheduler.run_pending()
             time.sleep(tick_length)
 
@@ -131,8 +128,8 @@ class DSBEngine:
         status_text = "[bold green]DSB Engine is running...[/bold green]"
         with console.status(status_text, spinner="dots") as status:
             while not self._stop_event.is_set():
-                cpu_usage_str = f"CPU: [bold blue]{self._cpu_usage:.2f}%[/bold blue]"
-                memory_usage_str = f"Memory: [bold blue]{self._memory_usage:.2f}[/bold blue] MB"
+                cpu_usage_str = f"CPU: [bold blue]{self._pc_usage[0]:.2f}%[/bold blue]"
+                memory_usage_str = f"Memory: [bold blue]{self._pc_usage[1]:.2f}[/bold blue] MB"
                 status.update(status_text + f"\n{cpu_usage_str} {memory_usage_str}")
                 time.sleep(1)
 
