@@ -16,7 +16,8 @@ import rich.progress
 import schedule
 from dotenv import dotenv_values, set_key
 from dsb.types.module import BaseModule
-from dsb.types.persistence import CustomPersistance
+from dsb.data.persistence import CustomPersistance
+from dsb.data.database import Database
 from dsb.types.errors import DSBError
 from dsb.api.dsbapi import DSBApiThread
 
@@ -28,13 +29,16 @@ class DSB:
         self._config = dotenv_values(".env")
         self._config = self.__parse_config(self._config)
 
+        # Database
+        self._database = Database(self._config["database_path"])
+
         # Modules
         self._modules: dict[str, BaseModule] = {}
         self._command_descriptions = {}
         self._command_handlers = {}
 
         # Api
-        self._api_task = DSBApiThread()
+        self._api_task = DSBApiThread(self._database, self._config["api_port"])
 
         # Logger
         self._logger = logging.getLogger("DSB")
@@ -107,6 +111,7 @@ class DSB:
         except ValueError:
             config["admins"] = []
         config["experimental"] = config["experimental"].lower() == "true"
+        config["api_port"] = int(config["api_port"])
         return config
 
     def __ticker(self, tick_length: int = 1) -> None:

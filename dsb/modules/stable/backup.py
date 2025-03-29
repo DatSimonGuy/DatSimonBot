@@ -4,7 +4,7 @@ import os
 import shutil
 from telegram import Update
 from telegram.ext import Application, ContextTypes
-from dsb.engine import DSB
+from dsb.dsb import DSB
 from dsb.types.module import BaseModule, prevent_edited, admin_only
 
 class Backup(BaseModule):

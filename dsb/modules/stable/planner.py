@@ -13,7 +13,7 @@ from dsb.types.errors import DSBError, InvalidValueError
 from dsb.utils.transforms import to_index
 from dsb.utils.button_picker import ButtonPicker, CallbackData
 if TYPE_CHECKING:
-    from dsb.engine import DSB
+    from dsb.dsb import DSB
 
 class PlanNotFoundError(DSBError):
     """ Raised when plan is not found """

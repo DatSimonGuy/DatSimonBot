@@ -3,7 +3,7 @@
 from telegram import Update
 from telegram.ext import ContextTypes, Application
 from dsb.types.module import BaseModule
-from dsb.engine import DSB
+from dsb.dsb import DSB
 
 class Help(BaseModule):
     """ Help module """
