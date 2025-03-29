@@ -12,3 +12,4 @@ SpeechRecognition==3.14.0
 pydub==0.25.1
 python-telegram-bot[callback-data]==21.5
 koleo-cli==0.2.137.16
+flask==3.1.0
