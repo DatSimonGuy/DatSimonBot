@@ -13,7 +13,6 @@ from telegram import Update
 from telegram.ext import Application, CallbackContext
 import rich.console
 import rich.progress
-import psutil
 import schedule
 from dotenv import dotenv_values, set_key
 from dsb.types.module import BaseModule
