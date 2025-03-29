@@ -258,16 +258,16 @@ class Planner(BaseModule):
     async def _get_plan_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         callback: CallbackData = update.callback_query.data[1]
         data = callback.data
-        group_id = update.effective_chat.id
+        chat_id = update.effective_chat.id
         plan_name = data["plan_name"]
         plan = self.__get_plan(context, plan_name)
         if not plan:
             raise PlanNotFoundError(plan_name)
-        await context.bot.delete_message(group_id, update.effective_message.id)
+        await context.bot.delete_message(chat_id, update.effective_message.id)
         plan_image = plan.to_image(plan_name)
         if not plan_image:
             raise PlanEmptyError()
-        await context.bot.send_photo(group_id, photo=plan_image)
+        await context.bot.send_photo(chat_id, photo=plan_image)
 
     @prevent_edited
     async def _get_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -377,7 +377,7 @@ class Planner(BaseModule):
                                       context: ContextTypes.DEFAULT_TYPE) -> None:
         callback: CallbackData = update.callback_query.data[1]
         data = callback.data
-        group_id = update.effective_chat.id
+        chat_id = update.effective_chat.id
         plan_name = data["plan_name"]
 
         if data.get("day", None) is None:
@@ -400,8 +400,8 @@ class Planner(BaseModule):
             return
         idx = to_index(data["idx"])
         plan.remove_lesson_by_index(day - 1, idx)
-        await context.bot.delete_message(group_id, update.effective_message.id)
-        await context.bot.send_message(group_id, "Lesson removed")
+        await context.bot.delete_message(chat_id, update.effective_message.id)
+        await context.bot.send_message(chat_id, "Lesson removed")
 
     @prevent_edited
     async def _remove_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -507,11 +507,11 @@ class Planner(BaseModule):
             return
         day = str_to_day(data["day"])
         plan_name = data["plan_name"]
-        group_id = update.effective_chat.id
+        chat_id = update.effective_chat.id
         plan = self.__get_plan(context, plan_name)
         plan.clear_day(day - 1)
-        await context.bot.delete_message(group_id, update.effective_message.id)
-        await context.bot.send_message(group_id, "Day cleared")
+        await context.bot.delete_message(chat_id, update.effective_message.id)
+        await context.bot.send_message(chat_id, "Day cleared")
 
     @prevent_edited
     async def _clear_day(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -534,11 +534,11 @@ class Planner(BaseModule):
         callback: CallbackData = update.callback_query.data[1]
         data = callback.data
         plan_name = data["plan_name"]
-        group_id = update.effective_chat.id
+        chat_id = update.effective_chat.id
         plan = context.chat_data["plans"].get(plan_name, None)
         plan.clear_all()
-        await context.bot.delete_message(group_id, update.effective_message.id)
-        await context.bot.send_message(group_id, "All lessons cleared")
+        await context.bot.delete_message(chat_id, update.effective_message.id)
+        await context.bot.send_message(chat_id, "All lessons cleared")
 
     @prevent_edited
     async def _clear_all(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -611,8 +611,8 @@ class Planner(BaseModule):
         Send room you have lessons in next
 
         """
-        group_id = update.effective_chat.id
-        plan_name =  context.user_data.get(f"{group_id}_plan_name", None)
+        chat_id = update.effective_chat.id
+        plan_name =  context.user_data.get(f"{chat_id}_plan_name", None)
         if plan_name is not None:
             plan: Plan = context.chat_data["plans"].get(plan_name, None)
         else:
@@ -633,8 +633,8 @@ class Planner(BaseModule):
         Send room you have lessons in now
 
         """
-        group_id = update.effective_chat.id
-        plan_name =  context.user_data.get(f"{group_id}_plan_name", None)
+        chat_id = update.effective_chat.id
+        plan_name =  context.user_data.get(f"{chat_id}_plan_name", None)
         if plan_name is not None:
             plan = context.chat_data["plans"].get(plan_name, None)
         else:
@@ -649,7 +649,7 @@ class Planner(BaseModule):
     async def _join_plan_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         callback: CallbackData = update.callback_query.data[1]
         data = callback.data
-        group_id = update.effective_chat.id
+        chat_id = update.effective_chat.id
         plan_name = data["plan_name"]
         plan = context.chat_data["plans"].get(plan_name, None)
         if not plan:
@@ -660,9 +660,9 @@ class Planner(BaseModule):
                 current_plan.remove_student(update.effective_user.username)
                 break
         plan.add_student(update.effective_user.username)
-        context.user_data[f"{group_id}_plan_name"] = plan_name
-        await context.bot.delete_message(group_id, update.effective_message.id)
-        await context.bot.send_message(group_id, f"You have joined {plan_name}")
+        context.user_data[f"{chat_id}_plan_name"] = plan_name
+        await context.bot.delete_message(chat_id, update.effective_message.id)
+        await context.bot.send_message(chat_id, f"You have joined {plan_name}")
 
     @prevent_edited
     async def _join_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -747,14 +747,14 @@ class Planner(BaseModule):
                                      context: ContextTypes.DEFAULT_TYPE) -> None:
         callback: CallbackData = update.callback_query.data[1]
         data = callback.data
-        group_id = update.effective_chat.id
+        chat_id = update.effective_chat.id
         plan_name = data["plan_name"]
         plan = context.chat_data["plans"].get(plan_name, None)
         if not plan:
             raise PlanNotFoundError(plan_name)
         students = plan.students
-        await context.bot.delete_message(group_id, update.effective_message.id)
-        await context.bot.send_message(group_id, f"Students:\n{'\n'.join(students)}")
+        await context.bot.delete_message(chat_id, update.effective_message.id)
+        await context.bot.send_message(chat_id, f"Students:\n{'\n'.join(students)}")
 
     @prevent_edited
     async def _get_students(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

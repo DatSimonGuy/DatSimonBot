@@ -110,13 +110,13 @@ class DailyImages(BaseModule):
                                       f"{image_set}/file.file_id", image_bytes)
         await update.message.reply_text("Image submitted to set")
 
-    def _get_image(self, group_id: int, set_name: str) -> bytes:
+    def _get_image(self, chat_id: int, set_name: str) -> bytes:
         """ Get Arthur quote image """
-        images = self._dsb.database.list_files(f"{group_id}/{set_name}")
+        images = self._dsb.database.list_files(f"{chat_id}/{set_name}")
         if not images:
             return None
         image_name = random.choice(images)
-        image = self._dsb.database.get_image(group_id, image_name)
+        image = self._dsb.database.get_image(chat_id, image_name)
         return image
 
     async def _send_daily_image(self) -> None:

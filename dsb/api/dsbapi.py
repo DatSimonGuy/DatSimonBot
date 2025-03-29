@@ -35,9 +35,9 @@ class DSBApiThread(threading.Thread):
         """ Shutdown the api """
         self.server.shutdown()
 
-    def load_plan(self, group_id: int, plan_name: str) -> Plan:
+    def load_plan(self, chat_id: int, plan_name: str) -> Plan:
         """ Get plan from database """
-        chat_data = self._database.get_chat_data(group_id)
+        chat_data = self._database.get_chat_data(chat_id)
         plan = chat_data.get("plans", {}).get(plan_name, None)
         if plan is None:
             raise ValueError("Plan not found")
@@ -48,13 +48,13 @@ class DSBApiThread(threading.Thread):
 
     def where_next(self):
         """ Returns classroom where the user has lessons in next """
-        group_id = int(request.args.get("group_id"))
-        if group_id is None:
+        chat_id = int(request.args.get("group_id"))
+        if chat_id is None:
             return abort(400, "Group id not specified")
         plan_name = request.args.get("plan_name")
         if plan_name is not None:
             try:
-                plan = self.load_plan(group_id, plan_name)
+                plan = self.load_plan(chat_id, plan_name)
             except ValueError as e:
                 return abort(404, str(e))
         else:
@@ -73,9 +73,9 @@ class DSBApiThread(threading.Thread):
             if req not in data:
                 return abort(400, f"{req} missing")
         new_lesson = Lesson(data)
-        group_id = int(data["group_id"])
+        chat_id = int(data["chat_id"])
         try:
-            plan = self.load_plan(group_id, data["plan_name"])
+            plan = self.load_plan(chat_id, data["plan_name"])
         except ValueError as e:
             return abort(404, str(e))
         plan.add_lesson(str_to_day(data["day"]) - 1, new_lesson)
@@ -88,9 +88,9 @@ class DSBApiThread(threading.Thread):
         for req in required:
             if req not in data:
                 return abort(400, f"{req} missing")
-        group_id = int(data["group_id"])
+        chat_id = int(data["group_id"])
         try:
-            plan = self.load_plan(group_id, data["plan_name"])
+            plan = self.load_plan(chat_id, data["plan_name"])
         except ValueError as e:
             return abort(404, str(e))
         day = str_to_day(data["day"]) - 1
@@ -105,14 +105,15 @@ class DSBApiThread(threading.Thread):
 
     def get_plan(self):
         """ Get a plan from the database """
-        group_id = int(request.args.get("group_id"))
-        if not group_id:
+        data = request.args.to_dict()
+        chat_id = int(data.get("group_id"))
+        if not chat_id:
             return abort(400, "Group id not specified")
         plan_name = request.args.get("plan_name")
         if not plan_name:
             return abort(400, "Plan name not specified")
         try:
-            plan = self.load_plan(group_id, data["plan_name"])
+            plan = self.load_plan(chat_id, data["plan_name"])
         except ValueError as e:
             return abort(404, str(e))
         plan_dict = {}
