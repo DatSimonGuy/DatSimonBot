@@ -218,9 +218,12 @@ class Planner(BaseModule):
     @prevent_edited
     async def _get_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Get a lesson plan.
+        Get a lesson plan. The difference between /get_plan and /plan is that /get_plan
+        withour parameters will display a list of plans to choose from and /plan will
+        default to the plan you are currently in.
 
-        Usage: /get_plan <name> or /get_plan
+        Usage: /get_plan <name> or /get_plan 
+        Alias: /plan <name> or /plan
 
         Command parameters
         -----------

@@ -7,7 +7,7 @@ from telegram.ext import ContextTypes
 from dsb.types.module import BaseModule
 
 class DailyImages(BaseModule):
-    """ Misc module for DSB. """
+    """ Daily images module for DSB. """
     def __init__(self, bot, dsb):
         super().__init__(bot, dsb)
         self._daily_job = None
