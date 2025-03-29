@@ -61,13 +61,22 @@ class Wordle(BaseModule):
         return representation
 
     async def _get_amogus(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """ Get all words required to get amongus image in wordle """ 
+        """
+        Get all words required to get amongus image in wordle.
+        
+        Usage: /wordle_among_us <word> or /wordle_among_us
+        
+        Command parameters
+        -----------
+        word : text (Optional)
+            The word to use as the answer. If not given, the current wordle answer is used.
+        """ 
         url = f"https://www.nytimes.com/svc/wordle/v2/{datetime.date.today():%Y-%m-%d}.json"
         self._answer = requests.get(url, timeout=10).json()["solution"]
 
         args, _ = self._get_args(context)
         if args and len(args[0]) != 5:
-            await update.message.reply_text("To słowo nie ma 5 liter")
+            await update.message.reply_text("This word does not have 5 letters")
             return
         if args:
             self._answer = args[0]

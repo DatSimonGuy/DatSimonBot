@@ -1,7 +1,6 @@
 """ Api for DSB """
 
 import threading
-import dotenv
 from flask import Flask, request, jsonify, abort
 import jsonpickle
 from werkzeug.serving import make_server

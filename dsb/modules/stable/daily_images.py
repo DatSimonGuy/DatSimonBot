@@ -29,7 +29,16 @@ class DailyImages(BaseModule):
         }
 
     async def _create_set(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """ Create a new set for daily images """
+        """
+        Create an image set for storing images.
+        
+        Usage: /create_set <set_name>
+
+        Command parameters
+        -----------
+        set_name : text
+            The name of the set to create.
+        """
         args, _ = self._get_args(context)
         if not args:
             await update.message.reply_text("Please provide a set name")
@@ -49,7 +58,16 @@ class DailyImages(BaseModule):
         await update.message.reply_text("Set created")
 
     async def _delete_set(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """ Delete a set for daily images """
+        """
+        Delete an image set.
+        
+        Usage: /delete_set <set_name>
+        
+        Command parameters
+        -----------
+        set_name : text
+            The name of the set to delete.
+        """
         args, _ = self._get_args(context)
         sets: set = context.chat_data.get("sets", None)
         if sets is None:
@@ -62,7 +80,16 @@ class DailyImages(BaseModule):
         await update.message.reply_text("Set deleted")
 
     async def _daily_image(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """ Toggle daily image for given set """
+        """
+        Make the bot send an image from a set daily at 6 am.
+        
+        Usage: /daily_image <set_name>
+        
+        Command parameters
+        -----------
+        set_name : text
+            The name of the set to use for daily images.
+        """
         args, kwargs = self._get_args(context)
         if "set" not in kwargs:
             image_set = " ".join(args)
@@ -76,12 +103,25 @@ class DailyImages(BaseModule):
         await update.message.reply_text("I will now send images from this set daily at 6 am")
 
     async def _cancel_daily_image(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """ Cancel daily image """
+        """
+        Cancel the daily image.
+        
+        Usage: /cancel_daily_image
+        """
         context.bot_data["daily_images"].pop(update.effective_chat.id, None)
         await update.message.reply_text("Daily image cancelled")
 
     async def _submit_image(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """ Submit an Arthur quote """
+        """
+        Submit an image to a set.
+        
+        Usage: /submit_image <set_name> (reply to image)
+        
+        Command parameters
+        -----------
+        set_name : text
+            The name of the set to submit the image to.
+        """
         sets: set = context.chat_data.get("sets", None)
         if sets is None:
             await update.message.reply_text("No sets to submit to")
@@ -111,7 +151,7 @@ class DailyImages(BaseModule):
         await update.message.reply_text("Image submitted to set")
 
     def _get_image(self, chat_id: int, set_name: str) -> bytes:
-        """ Get Arthur quote image """
+        """ Get a single image """
         images = self._dsb.database.list_files(f"{chat_id}/{set_name}")
         if not images:
             return None
@@ -120,7 +160,7 @@ class DailyImages(BaseModule):
         return image
 
     async def _send_daily_image(self) -> None:
-        """ Send daily image quote """
+        """ Send daily images """
         for chat_id, set_name in self._bot.bot_data["daily_images"].items():
             image = self._get_image(chat_id, set_name)
             if not image:

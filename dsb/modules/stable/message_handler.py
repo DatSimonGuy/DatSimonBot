@@ -63,7 +63,11 @@ class MessageHandler(BaseModule):
     @admin_only
     @prevent_edited
     async def _what_broke(self, update: Update, _) -> None:
-        """ Get last log message """
+        """
+        Get last log message. (Admin only)
+        
+        Usage: /what_broke
+        """
         if not self._dsb.logs:
             await update.message.reply_text("No logs available")
             return
@@ -72,13 +76,21 @@ class MessageHandler(BaseModule):
 
     @prevent_edited
     async def _user_info(self, update: Update, _) -> None:
-        """ Get user info """
+        """
+        Get user info.
+        
+        Usage: /who_am_i
+        """
         id_info = f"Your id: `{update.message.from_user.id}`"
         await update.message.reply_text(f"{id_info}", parse_mode="Markdownv2")
 
     @prevent_edited
     async def _sender_info(self, update: Update, _) -> None:
-        """ Get sender info """
+        """
+        Get sender info.
+        
+        Usage: /who_are_you (reply to message)
+        """
         if update.message.reply_to_message:
             id_info = f"Their id: `{update.message.reply_to_message.from_user.id}`"
             await update.message.reply_text(f"{id_info}", parse_mode="Markdownv2")
@@ -86,7 +98,7 @@ class MessageHandler(BaseModule):
             await update.message.reply_text("Reply to a message to get the sender id")
 
     def cipher(self, text: str) -> str:
-        """ Encode to silly language """
+        """ Encode or decode text to silly language """
         big_qwerty = "QWERTYUIOPASDFG HJKLZXCVBNM"
         qwerty = "qwertyuiopasdfg hjklzxcvbnm"
         symbols1 = '1234567890@#$_&-+()/*"' + "'" + ':;!?'
@@ -150,7 +162,11 @@ class MessageHandler(BaseModule):
 
     @prevent_edited
     async def _silly_cipher(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
-        """ Decode from silly language """
+        """
+        Encode or decode text to silly language.
+        
+        Usage: /silly_cipher (reply to message)
+        """
         if not update.message.reply_to_message:
             return
         if not update.message.reply_to_message.text:
@@ -159,7 +175,7 @@ class MessageHandler(BaseModule):
         await update.message.reply_text(text)
 
     async def _snap(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """ Send a message """
+        """ Remove a message """
         user = update.message.from_user
         user_data = await context.bot.get_chat_member(update.message.chat_id, user.id)
         is_admin = user_data.status in ["creator", "administrator"]
@@ -173,7 +189,7 @@ class MessageHandler(BaseModule):
             return
 
     async def _ynpoll(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """ Send a yes/no poll """
+        """ Send a yes/no poll. """
         if not update.message.reply_to_message:
             return
         question = update.message.reply_to_message.text
@@ -195,7 +211,17 @@ class MessageHandler(BaseModule):
 
     @prevent_edited
     async def _stt(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """Send a transcription of the voice message"""
+        """
+        Send a transcription of the voice message.
+        
+        Usage: /stt [--language <language>] (reply to voice message)
+        
+        Command parameters
+        -----------
+        language : text (optional)
+            The language to use for transcription. Default is Polish.
+            For example: pl-PL, en-US, de-DE, etc.
+        """
         if not update.message.reply_to_message:
             return
         if not update.message.reply_to_message.voice:

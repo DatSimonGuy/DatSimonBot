@@ -212,13 +212,13 @@ class Planner(BaseModule):
     @prevent_edited
     async def _create_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Create a new lesson plan 
+        Create a new lesson plan.
 
         Usage: /create_plan <name>
 
         Command parameters
         -----------
-        name : str
+        name : text
             Name of the plan
         """
         plan_name = self.__get_plan_name(context)
@@ -241,9 +241,9 @@ class Planner(BaseModule):
     @prevent_edited
     async def _delete_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Delete a lesson plan
+        Delete a lesson plan.
 
-        Usage: /delete_plan
+        Usage: /delete_plan (A list of avaible plans will be shown)
         """
         plans = self.__get_plans(context)
         user_id = update.effective_user.id
@@ -256,6 +256,7 @@ class Planner(BaseModule):
 
     @callback_handler
     async def _get_plan_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Callback for getting a plan """
         callback: CallbackData = update.callback_query.data[1]
         data = callback.data
         chat_id = update.effective_chat.id
@@ -272,7 +273,7 @@ class Planner(BaseModule):
     @prevent_edited
     async def _get_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Get a lesson plan
+        Get a lesson plan.
 
         Usage: /get_plan <name> or /get_plan
 
@@ -307,8 +308,9 @@ class Planner(BaseModule):
     @prevent_edited
     async def _get_plans(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Get all lesson plans in the group
+        Get all lesson plans in the group.
 
+        Usage: /get_plans (A list of avaible plans will be shown)
         """
         plans = self.__get_plans(context)
         plans_str = "Plans:\n"
@@ -328,8 +330,9 @@ class Planner(BaseModule):
     @prevent_edited
     async def _delete_all(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Delete all lesson plans in the group
+        Delete all lesson plans in the group. (Admin only)
 
+        Usage: /delete_all
         """
         context.chat_data["plans"].clear()
         await self._like(update)
@@ -337,28 +340,28 @@ class Planner(BaseModule):
     @prevent_edited
     async def _add_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Add a lesson to a plan
+        Add a lesson to a plan.
 
-        Usage: /add_lesson <plan_name> --day <day> --subject <subject> 
-        --teacher <teacher> --room <room> --start <start> --end <end> --type <type>
+        Usage: /add_lesson <plan_name> --day <day> --subject <subject> --teacher <teacher>
+        --room <room> --start <start> --end <end> --type <type> [repeat <odd/even/not>]
 
         Command parameters
         -----------
-        day : int
+        day : number or text
             Day of the lesson, 1-5 or monday-friday
-        subject : str
+        subject : text
             Subject of the lesson
-        teacher : str
+        teacher : text
             Teacher of the lesson
-        room : str
+        room : text
             Room of the lesson
-        start : str
+        start : hour in 24h format 00:00
             Start time of the lesson
-        end : str
+        end : hour in 24h format 00:00
             End time of the lesson
-        type : str
+        type : text
             Type of the lesson
-        weeks : "even" or "odd"
+        repeat : "even" or "odd" or "not" (optional)
             Repeat the lesson every even or odd week
         """
         _, kwargs = self._get_args(context)
@@ -375,6 +378,7 @@ class Planner(BaseModule):
     @callback_handler
     async def _remove_lesson_callback(self, update: Update,
                                       context: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Callback for removing a lesson """
         callback: CallbackData = update.callback_query.data[1]
         data = callback.data
         chat_id = update.effective_chat.id
@@ -406,9 +410,9 @@ class Planner(BaseModule):
     @prevent_edited
     async def _remove_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Remove a lesson from a plan
+        Remove a lesson from a plan.
 
-        Usage: /remove_lesson <plan_name>
+        Usage: /remove_lesson (A list of avaible plans will be shown)
         """
         plans = self.__get_plans(context)
         plan_names = [name for name, plan in plans.items()
@@ -424,31 +428,33 @@ class Planner(BaseModule):
     @prevent_edited
     async def _edit_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Edit a lesson in a plan
+        Edit a lesson in a plan.
 
-        Usage: /edit_lesson <plan_name> --idx <idx> --day <day>...
+        Usage: /edit_lesson <plan_name> --day <day> --subject <subject> --teacher <teacher>
+        --room <room> --start <start> --end <end> --type <type>
+        [--new_day <day>] [--repeat <odd/even/not>]
 
         Command parameters
         -----------
-        idx : int
+        idx : number
             Index of the lesson, counting from 0
-        day : int
+        day : number or text
             Day of the lesson, 1-5 or monday-friday
-        new_day : int
+        new_day : number or text (optional)
             New day of the lesson, 1-5 or monday-friday
-        subject : str
+        subject : text
             Subject of the lesson
-        teacher : str
+        teacher : text
             Teacher of the lesson
-        room : str
+        room : text
             Room of the lesson
-        start : str
+        start : text
             Start time of the lesson
-        end : str
+        end : text
             End time of the lesson
-        type : str
+        type : text
             Type of the lesson
-        weeks : "even" or "odd"
+        repeat : "even" or "odd" or "not" (optional)
             Repeat the lesson every even or odd week
         """
         _, kwargs = self._get_args(context)
@@ -495,6 +501,7 @@ class Planner(BaseModule):
 
     @callback_handler
     async def _clear_day_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Callback for clearing a day """
         callback: CallbackData = update.callback_query.data[1]
         data = callback.data
         if data.get("day", None) is None:
@@ -516,9 +523,9 @@ class Planner(BaseModule):
     @prevent_edited
     async def _clear_day(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Clear all lessons for a day
+        Clear all lessons for a day.
         
-        Usage: /clear_day
+        Usage: /clear_day (A list of avaible plans will be shown)
         """
         plans = self.__get_plans(context)
         user_id = update.effective_user.id
@@ -531,11 +538,12 @@ class Planner(BaseModule):
 
     @callback_handler
     async def _clear_all_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Callback for clearing all lessons """
         callback: CallbackData = update.callback_query.data[1]
         data = callback.data
         plan_name = data["plan_name"]
         chat_id = update.effective_chat.id
-        plan = context.chat_data["plans"].get(plan_name, None)
+        plan = self.__get_plan(context, plan_name)
         plan.clear_all()
         await context.bot.delete_message(chat_id, update.effective_message.id)
         await context.bot.send_message(chat_id, "All lessons cleared")
@@ -543,9 +551,9 @@ class Planner(BaseModule):
     @prevent_edited
     async def _clear_all(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Clear all lessons for a plan
+        Clear all lessons for a plan.
         
-        Usage: /clear_all
+        Usage: /clear_all (A list of avaible plans will be shown)
         """
         plans = self.__get_plans(context)
         user_id = update.effective_user.id
@@ -559,13 +567,13 @@ class Planner(BaseModule):
     @prevent_edited
     async def _edit_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Editing a plan name
+        Edit a plan name.
 
         Usage: /edit_plan <plan_name> --new_name <new_name>
         
         Command parameters
         -----------
-        new_name : str
+        new_name : text
             New name of the plan
         """
         _, kwargs = self._get_args(context)
@@ -588,8 +596,9 @@ class Planner(BaseModule):
     @prevent_edited
     async def _status(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Get status of all students in this group
-
+        Get status of all students in this group.
+        
+        Usage: /status
         """
         today = datetime.today().weekday() + 1
         if today > 5:
@@ -608,8 +617,9 @@ class Planner(BaseModule):
     @prevent_edited
     async def _get_roomnxt(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Send room you have lessons in next
-
+        Send room you have lessons in next.
+        
+        Usage: /where_next
         """
         chat_id = update.effective_chat.id
         plan_name =  context.user_data.get(f"{chat_id}_plan_name", None)
@@ -630,8 +640,9 @@ class Planner(BaseModule):
     @prevent_edited
     async def _get_roomnow(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Send room you have lessons in now
-
+        Send room you have lessons in now.
+        
+        Usage: /where_now
         """
         chat_id = update.effective_chat.id
         plan_name =  context.user_data.get(f"{chat_id}_plan_name", None)
@@ -647,6 +658,7 @@ class Planner(BaseModule):
 
     @callback_handler
     async def _join_plan_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Callback for joining a plan """
         callback: CallbackData = update.callback_query.data[1]
         data = callback.data
         chat_id = update.effective_chat.id
@@ -667,9 +679,9 @@ class Planner(BaseModule):
     @prevent_edited
     async def _join_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Join a lesson plan
+        Join a lesson plan. (/plan will default to this plan)
         
-        Usage: /join_plan
+        Usage: /join_plan (A list of avaible plans will be shown)
         """
         plans = self.__get_plans(context)
         user_id = update.effective_user.id
@@ -683,7 +695,7 @@ class Planner(BaseModule):
     @prevent_edited
     async def _leave_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Leave a lesson plan
+        Leave a lesson plan you are currently in.
         
         Usage: /leave_plan
         """
@@ -699,9 +711,14 @@ class Planner(BaseModule):
     @prevent_edited
     async def _copy_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Copy a plan to the user data
+        Copy a plan to clipboard. Use /paste_plan to copy it to the selected chat.
         
         Usage: /copy_plan <plan_name>
+        
+        Command parameters
+        -----------
+        plan_name : text
+            Name of the plan to copy
         """
         plan_name, plan = self.__get_plan_from_update(update, context)
         if not plan:
@@ -712,9 +729,14 @@ class Planner(BaseModule):
     @prevent_edited
     async def _paste_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Paste a plan from the user data and save it in the group data
+        Paste a plan from the user data and save it in the group data.
         
         Usage: /paste_plan or /paste_plan <plan_name>
+        
+        Command parameters
+        -----------
+        plan_name : text (optional)
+            Name of the plan, if not provided, will use the previous name
         """
         if "saved_plan" not in context.user_data:
             raise DSBError("No plan saved")
@@ -733,8 +755,9 @@ class Planner(BaseModule):
     @prevent_edited
     async def _get_owners(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Get all plan owners
+        Get all plan owners. (Admins only)
         
+        Usage: /get_owners
         """
         plans = self.__get_plans(context)
         owners = "\n".join(f"{plan[0]} - {plan[1].owner}" for plan in plans.items())
@@ -745,6 +768,7 @@ class Planner(BaseModule):
     @callback_handler
     async def _get_students_callback(self, update: Update,
                                      context: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Callback for getting students """
         callback: CallbackData = update.callback_query.data[1]
         data = callback.data
         chat_id = update.effective_chat.id
@@ -759,9 +783,9 @@ class Planner(BaseModule):
     @prevent_edited
     async def _get_students(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Get all students in a plan
+        Get all students in a plan.
         
-        Usage: /get_students
+        Usage: /get_students (A list of avaible plans will be shown)
         """
         plans = self.__get_plans(context)
         user_id = update.effective_user.id
@@ -776,14 +800,14 @@ class Planner(BaseModule):
     async def _transfer_plan_ownership(self, update: Update,
                                        context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Transfer plan ownership
+        Transfer plan ownership to another user.
         
         Usage: /transfer_plan_ownership <plan_name> --new_owner <new_owner>
 
         Command parameters
         -----------
-        new_owner : int
-            New owner of the plan
+        new_owner : number
+            New owner of the plan, telegram id of the selected user
         """
         _, kwargs = self._get_args(context)
         plan_name, plan = self.__get_plan_from_update(update, context)
@@ -805,7 +829,11 @@ class Planner(BaseModule):
 
     @prevent_edited
     async def _get_weekend_parity(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
-        """ Returns if the weekend is odd or even """
+        """
+        Returns if the weekend is odd or even.
+        
+        Usage: /week_info
+        """
         this_week = datetime.now().isocalendar()[1]
         if this_week % 2 == 0:
             await update.message.reply_text("even")
@@ -814,7 +842,20 @@ class Planner(BaseModule):
 
     @prevent_edited
     async def _get_next_train(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """ Returns the next train and the train after it """
+        """
+        Returns the next train and the train after it.
+        
+        Usage: /get_next_train --from <from> --to <to> [--n <number>]
+        
+        Command parameters
+        -----------
+        from : text
+            Starting station
+        to : text
+            Destination station
+        n : number (optional)
+            Number of trains to return, default is 2
+        """
         _, kwargs = self._get_args(context)
         if not kwargs.get("from", None):
             raise DSBError("Please specify the starting station")
@@ -837,6 +878,6 @@ class Planner(BaseModule):
         markup = InlineKeyboardMarkup([[button]])
         await update.message.reply_text(message, reply_markup=markup)
 
-    @callback_handler
-    def _save_connection(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        pass
+    # @callback_handler
+    # def _save_connection(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    #     pass

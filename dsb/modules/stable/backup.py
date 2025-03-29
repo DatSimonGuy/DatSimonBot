@@ -23,6 +23,16 @@ class Backup(BaseModule):
     @admin_only
     @prevent_edited
     async def _backup(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Create backup of the database and send it to the user. (Admin only)
+        
+        Usage: /backup [--no-images]
+
+        Command parameters
+        -----------
+        no-images: (Optional) 
+            Don't include images in the backup.
+        """
         database_path = self._dsb.config["database_path"]
         _, kwargs = self._get_args(context)
         if "no-images" in kwargs:
@@ -45,6 +55,11 @@ class Backup(BaseModule):
     @admin_only
     @prevent_edited
     async def _restore(self, update: Update, _) -> None:
+        """
+        Restore the database from a backup file. (Admin only)
+        
+        Usage: /restore (reply to backup file)
+        """
         reply = update.message.reply_to_message
         if not reply or not reply.document or not reply.document.file_name.endswith(".zip"):
             await update.message.reply_text("Please reply to a valid backup file")
