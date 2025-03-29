@@ -30,7 +30,7 @@ class DSB:
         self._config = self.__parse_config(self._config)
 
         # Database
-        self._database = Database(self._config["database_path"])
+        self.database = Database(self._config["database_path"])
 
         # Modules
         self._modules: dict[str, BaseModule] = {}
@@ -38,7 +38,7 @@ class DSB:
         self._command_handlers = {}
 
         # Api
-        self._api_task = DSBApiThread(self._database, self._config["api_port"])
+        self._api_task = DSBApiThread(self.database, self._config["api_port"])
 
         # Logger
         self._logger = logging.getLogger("DSB")

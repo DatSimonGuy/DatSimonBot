@@ -27,7 +27,7 @@ class Backup(BaseModule):
         _, kwargs = self._get_args(context)
         if "no-images" in kwargs:
             _ = shutil.copytree(database_path, "temp",
-                                ignore=lambda x, y: [name for name in y
+                                ignore=lambda _, y: [name for name in y
                                                      if name.endswith(".jpg")
                                                      or name.endswith(".png")])
             shutil.make_archive("backup", "zip", "temp")

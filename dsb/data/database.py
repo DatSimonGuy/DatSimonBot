@@ -16,7 +16,6 @@ class Database:
         os.makedirs(f"{self._path}/chat_data", exist_ok=True)
         os.makedirs(f"{self._path}/bot_data", exist_ok=True)
         os.makedirs(f"{self._path}/files", exist_ok=True)
-        os.makedirs(f"{self._path}/images", exist_ok=True)
 
     def get_chat_data(self, chat_id: int) -> dict:
         """ Get the chat data """
@@ -67,10 +66,10 @@ class Database:
         with open(f"{self._path}/files/{file_name}.json", "w", encoding='utf-8') as f:
             f.write(jsonpickle.encode(data, keys=True, indent=4))
 
-    def get_image(self, file_name: str) -> bytes:
+    def get_image(self, group_id: int, file_name: str) -> bytes:
         """ Get the image data """
         try:
-            with open(f"{self._path}/images/{file_name}.jpg", "rb") as f:
+            with open(f"{self._path}/{group_id}/images/{file_name}.jpg", "rb") as f:
                 data = f.read()
                 if data is None:
                     return b""
@@ -78,9 +77,10 @@ class Database:
         except FileNotFoundError:
             return b""
 
-    def save_image(self, file_name: str, data: bytes) -> None:
+    def save_image(self, group_id: int, file_name: str, data: bytes) -> None:
         """ Save the image data """
-        with open(f"{self._path}/images/{file_name}.jpg", "wb") as f:
+        os.makedirs(f"{self._path}/{group_id}/images", exist_ok=True)
+        with open(f"{self._path}/{group_id}/images/{file_name}.jpg", "wb") as f:
             f.write(data)
 
     def delete_json(self, file_name: str) -> None:
@@ -92,11 +92,18 @@ class Database:
         except PermissionError:
             pass
 
-    def delete_image(self, file_name: str) -> None:
+    def delete_image(self, group_id: int, file_name: str) -> None:
         """ Delete the image data """
         try:
-            os.remove(f"{self._path}/images/{file_name}.jpg")
+            os.remove(f"{self._path}/{group_id}/images/{file_name}.jpg")
         except FileNotFoundError:
             pass
         except PermissionError:
             pass
+
+    def list_files(self, subdir: str) -> list[str]:
+        """ List all files in a directory """
+        try:
+            return os.listdir(os.path.join(self._path, subdir))
+        except FileNotFoundError:
+            return []
