@@ -279,7 +279,7 @@ class Planner(BaseModule):
 
         Command parameters
         -----------
-        name : str (optional)
+        name : text (optional)
             Name of the plan, if not provided, will get the plan of the user
         """
         try:
