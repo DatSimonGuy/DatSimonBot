@@ -43,12 +43,16 @@ class Help(BaseModule):
         Symbols:
         - <value_name> : required value, 
         for example: /command <age> means you should do /command 18
+
         - --arg_name : required named argument, everything after it is taken as its value, 
         for example: /command --name <name> means you should do /command --name John
+
         - [--arg_name] : Optional named argument, does not need to be given value, 
         for example: /command [optional_arg] means you can do /command or /command --optional_arg
+
         - [--arg_name <arg_value>] : Optional named argument, requires value,
         for example: /command [surname <surname>] means you can do /command or /command --surname 18
+
         - () : Specifies actions required for the command to work, 
         for example: /command (Please reply to a message)
 
