@@ -3,15 +3,15 @@
 import copy
 from typing import TYPE_CHECKING
 from datetime import datetime
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
+from koleo.api import KoleoAPI
 from dsb.types.lesson import Lesson, str_to_day
 from dsb.types.plan import Plan
 from dsb.types.module import BaseModule, prevent_edited, admin_only, callback_handler
 from dsb.types.errors import DSBError, InvalidValueError
 from dsb.utils.transforms import to_index
 from dsb.utils.button_picker import ButtonPicker, CallbackData
-from koleo.api import KoleoAPI
 if TYPE_CHECKING:
     from dsb.engine import DSBEngine
 
@@ -814,18 +814,29 @@ class Planner(BaseModule):
 
     @prevent_edited
     async def _get_next_train(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """ Returns the next train """
+        """ Returns the next train and the train after it """
         _, kwargs = self._get_args(context)
         if not kwargs.get("from", None):
             raise DSBError("Please specify the starting station")
         if not kwargs.get("to", None):
             raise DSBError("Please specify the destination station")
+
+        amount = int(kwargs.get("n", 2))
         from_station = kwargs["from"]
         to_station = kwargs["to"]
         trains = self.koleo.get_connections(from_station, to_station,
-                                            self.koleo.get_brands(), datetime.today())
+                                            [], datetime.today())
         if not trains:
             raise DSBError("No connections found")
-        train = trains[0]
-        await update.message.reply_text(f"Train from {train['from']['name']} " + \
-            f"to {train['to']['name']} at {train['departure']}")
+        message = f"Trains from {from_station} to {to_station}:\n"
+        for train in trains[:amount]:
+            message = f"{message}\n{''.join(list(train['departure'])[11:16])}"
+        callback = (0, CallbackData("save_connection", update.effective_user.id,
+                                    {"from": from_station, "to": to_station}))
+        button = InlineKeyboardButton("Save connection", callback_data=callback)
+        markup = InlineKeyboardMarkup([[button]])
+        await update.message.reply_text(message, reply_markup=markup)
+
+    @callback_handler
+    def _save_connection(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        pass
