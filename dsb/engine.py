@@ -1,4 +1,4 @@
-""" The engine for dsb v2 """
+""" Main module of the DSB """
 
 import os
 import time
@@ -21,8 +21,8 @@ from dsb.types.persistence import CustomPersistance
 from dsb.types.errors import DSBError
 from dsb.api.dsbapi import DSBApiThread
 
-class DSBEngine:
-    """ Engine for DatSimonBot """
+class DSB:
+    """ DatSimonBot main class """
     def __init__(self) -> None:
         # Environment variables
         self.__create_dotenv()
@@ -36,10 +36,6 @@ class DSBEngine:
 
         # Api
         self._api_task = DSBApiThread()
-
-        # Memory and CPU usage
-        self._process = psutil.Process()
-        self._pc_usage = (0.0, 0.0)
 
         # Logger
         self._logger = logging.getLogger("DSB")
@@ -117,21 +113,8 @@ class DSBEngine:
     def __ticker(self, tick_length: int = 1) -> None:
         """ Schedule timer """
         while not self._stop_event.is_set():
-            cpu_usage = self._process.cpu_percent()
-            memory_usage = self._process.memory_info().rss / 1024 ** 2
-            self._pc_usage = (cpu_usage, memory_usage)
             self._scheduler.run_pending()
             time.sleep(tick_length)
-
-    def __show_status(self, console: rich.console.Console) -> None:
-        """ Show the status of the engine"""
-        status_text = "[bold green]DSB Engine is running...[/bold green]"
-        with console.status(status_text, spinner="dots") as status:
-            while not self._stop_event.is_set():
-                cpu_usage_str = f"CPU: [bold blue]{self._pc_usage[0]:.2f}%[/bold blue]"
-                memory_usage_str = f"Memory: [bold blue]{self._pc_usage[1]:.2f}[/bold blue] MB"
-                status.update(status_text + f"\n{cpu_usage_str} {memory_usage_str}")
-                time.sleep(1)
 
     async def __error_handler(self, update: Update, context: CallbackContext) -> None:
         """Log the error and send a message to the user."""
@@ -264,8 +247,6 @@ class DSBEngine:
                               f" {fail} failed to start[/bold yellow]")
             else:
                 console.print(f"[bold green]Started {success} modules[/bold green]")
-            status_thread = threading.Thread(target=self.__show_status, args=(console,))
-            status_thread.start()
             self._app.run_polling()
         except KeyboardInterrupt:
             pass
@@ -274,6 +255,5 @@ class DSBEngine:
             self._api_task.shutdown()
             self._api_task.join()
             self._ticker_thread.join()
-            status_thread.join()
             self._logger.info("DSB Engine stopped!")
             console.print("\n[bold red]DSB Engine stopped![/bold red]")

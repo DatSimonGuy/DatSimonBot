@@ -1,7 +1,7 @@
 """ Launching file for the application. """
 
-from dsb.engine import DSBEngine
+from dsb.engine import DSB
 
 if __name__ == "__main__":
-    dsb = DSBEngine()
+    dsb = DSB()
     dsb.start()

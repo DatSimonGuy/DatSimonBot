@@ -3,11 +3,11 @@
 from telegram import Update
 from telegram.ext import ContextTypes, Application
 from dsb.types.module import BaseModule
-from dsb.engine import DSBEngine
+from dsb.engine import DSB
 
 class Help(BaseModule):
     """ Help module """
-    def __init__(self, ptb: Application, dsb: DSBEngine) -> None:
+    def __init__(self, ptb: Application, dsb: DSB) -> None:
         super().__init__(ptb, dsb)
         self._handlers = {
             "help": self._help

@@ -8,7 +8,7 @@ from telegram.ext import CommandHandler, Application, ContextTypes, CallbackQuer
     InlineQueryHandler, InvalidCallbackData
 from dsb.utils.button_picker import CallbackData
 if TYPE_CHECKING:
-    from dsb.engine import DSBEngine
+    from dsb.engine import DSB
 
 def admin_only(func):
     """ Decorator for admin only commands """
@@ -52,7 +52,7 @@ def callback_handler(func):
 
 class BaseModule:
     """ Base module for all telegram bot modules. """
-    def __init__(self, bot: Application, dsb: 'DSBEngine') -> None:
+    def __init__(self, bot: Application, dsb: 'DSB') -> None:
         self._bot = bot
         self._handlers = {}
         self._descriptions = {}
