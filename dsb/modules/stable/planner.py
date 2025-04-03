@@ -2,7 +2,7 @@
 
 import copy
 from typing import TYPE_CHECKING
-from datetime import datetime
+from datetime import datetime, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from koleo.api import KoleoAPI
@@ -819,11 +819,12 @@ class Planner(BaseModule):
         if not kwargs.get("to", None):
             raise DSBError("Please specify the destination station")
 
-        amount = int(kwargs.get("n", 2))
+        amount = int(kwargs.get("n", 4))
         from_station = kwargs["from"]
         to_station = kwargs["to"]
+        date = datetime.today() - timedelta(hours=1)
         trains = self.koleo.get_connections(from_station, to_station,
-                                            [], datetime.today())
+                                            [], date)
         if not trains:
             raise DSBError("No connections found")
         message = f"Trains from {from_station} to {to_station}:\n"
