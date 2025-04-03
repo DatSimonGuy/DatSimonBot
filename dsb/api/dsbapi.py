@@ -42,7 +42,6 @@ class DSBApiThread(threading.Thread):
             raise ValueError("Plan not found")
         if plan == {}:
             raise ValueError("Chat data is empty")
-        plan = jsonpickle.decode(plan, keys=True)
         return plan
 
     def where_next(self):

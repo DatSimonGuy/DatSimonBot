@@ -43,7 +43,7 @@ class Planner(BaseModule):
             "get_owners": self._get_owners,
             "transfer_plan_ownership": self._transfer_plan_ownership,
             "week_info": self._get_weekend_parity,
-            "get_next_train": self._get_next_train
+            "train": self._get_next_train
         }
         self._descriptions = {
             "create_plan": "Create a new lesson plan",
@@ -69,7 +69,7 @@ class Planner(BaseModule):
             "get_owners": "Get all plan owners (Admins only)",
             "transfer_plan_ownership": "Transfer plan ownership",
             "week_info": "Returns if week is odd or even",
-            "get_next_train": "Returns the next train"
+            "train": "Returns the next train"
         }
         self._callback_handlers = {
             "delete_plan": self._delete_plan_callback,
@@ -826,7 +826,9 @@ class Planner(BaseModule):
             raise DSBError("No connections found")
         message = f"Trains from {from_station} to {to_station}:\n"
         for train in trains[:amount]:
-            message = f"{message}\n{''.join(list(train['departure'])[11:16])}"
+            departure = ''.join(list(train['departure'])[11:16])
+            arrival = ''.join(list(train['arrival'])[11:16])
+            message = f"{message}\n{departure} -> {arrival}"
         callback = (0, CallbackData("save_connection", update.effective_user.id,
                                     {"from": from_station, "to": to_station}))
         button = InlineKeyboardButton("Save connection", callback_data=callback)
