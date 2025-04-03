@@ -167,12 +167,16 @@ class Wordle(BaseModule):
     @prevent_edited
     async def get_pattern(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Get all words necessary to achieve provided pattern """
+        url = f"https://www.nytimes.com/svc/wordle/v2/{datetime.date.today():%Y-%m-%d}.json"
+        self._answer = requests.get(url, timeout=10).json()["solution"]
+
         args = self._get_args(context)[0]
         if not args:
             await update.message.reply_text("Please provide a pattern")
             return
-        pattern = args[0]
+        pattern = ''.join(args)
         if len(pattern) != 25:
+            print(len(pattern))
             await update.message.reply_text("Pattern must be 25 characters long")
             return
         if not all(c in "⬛🟩🟨" for c in pattern):
