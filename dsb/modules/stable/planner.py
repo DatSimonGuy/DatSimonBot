@@ -79,6 +79,7 @@ class Planner(BaseModule):
             "remove_lesson": self._remove_lesson_callback,
             "get_students": self._get_students_callback,
             "get_plan": self._get_plan_callback,
+            "save_connection": self._save_connection_callback
         }
         self.koleo = KoleoAPI()
 
@@ -806,7 +807,13 @@ class Planner(BaseModule):
         """
         _, kwargs = self._get_args(context)
         if not kwargs.get("from", None):
-            raise DSBError("Please specify the starting station")
+            saved_data = context.user_data.get("saved_connection", None)
+
+            if saved_data is not None:
+                kwargs["from"] = saved_data["from"]
+                kwargs["to"] = saved_data["to"]
+            else:
+                raise DSBError("Please specify the starting station")
         if not kwargs.get("to", None):
             raise DSBError("Please specify the destination station")
 
@@ -826,6 +833,8 @@ class Planner(BaseModule):
         markup = InlineKeyboardMarkup([[button]])
         await update.message.reply_text(message, reply_markup=markup)
 
-    # @callback_handler
-    # def _save_connection(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-    #     pass
+    @callback_handler
+    async def _save_connection_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        callback: CallbackData = update.callback_query.data[1]
+        context.user_data["saved_connection"] = callback.data
+        await update.effective_message.edit_reply_markup(None)
