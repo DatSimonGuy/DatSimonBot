@@ -806,12 +806,14 @@ class Planner(BaseModule):
             Number of trains to return, default is 2
         """
         _, kwargs = self._get_args(context)
+        send_markup = True
         if not kwargs.get("from", None):
             saved_data = context.user_data.get("saved_connection", None)
 
             if saved_data is not None:
                 kwargs["from"] = saved_data["from"]
                 kwargs["to"] = saved_data["to"]
+                send_markup = False
             else:
                 raise DSBError("Please specify the starting station")
         if not kwargs.get("to", None):
@@ -829,10 +831,13 @@ class Planner(BaseModule):
             departure = ''.join(list(train['departure'])[11:16])
             arrival = ''.join(list(train['arrival'])[11:16])
             message = f"{message}\n{departure} -> {arrival}"
-        callback = (0, CallbackData("save_connection", update.effective_user.id,
-                                    {"from": from_station, "to": to_station}))
-        button = InlineKeyboardButton("Save connection", callback_data=callback)
-        markup = InlineKeyboardMarkup([[button]])
+        if send_markup:
+            callback = (0, CallbackData("save_connection", update.effective_user.id,
+                                        {"from": from_station, "to": to_station}))
+            button = InlineKeyboardButton("Save connection", callback_data=callback)
+            markup = InlineKeyboardMarkup([[button]])
+        else:
+            markup = None
         await update.message.reply_text(message, reply_markup=markup)
 
     @callback_handler
