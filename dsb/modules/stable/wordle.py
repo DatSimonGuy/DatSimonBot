@@ -4,17 +4,19 @@ import datetime
 import requests
 from telegram import Update
 from telegram.ext import ContextTypes
-from dsb.types.module import BaseModule
+from dsb.types.module import BaseModule, prevent_edited
 
 class Wordle(BaseModule):
     """ Module for functions related to wordle """
     def __init__(self, bot, dsb):
         super().__init__(bot, dsb)
         self._handlers = {
-            "wordle_among_us": self._get_amogus
+            "wordle_among_us": self._get_amogus,
+            "wordle_pattern": self.get_pattern
         }
         self._descriptions = {
-            "wordle_among_us": "Get all words required to get amongus image in wordle"
+            "wordle_among_us": "Get all words required to get amongus image in wordle",
+            "wordle_pattern": "Get all words necessary to achieve provided pattern"
         }
         self._words = self.load_file("wordle_words.txt").decode().split("\n")
         self._answer = ""
@@ -161,3 +163,30 @@ class Wordle(BaseModule):
             reply_message += "\n"
 
         await update.message.reply_text(reply_message)
+
+    @prevent_edited
+    async def get_pattern(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Get all words necessary to achieve provided pattern """
+        url = f"https://www.nytimes.com/svc/wordle/v2/{datetime.date.today():%Y-%m-%d}.json"
+        self._answer = requests.get(url, timeout=10).json()["solution"]
+
+        args = self._get_args(context)[0]
+        if not args:
+            await update.message.reply_text("Please provide a pattern")
+            return
+        pattern = ''.join(args)
+        if len(pattern) != 25:
+            print(len(pattern))
+            await update.message.reply_text("Pattern must be 25 characters long")
+            return
+        if not all(c in "⬛🟩🟨" for c in pattern):
+            await update.message.reply_text("Pattern must contain only ⬛🟩🟨")
+            return
+        pattern = pattern.replace("⬛", "0").replace("🟩", "1").replace("🟨", "2")
+        pattern = [int(c) for c in pattern]
+        pattern = [pattern[i:i + 5] for i in range(0, 25, 5)]
+        words = await self._get_words_for_image(pattern)
+        if words == "Impossible":
+            await update.message.reply_text("Impossible")
+            return
+        await update.message.reply_text(f"Possible words: {', '.join(words)}")

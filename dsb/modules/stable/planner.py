@@ -2,7 +2,7 @@
 
 import copy
 from typing import TYPE_CHECKING
-from datetime import datetime
+from datetime import datetime, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from koleo.api import KoleoAPI
@@ -43,7 +43,7 @@ class Planner(BaseModule):
             "get_owners": self._get_owners,
             "transfer_plan_ownership": self._transfer_plan_ownership,
             "week_info": self._get_weekend_parity,
-            "get_next_train": self._get_next_train
+            "train": self._get_next_train
         }
         self._descriptions = {
             "create_plan": "Create a new lesson plan",
@@ -69,7 +69,7 @@ class Planner(BaseModule):
             "get_owners": "Get all plan owners (Admins only)",
             "transfer_plan_ownership": "Transfer plan ownership",
             "week_info": "Returns if week is odd or even",
-            "get_next_train": "Returns the next train"
+            "train": "Returns the next train"
         }
         self._callback_handlers = {
             "delete_plan": self._delete_plan_callback,
@@ -79,6 +79,7 @@ class Planner(BaseModule):
             "remove_lesson": self._remove_lesson_callback,
             "get_students": self._get_students_callback,
             "get_plan": self._get_plan_callback,
+            "save_connection": self._save_connection_callback
         }
         self.koleo = KoleoAPI()
 
@@ -805,27 +806,43 @@ class Planner(BaseModule):
             Number of trains to return, default is 2
         """
         _, kwargs = self._get_args(context)
+        send_markup = True
         if not kwargs.get("from", None):
-            raise DSBError("Please specify the starting station")
+            saved_data = context.user_data.get("saved_connection", None)
+
+            if saved_data is not None:
+                kwargs["from"] = saved_data["from"]
+                kwargs["to"] = saved_data["to"]
+                send_markup = False
+            else:
+                raise DSBError("Please specify the starting station")
         if not kwargs.get("to", None):
             raise DSBError("Please specify the destination station")
 
-        amount = int(kwargs.get("n", 2))
+        amount = int(kwargs.get("n", 4))
         from_station = kwargs["from"]
         to_station = kwargs["to"]
+        date = datetime.today() - timedelta(hours=1)
         trains = self.koleo.get_connections(from_station, to_station,
-                                            [], datetime.today())
+                                            [], date)
         if not trains:
             raise DSBError("No connections found")
         message = f"Trains from {from_station} to {to_station}:\n"
         for train in trains[:amount]:
-            message = f"{message}\n{''.join(list(train['departure'])[11:16])}"
-        callback = (0, CallbackData("save_connection", update.effective_user.id,
-                                    {"from": from_station, "to": to_station}))
-        button = InlineKeyboardButton("Save connection", callback_data=callback)
-        markup = InlineKeyboardMarkup([[button]])
+            departure = ''.join(list(train['departure'])[11:16])
+            arrival = ''.join(list(train['arrival'])[11:16])
+            message = f"{message}\n{departure} -> {arrival}"
+        if send_markup:
+            callback = (0, CallbackData("save_connection", update.effective_user.id,
+                                        {"from": from_station, "to": to_station}))
+            button = InlineKeyboardButton("Save connection", callback_data=callback)
+            markup = InlineKeyboardMarkup([[button]])
+        else:
+            markup = None
         await update.message.reply_text(message, reply_markup=markup)
 
-    # @callback_handler
-    # def _save_connection(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-    #     pass
+    @callback_handler
+    async def _save_connection_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        callback: CallbackData = update.callback_query.data[1]
+        context.user_data["saved_connection"] = callback.data
+        await update.effective_message.edit_reply_markup(None)
