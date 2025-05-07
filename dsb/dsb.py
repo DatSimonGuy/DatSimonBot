@@ -5,10 +5,10 @@ import time
 import asyncio
 import logging
 import threading
-import importlib.util
-from typing import Any
+from typing import Any, Optional
 import dotenv
 import requests
+import importlib
 from telegram import Update
 from telegram.ext import Application, CallbackContext
 import rich.console
@@ -100,9 +100,9 @@ class DSB:
         """ Get command descriptions """
         return self._command_descriptions
 
-    def get_handler(self, command:str) -> callable:
+    def get_handler(self, command:str) -> Optional[callable]:
         """ Get handler function for a command """
-        return self._command_handlers[command]
+        return self._command_handlers.get(command, None)
 
     def __parse_config(self, config: dict[str, str]) -> dict[str, Any]:
         """ Parse the environment variables """

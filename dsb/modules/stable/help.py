@@ -63,15 +63,15 @@ class Help(BaseModule):
         botfather : No value (Optional)
             If added, display all commands in botfather compatible format, ignores command arg.
         """
-        args, kwargs = self._get_args(context)
-        if "botfather" in kwargs or "botfather" in args:
+        args = self._parse_command(context)
+        if "botfather" in args.values():
             help_message = "BotFather format commands:\n```\n"
             for command, desc in self._dsb.commands.items():
                 help_message += f"{command} - {desc}\n"
             help_message += "```"
             await update.message.reply_text(help_message, parse_mode="Markdown")
-        elif args:
-            command = args[0]
+        elif len(args["0"]) > 0:
+            command = args["0"]
             handler = self._dsb.get_handler(command)
             if not handler:
                 await update.message.reply_text(f"Unknown command {command}")

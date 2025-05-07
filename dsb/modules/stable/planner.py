@@ -135,11 +135,6 @@ class Planner(BaseModule):
 
         return free_students, busy_students
 
-    def __get_plan_name(self, context: ContextTypes.DEFAULT_TYPE) -> str:
-        """ Get plan name from update """
-        args, _ = self._get_args(context)
-        return " ".join(args)
-
     def __get_plan(self, context: ContextTypes.DEFAULT_TYPE, plan_name: str) -> Plan:
         """ Get plan by name """
         plan = context.chat_data.get("plans", {}).get(plan_name, None)
@@ -150,8 +145,8 @@ class Planner(BaseModule):
     def __get_plan_from_update(self, _: Update,
                                context: ContextTypes.DEFAULT_TYPE) -> tuple[str, Plan]:
         """ Returns plan name, plan object and kwargs """
-        args, _ = self._get_args(context)
-        plan_name = " ".join(args)
+        args = self._parse_command(context)
+        plan_name = args["0"]
         plan = self.__get_plan(context, plan_name)
         return plan_name, plan
 
@@ -167,7 +162,7 @@ class Planner(BaseModule):
         name : text
             Name of the plan
         """
-        plan_name = self.__get_plan_name(context)
+        plan_name = self._parse_command(context)["0"]
         if len(plan_name) < 1:
             raise InvalidPlanNameError(plan_name)
         self.__create_plan(update, context, plan_name)
@@ -313,13 +308,22 @@ class Planner(BaseModule):
         repeat : "even" or "odd" or "not" (optional)
             Repeat the lesson every even or odd week
         """
-        _, kwargs = self._get_args(context)
+        required_args = {
+            "day": str,
+            "subject": str,
+            "teacher": str,
+            "room": str,
+            "start": str,
+            "end": str,
+            "type": str,
+        }
+        args = self._parse_command(context, required_args)
         plan_name, plan = self.__get_plan_from_update(update, context)
 
         if not plan:
             raise PlanNotFoundError(plan_name)
 
-        new_lesson = Lesson(kwargs)
+        new_lesson = Lesson(args)
 
         plan.add_lesson(new_lesson.day - 1, new_lesson)
         await self._like(update)
@@ -406,7 +410,14 @@ class Planner(BaseModule):
         repeat : "even" or "odd" or "not" (optional)
             Repeat the lesson every even or odd week
         """
-        _, kwargs = self._get_args(context)
+        required_args = {
+            "idx": int,
+            "day": int
+        }
+        optional_args = {
+            "new_day": int,
+        }
+        args = self._parse_command(context, required_args, optional_args)
         plan_name, plan = self.__get_plan_from_update(update, context)
 
         if not plan:
@@ -416,36 +427,23 @@ class Planner(BaseModule):
         if not self.__is_owner(plan, user_id):
             raise PlanOwnershipError()
 
-        idx = to_index(kwargs.get("idx", ""))
-        day = str_to_day(kwargs.get("day", ""))
-        new_day = str_to_day(kwargs.get("new_day", ""))
-
-        if idx is None:
-            raise InvalidValueError("idx")
-
-        if not day:
-            raise InvalidValueError("day")
-
-        lessons = plan.get_day(day - 1)
+        lessons = plan.get_day(args["day"] - 1)
         if not lessons:
             await update.message.reply_text("No lessons for this day")
             return
 
         try:
-            lesson = lessons[idx]
+            lesson = lessons[args["idx"]]
         except IndexError as exc:
             raise LessonNotFoundError() from exc
 
-        if new_day:
-            kwargs["day"] = kwargs["new_day"]
-
         lesson_data = lesson.to_dict()
-        lesson_data.update(kwargs)
+        lesson_data.update(args)
 
         new_lesson = Lesson(lesson_data)
 
-        plan.remove_lesson_by_index(day - 1, idx)
-        plan.add_lesson(new_day - 1 if new_day else day - 1, new_lesson)
+        plan.remove_lesson_by_index(args["day"] - 1, args["idx"])
+        plan.add_lesson(args["new_day"] - 1 if args["new_day"] else args["day"] - 1, new_lesson)
         await self._like(update)
 
     @callback_handler
@@ -525,7 +523,7 @@ class Planner(BaseModule):
         new_name : text
             New name of the plan
         """
-        _, kwargs = self._get_args(context)
+        args = self._parse_command(context, {"new_name", str})
         plan_name, plan = self.__get_plan_from_update(update, context)
 
         if plan is None:
@@ -535,10 +533,7 @@ class Planner(BaseModule):
         if not self.__is_owner(plan, user_id):
             raise PlanOwnershipError()
 
-        new_name = kwargs.get("new_name", None)
-        if new_name is None:
-            raise InvalidValueError("new_name")
-        context.chat_data["plans"][new_name] = context.chat_data["plans"].pop(plan_name)
+        context.chat_data["plans"][args["new_name"]] = context.chat_data["plans"].pop(plan_name)
 
         await self._like(update)
 
@@ -689,9 +684,9 @@ class Planner(BaseModule):
         """
         if "saved_plan" not in context.user_data:
             raise DSBError("No plan saved")
-        args, _ = self._get_args(context)
+        args = self._parse_command(context)
         plan_name, plan = context.user_data["saved_plan"]
-        plan_name = " ".join(args) if args else plan_name
+        plan_name = args["0"] if args["0"] != "" else plan_name
         plans = self.__get_plans(context)
         if plan_name in plans:
             raise PlanTransferError(plan_name)
@@ -758,7 +753,10 @@ class Planner(BaseModule):
         new_owner : number
             New owner of the plan, telegram id of the selected user
         """
-        _, kwargs = self._get_args(context)
+        required_args = {
+            "new_owner": int
+        }
+        args = self._parse_command(context, required_args)
         plan_name, plan = self.__get_plan_from_update(update, context)
 
         if not plan:
@@ -768,12 +766,7 @@ class Planner(BaseModule):
         if not self.__is_owner(plan, user_id):
             raise PlanOwnershipError()
 
-        if "new_owner" not in kwargs:
-            raise InvalidValueError("new_owner")
-
-        new_owner = to_index(kwargs.get("new_owner"))
-
-        plan.owner = new_owner
+        plan.owner = args["new_owner"]
         await self._like(update)
 
     @prevent_edited
@@ -805,23 +798,23 @@ class Planner(BaseModule):
         n : number (optional)
             Number of trains to return, default is 2
         """
-        _, kwargs = self._get_args(context)
+        args = self._parse_command(context, optional_args={"n": int})
         send_markup = True
-        if not kwargs.get("from", None):
+        if not args.get("from", None):
             saved_data = context.user_data.get("saved_connection", None)
 
             if saved_data is not None:
-                kwargs["from"] = saved_data["from"]
-                kwargs["to"] = saved_data["to"]
+                args["from"] = saved_data["from"]
+                args["to"] = saved_data["to"]
                 send_markup = False
             else:
                 raise DSBError("Please specify the starting station")
-        if not kwargs.get("to", None):
+        if not args.get("to", None):
             raise DSBError("Please specify the destination station")
 
-        amount = int(kwargs.get("n", 4))
-        from_station = kwargs["from"]
-        to_station = kwargs["to"]
+        amount = args.get("n", 4)
+        from_station = args["from"]
+        to_station = args["to"]
         date = datetime.today() - timedelta(hours=1)
         trains = self.koleo.get_connections(from_station, to_station,
                                             [], date)

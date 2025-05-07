@@ -7,6 +7,7 @@ from telegram import Update
 from telegram.ext import CommandHandler, Application, ContextTypes, CallbackQueryHandler, \
     InlineQueryHandler, InvalidCallbackData
 from dsb.utils.button_picker import CallbackData
+from dsb.types.errors import DSBError
 if TYPE_CHECKING:
     from dsb.dsb import DSB
 
@@ -150,6 +151,82 @@ class BaseModule:
         if current and current not in kwargs:
             kwargs[current] = True
         return args, kwargs
+
+    def _parse_command(self, context: ContextTypes.DEFAULT_TYPE,
+                       required_args: dict[str, type] | None = None,
+                       optional_args: dict[str, type] | None = None,
+                       default_arg_type: type = str) -> dict:
+        """ Parse the command arguments 
+
+        Args:
+            context (ContextTypes.DEFAULT_TYPE): update context
+            required_args (dict[str, type]): dictionary of required arguments and their types
+            required_args (dict[str, type]): dictionary of optional arguments and their types
+            default_arg (type, optional): The type of the unnamed argument after the command. Defaults to str.
+
+        Returns:
+            dict: dict of parsed argument values.
+        
+        Raises:
+            DSBError: When there's a missing argument or the argument type does not match
+        """
+        argstr = str(" ".join(context.args))
+        argstr = argstr.replace("—", "--")
+        args = argstr.split("--")
+        data = {}
+        try:
+            default = default_arg_type(args[0].strip())
+            data["0"] = default
+        except TypeError:
+            raise DSBError(f"The first argument should be of type {str(default_arg_type)}")
+        for arg in args[1:]:
+            arg = arg.split(maxsplit=1)
+            if len(arg) == 1:
+                name, value = arg[0], arg[0]
+            else:
+                name, value = arg
+            data[name] = value.strip()
+
+        if required_args:
+            self.__validate_required_args(required_args, data)
+
+        if optional_args:
+            self.__validate_optional_arguments(optional_args, data)
+
+        return data
+
+    def __validate_optional_arguments(self, optional_args, data):
+        invalid_types = []
+        for arg in optional_args:
+            try:
+                data[arg] = optional_args[arg](data[arg])
+            except ValueError:
+                invalid_types.append((arg, optional_args[arg]))
+        if len(invalid_types) > 0:
+            error_message = "\n".join(f"Invalid type of {arg}, should be {t}"
+                                           for arg, t in invalid_types)
+            raise DSBError(error_message)
+
+    def __validate_required_args(self, required_args, data):
+        missing_args = []
+        invalid_types = []
+        for arg in required_args:
+            if arg not in data:
+                missing_args.append(arg)
+                continue
+            try:
+                data[arg] = required_args[arg](data[arg])
+            except ValueError:
+                invalid_types.append((arg, required_args[arg]))
+        error_message = ""
+        if len(missing_args) > 0:
+            error_message += "\n".join(f"Missing argument {arg}" for arg in missing_args)
+            error_message += "\n"
+        if len(invalid_types) > 0:
+            error_message += "\n".join(f"Invalid type of {arg}, should be {t}"
+                                           for arg, t in invalid_types)
+        if len(error_message) > 0:
+            raise DSBError(error_message)
 
     def prepare(self) -> bool:
         """ Prepare the module """

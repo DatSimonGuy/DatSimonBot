@@ -232,14 +232,13 @@ class MessageHandler(BaseModule):
 
         await update.message.reply_text("Transcribing...")
 
-        args, _ = self._get_args(context)
+        args = self._parse_command(context)
 
         if args:
-            language=args[0]
+            language=args["0"]
         else:
             language="pl-PL"
 
-        # Download the voice file
         file = await update.message.reply_to_message.voice.get_file()
         os.makedirs("dsb/database/temp", exist_ok=True)
         oga_path = f"dsb/database/temp/{os.path.basename(file.file_path)}"
@@ -261,7 +260,6 @@ class MessageHandler(BaseModule):
         except Exception as e: # pylint: disable=W0718
             await update.message.reply_text(f"An error occurred: {e}")
         finally:
-            # Clean up temporary files
             if os.path.exists(oga_path):
                 os.remove(oga_path)
             if os.path.exists(flac_path):
