@@ -9,7 +9,7 @@ from telegram.ext import CommandHandler, Application, ContextTypes, CallbackQuer
 from dsb.utils.button_picker import CallbackData
 from dsb.types.errors import DSBError
 if TYPE_CHECKING:
-    from dsb.dsb import DSB
+    from dsb.old_dsb import DSB
 
 def admin_only(func):
     """ Decorator for admin only commands """
@@ -97,7 +97,7 @@ class BaseModule:
     def load_file(self, path: str) -> bytes:
         """ Load a file """
         try:
-            with open(os.path.join(self._dsb.config["database_path"], path), "rb") as file:
+            with open(os.path.join("dsb/database", path), "rb") as file:
                 return file.read()
         except FileNotFoundError:
             return b""

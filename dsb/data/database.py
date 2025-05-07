@@ -5,7 +5,7 @@ import jsonpickle
 
 class Database:
     """ Class for handling the persistance data """
-    def __init__(self, path: str) -> None:
+    def __init__(self, path: str = "dsb/database") -> None:
         """ Initialize the database """
         self._path = path
         self.__setup()
