@@ -5,23 +5,21 @@ import shutil
 from telegram import Update
 from telegram.ext import Application, ContextTypes
 from dsb.old_dsb import DSB
-from dsb.types.module import BaseModule, prevent_edited, admin_only
+from dsb.types.module import BaseModule, HandlerType
 
 class Backup(BaseModule):
     """ Backup module """
     def __init__(self, bot: Application, telebot_module: DSB) -> None:
         super().__init__(bot, telebot_module)
         self._handlers = {
-            "backup": self._backup,
-            "restore": self._restore
+            "backup": (self._backup, HandlerType.BOT_ADMIN),
+            "restore": (self._restore, HandlerType.BOT_ADMIN)
         }
         self._descriptions = {
             "backup": "Send a backup of the database",
             "restore": "Restore the database from a backup"
         }
 
-    @admin_only
-    @prevent_edited
     async def _backup(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Create backup of the database and send it to the user. (Admin only)
@@ -52,8 +50,6 @@ class Backup(BaseModule):
         finally:
             os.remove("backup.zip")
 
-    @admin_only
-    @prevent_edited
     async def _restore(self, update: Update, _) -> None:
         """
         Restore the database from a backup file. (Admin only)

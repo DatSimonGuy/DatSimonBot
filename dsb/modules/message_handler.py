@@ -9,20 +9,25 @@ import telegram.ext
 import pronouncing
 from pydub import AudioSegment
 import speech_recognition as sr
-from dsb.types.module import BaseModule, prevent_edited, admin_only
+from dsb.types.module import BaseModule, HandlerType
 
 class MessageHandler(BaseModule):
     """ Module for handling text messages """
     def __init__(self, ptb, telebot) -> None:
         super().__init__(ptb, telebot)
         self._handlers = {
-            "who_am_i": self._user_info,
-            "who_are_you": self._sender_info,
-            "whoami": self._user_info,
-            "what_broke": self._what_broke,
-            "stt": self._stt,
-            "silly_cipher": self._silly_cipher,
-            "random_haiku": self._get_random_haiku
+            "who_am_i": (self._user_info, HandlerType.DEFAULT),
+            "who_are_you": (self._sender_info, HandlerType.DEFAULT),
+            "whoami": (self._user_info, HandlerType.DEFAULT),
+            "what_broke": (self._what_broke, HandlerType.BOT_ADMIN),
+            "stt": (self._stt, HandlerType.DEFAULT),
+            "silly_cipher": (self._silly_cipher, HandlerType.DEFAULT),
+            "random_haiku": (self._get_random_haiku, HandlerType.DEFAULT),
+            "silly": (self._make_silly, HandlerType.INLINE),
+            "cls": (self._clear_chat, HandlerType.INLINE),
+            "clear": (self._clear_chat, HandlerType.INLINE),
+            "f": (self._format_text, HandlerType.INLINE),
+            "format": (self._format_text, HandlerType.INLINE)
         }
         self._descriptions = {
             "who_am_i": "Get user id",
@@ -36,13 +41,6 @@ class MessageHandler(BaseModule):
             "🫰": self._snap,
             "📊": self._ynpoll,
             "➕": self._repeat
-        }
-        self._inline_handlers = {
-            "silly": self._make_silly,
-            "cls": self._clear_chat,
-            "clear": self._clear_chat,
-            "f": self._format_text,
-            "format": self._format_text
         }
         self._messages = {}
         self._message_handler = telegram.ext.MessageHandler(filters.ALL & ~filters.COMMAND,
@@ -63,8 +61,6 @@ class MessageHandler(BaseModule):
         """ Returns the list of messages """
         return self._messages
 
-    @admin_only
-    @prevent_edited
     async def _what_broke(self, update: Update, _) -> None:
         """
         Get last log message. (Admin only)
@@ -77,7 +73,6 @@ class MessageHandler(BaseModule):
         message = self._dsb.logs[-1]
         await update.message.reply_text(f"```{message}```", parse_mode="Markdownv2")
 
-    @prevent_edited
     async def _user_info(self, update: Update, _) -> None:
         """
         Get user info.
@@ -87,7 +82,6 @@ class MessageHandler(BaseModule):
         id_info = f"Your id: `{update.message.from_user.id}`"
         await update.message.reply_text(f"{id_info}", parse_mode="Markdownv2")
 
-    @prevent_edited
     async def _sender_info(self, update: Update, _) -> None:
         """
         Get sender info.
@@ -119,7 +113,6 @@ class MessageHandler(BaseModule):
         text = "".join(text)
         return text
 
-    @prevent_edited
     async def _clear_chat(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """ Clear chat messages """
         message = "." + "\n" * 100 + "."
@@ -128,7 +121,6 @@ class MessageHandler(BaseModule):
                                            input_message_content=InputTextMessageContent(message))]
         await update.inline_query.answer(result)
 
-    @prevent_edited
     async def _format_text(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """ Format message in different ways """
         query = update.inline_query.query
@@ -150,7 +142,6 @@ class MessageHandler(BaseModule):
                                      input_message_content=InputTextMessageContent(random_cap))]
         await update.inline_query.answer(result)
 
-    @prevent_edited
     async def _make_silly(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """ Make silly text """
         query = update.inline_query.query
@@ -163,7 +154,6 @@ class MessageHandler(BaseModule):
                                            input_message_content=InputTextMessageContent(text))]
         await update.inline_query.answer(result)
 
-    @prevent_edited
     async def _silly_cipher(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Encode or decode text to silly language.
@@ -212,7 +202,6 @@ class MessageHandler(BaseModule):
         """ Detect nerds """
         await update.message.set_reaction("🤓")
 
-    @prevent_edited
     async def _stt(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Send a transcription of the voice message.
@@ -296,7 +285,6 @@ class MessageHandler(BaseModule):
                 return None
         return None
 
-    @prevent_edited
     async def _get_random_haiku(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Sends a random haiku from the current chat
@@ -312,7 +300,6 @@ class MessageHandler(BaseModule):
         random_haiku = random.choice(haikus[random_user])
         await update.message.reply_text(random_haiku)
 
-    @prevent_edited
     async def _handle_text(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Handle text messages """
         if update.message.text and update.message.text in self._handled_emotes:

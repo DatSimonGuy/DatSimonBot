@@ -8,7 +8,7 @@ from telegram.ext import ContextTypes
 from koleo.api import KoleoAPI
 from dsb.types.lesson import Lesson, str_to_day
 from dsb.types.plan import Plan
-from dsb.types.module import BaseModule, prevent_edited, admin_only, callback_handler
+from dsb.types.module import BaseModule, HandlerType, callback_handler
 from dsb.types.errors import *
 from dsb.utils.transforms import to_index
 from dsb.utils.button_picker import ButtonPicker, CallbackData
@@ -20,30 +20,38 @@ class Planner(BaseModule):
     def __init__(self, ptb, telebot: 'DSB') -> None:
         super().__init__(ptb, telebot)
         self._handlers = {
-            "create_plan": self._create_plan,
-            "delete_plan": self._delete_plan,
-            "get_plan": self._get_plan,
-            "plan": self._get_plan,
-            "get_plans": self._get_plans,
-            "delete_all": self._delete_all,
-            "add_lesson": self._add_lesson,
-            "remove_lesson": self._remove_lesson,
-            "edit_lesson": self._edit_lesson,
-            "clear_day": self._clear_day,
-            "clear_all": self._clear_all,
-            "edit_plan": self._edit_plan,
-            "status": self._status,
-            "where_next": self._get_roomnxt,
-            "where_now": self._get_roomnow,
-            "join_plan": self._join_plan,
-            "leave_plan": self._leave_plan,
-            "get_students": self._get_students,
-            "copy_plan": self._copy_plan,
-            "paste_plan": self._paste_plan,
-            "get_owners": self._get_owners,
-            "transfer_plan_ownership": self._transfer_plan_ownership,
-            "week_info": self._get_weekend_parity,
-            "train": self._get_next_train
+            "create_plan": (self._create_plan, HandlerType.DEFAULT),
+            "delete_plan": (self._delete_plan, HandlerType.DEFAULT),
+            "get_plan": (self._get_plan, HandlerType.DEFAULT),
+            "plan": (self._get_plan, HandlerType.DEFAULT),
+            "get_plans": (self._get_plans, HandlerType.DEFAULT),
+            "delete_all": (self._delete_all, HandlerType.BOT_ADMIN),
+            "add_lesson": (self._add_lesson, HandlerType.DEFAULT),
+            "remove_lesson": (self._remove_lesson, HandlerType.DEFAULT),
+            "edit_lesson": (self._edit_lesson, HandlerType.DEFAULT),
+            "clear_day": (self._clear_day, HandlerType.DEFAULT),
+            "clear_all": (self._clear_all, HandlerType.DEFAULT),
+            "edit_plan": (self._edit_plan, HandlerType.DEFAULT),
+            "status": (self._status, HandlerType.DEFAULT),
+            "where_next": (self._get_roomnxt, HandlerType.DEFAULT),
+            "where_now": (self._get_roomnow, HandlerType.DEFAULT),
+            "join_plan": (self._join_plan, HandlerType.DEFAULT),
+            "leave_plan": (self._leave_plan, HandlerType.DEFAULT),
+            "get_students": (self._get_students, HandlerType.DEFAULT),
+            "copy_plan": (self._copy_plan, HandlerType.DEFAULT),
+            "paste_plan": (self._paste_plan, HandlerType.DEFAULT),
+            "get_owners": (self._get_owners, HandlerType.BOT_ADMIN),
+            "transfer_plan_ownership": (self._transfer_plan_ownership, HandlerType.DEFAULT),
+            "week_info": (self._get_weekend_parity, HandlerType.DEFAULT),
+            "train": (self._get_next_train, HandlerType.DEFAULT),
+            "delete_plan": (self._delete_plan_callback, HandlerType.CALLBACK),
+            "clear_day": (self._clear_day_callback, HandlerType.CALLBACK),
+            "clear_all": (self._clear_all_callback, HandlerType.CALLBACK),
+            "join_plan": (self._join_plan_callback, HandlerType.CALLBACK),
+            "remove_lesson": (self._remove_lesson_callback, HandlerType.CALLBACK),
+            "get_students": (self._get_students_callback, HandlerType.CALLBACK),
+            "get_plan": (self._get_plan_callback, HandlerType.CALLBACK),
+            "save_connection": (self._save_connection_callback, HandlerType.CALLBACK)
         }
         self._descriptions = {
             "create_plan": "Create a new lesson plan",
@@ -70,16 +78,6 @@ class Planner(BaseModule):
             "transfer_plan_ownership": "Transfer plan ownership",
             "week_info": "Returns if week is odd or even",
             "train": "Returns the next train"
-        }
-        self._callback_handlers = {
-            "delete_plan": self._delete_plan_callback,
-            "clear_day": self._clear_day_callback,
-            "clear_all": self._clear_all_callback,
-            "join_plan": self._join_plan_callback,
-            "remove_lesson": self._remove_lesson_callback,
-            "get_students": self._get_students_callback,
-            "get_plan": self._get_plan_callback,
-            "save_connection": self._save_connection_callback
         }
         self.koleo = KoleoAPI()
 
@@ -155,7 +153,6 @@ class Planner(BaseModule):
         plan = self.__get_plan(context, plan_name)
         return plan_name, plan
 
-    @prevent_edited
     async def _create_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Create a new lesson plan.
@@ -184,7 +181,6 @@ class Planner(BaseModule):
                                            update.effective_message.message_id)
         await context.bot.send_message(update.effective_chat.id, "Plan deleted")
 
-    @prevent_edited
     async def _delete_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Delete a lesson plan.
@@ -216,7 +212,6 @@ class Planner(BaseModule):
             raise PlanEmptyError()
         await context.bot.send_photo(chat_id, photo=plan_image)
 
-    @prevent_edited
     async def _get_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Get a lesson plan. The difference between /get_plan and /plan is that /get_plan
@@ -254,7 +249,6 @@ class Planner(BaseModule):
         plan_image = plan.to_image(plan_name)
         await update.message.reply_photo(plan_image)
 
-    @prevent_edited
     async def _get_plans(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Get all lesson plans in the group.
@@ -275,8 +269,6 @@ class Planner(BaseModule):
 
         await update.message.reply_text(plans_str)
 
-    @admin_only
-    @prevent_edited
     async def _delete_all(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Delete all lesson plans in the group. (Admin only)
@@ -286,7 +278,6 @@ class Planner(BaseModule):
         context.chat_data["plans"].clear()
         await self._like(update)
 
-    @prevent_edited
     async def _add_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Add a lesson to a plan.
@@ -356,7 +347,6 @@ class Planner(BaseModule):
         await context.bot.delete_message(chat_id, update.effective_message.id)
         await context.bot.send_message(chat_id, "Lesson removed")
 
-    @prevent_edited
     async def _remove_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Remove a lesson from a plan.
@@ -374,7 +364,6 @@ class Planner(BaseModule):
         await update.message.reply_text("Pick a plan you want to remove a lesson from",
                                         reply_markup=picker)
 
-    @prevent_edited
     async def _edit_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Edit a lesson in a plan.
@@ -469,7 +458,6 @@ class Planner(BaseModule):
         await context.bot.delete_message(chat_id, update.effective_message.id)
         await context.bot.send_message(chat_id, "Day cleared")
 
-    @prevent_edited
     async def _clear_day(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Clear all lessons for a day.
@@ -497,7 +485,6 @@ class Planner(BaseModule):
         await context.bot.delete_message(chat_id, update.effective_message.id)
         await context.bot.send_message(chat_id, "All lessons cleared")
 
-    @prevent_edited
     async def _clear_all(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Clear all lessons for a plan.
@@ -513,7 +500,6 @@ class Planner(BaseModule):
             raise NoPlansFoundError()
         await update.message.reply_text("Choose a plan to clear", reply_markup=picker)
 
-    @prevent_edited
     async def _edit_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Edit a plan name.
@@ -542,7 +528,6 @@ class Planner(BaseModule):
 
         await self._like(update)
 
-    @prevent_edited
     async def _status(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Get status of all students in this group.
@@ -563,7 +548,6 @@ class Planner(BaseModule):
 
         await update.message.reply_text(student_list)
 
-    @prevent_edited
     async def _get_roomnxt(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Send room you have lessons in next.
@@ -586,7 +570,6 @@ class Planner(BaseModule):
         await update.message.reply_text(f"You have your next lesson in {lesson.room}" + \
             f"\nTime left to the beginning: {h}h {m}min")
 
-    @prevent_edited
     async def _get_roomnow(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Send room you have lessons in now.
@@ -625,7 +608,6 @@ class Planner(BaseModule):
         await context.bot.delete_message(chat_id, update.effective_message.id)
         await context.bot.send_message(chat_id, f"You have joined {plan_name}")
 
-    @prevent_edited
     async def _join_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Join a lesson plan. (/plan will default to this plan)
@@ -641,7 +623,6 @@ class Planner(BaseModule):
             raise NoPlansFoundError()
         await update.message.reply_text("Choose a plan to join:", reply_markup=picker)
 
-    @prevent_edited
     async def _leave_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Leave a lesson plan you are currently in.
@@ -657,7 +638,6 @@ class Planner(BaseModule):
             return
         await update.message.reply_text("You are not in any plan")
 
-    @prevent_edited
     async def _copy_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Copy a plan to clipboard. Use /paste_plan to copy it to the selected chat.
@@ -675,7 +655,6 @@ class Planner(BaseModule):
         context.user_data["saved_plan"] = (plan_name, copy.deepcopy(plan))
         await self._like(update)
 
-    @prevent_edited
     async def _paste_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Paste a plan from the user data and save it in the group data.
@@ -700,8 +679,6 @@ class Planner(BaseModule):
         context.user_data.pop("saved_plan")
         await self._like(update)
 
-    @admin_only
-    @prevent_edited
     async def _get_owners(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Get all plan owners. (Admins only)
@@ -729,7 +706,6 @@ class Planner(BaseModule):
         await context.bot.delete_message(chat_id, update.effective_message.id)
         await context.bot.send_message(chat_id, f"Students:\n{'\n'.join(students)}")
 
-    @prevent_edited
     async def _get_students(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Get all students in a plan.
@@ -745,7 +721,6 @@ class Planner(BaseModule):
             raise NoPlansFoundError()
         await update.message.reply_text("Choose a plan to get students from:", reply_markup=picker)
 
-    @prevent_edited
     async def _transfer_plan_ownership(self, update: Update,
                                        context: ContextTypes.DEFAULT_TYPE) -> None:
         """
@@ -776,7 +751,6 @@ class Planner(BaseModule):
         plan.owner = new_owner
         await self._like(update)
 
-    @prevent_edited
     async def _get_weekend_parity(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Returns if the weekend is odd or even.
@@ -789,7 +763,6 @@ class Planner(BaseModule):
         else:
             await update.message.reply_text("odd")
 
-    @prevent_edited
     async def _get_next_train(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Returns the next train and the train after it.

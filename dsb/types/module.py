@@ -2,14 +2,22 @@
 
 import os
 import functools
+import enum
 from typing import TYPE_CHECKING
 from telegram import Update
 from telegram.ext import CommandHandler, Application, ContextTypes, CallbackQueryHandler, \
     InlineQueryHandler, InvalidCallbackData
 from dsb.utils.button_picker import CallbackData
 from dsb.types.errors import DSBError
+from dsb.types.handlers import AdminCommandHandler, DSBCommandHandler
 if TYPE_CHECKING:
     from dsb.old_dsb import DSB
+
+class HandlerType(enum.Enum):
+    DEFAULT = 0
+    BOT_ADMIN = 1
+    CALLBACK = 2
+    INLINE = 3
 
 def admin_only(func):
     """ Decorator for admin only commands """
@@ -108,19 +116,20 @@ class BaseModule:
     def add_handlers(self) -> None:
         """ Add handlers to the dispatcher """
         for command, handler in self._handlers.items():
-            handler = CommandHandler(command, handler)
-            self._handler_list.append(handler)
-            self._bot.add_handler(handler)
-        for func, handler in self._callback_handlers.items():
-            handler = CallbackQueryHandler(
-                handler,
-                pattern=lambda x, func=func: isinstance(x, InvalidCallbackData) \
-                    or x[1].prefix == func
-            )
-            self._handler_list.append(handler)
-            self._bot.add_handler(handler)
-        for command, handler in self._inline_handlers.items():
-            handler = InlineQueryHandler(handler, pattern=command)
+            handler_type: HandlerType = handler[1]
+            match handler_type:
+                case HandlerType.DEFAULT:
+                    handler = DSBCommandHandler(command, handler[0])
+                case HandlerType.BOT_ADMIN:
+                    handler = AdminCommandHandler(self._dsb, command, handler[0])
+                case HandlerType.CALLBACK:
+                    handler = CallbackQueryHandler(
+                        handler,
+                        pattern=lambda x, func=command: isinstance(x, InvalidCallbackData) \
+                            or x[1].prefix == func
+                    )
+                case HandlerType.INLINE:
+                    handler = InlineQueryHandler(handler, pattern=command)
             self._handler_list.append(handler)
             self._bot.add_handler(handler)
 

@@ -4,15 +4,15 @@ import datetime
 import requests
 from telegram import Update
 from telegram.ext import ContextTypes
-from dsb.types.module import BaseModule, prevent_edited
+from dsb.types.module import BaseModule, HandlerType
 
 class Wordle(BaseModule):
     """ Module for functions related to wordle """
     def __init__(self, bot, dsb):
         super().__init__(bot, dsb)
         self._handlers = {
-            "wordle_among_us": self._get_amogus,
-            "wordle_pattern": self.get_pattern
+            "wordle_among_us": (self._get_amogus, HandlerType.DEFAULT),
+            "wordle_pattern": (self.get_pattern, HandlerType.DEFAULT)
         }
         self._descriptions = {
             "wordle_among_us": "Get all words required to get amongus image in wordle",
@@ -164,7 +164,6 @@ class Wordle(BaseModule):
 
         await update.message.reply_text(reply_message)
 
-    @prevent_edited
     async def get_pattern(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Get all words necessary to achieve provided pattern """
         url = f"https://www.nytimes.com/svc/wordle/v2/{datetime.date.today():%Y-%m-%d}.json"

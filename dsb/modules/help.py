@@ -2,7 +2,7 @@
 
 from telegram import Update
 from telegram.ext import ContextTypes, Application
-from dsb.types.module import BaseModule
+from dsb.types.module import BaseModule, HandlerType
 from dsb.old_dsb import DSB
 
 class Help(BaseModule):
@@ -10,7 +10,7 @@ class Help(BaseModule):
     def __init__(self, ptb: Application, dsb: DSB) -> None:
         super().__init__(ptb, dsb)
         self._handlers = {
-            "help": self._help
+            "help": (self._help, HandlerType.DEFAULT)
         }
         self._descriptions = {
             "help": "Display help message"
