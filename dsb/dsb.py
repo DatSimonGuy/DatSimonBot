@@ -23,7 +23,7 @@ class DSB:
         self._config = self.__get_env()
         self.database = Database()
 
-        self._modules = {}
+        self._modules = []
         self._active_modules: dict[str, BaseModule] = {}
         self._api_task = DSBApiThread(self.database, self._config["api_port"])
         
@@ -91,24 +91,23 @@ class DSB:
         return logger
 
     def __get_env(self) -> dict:
-        """ Check if environment variables are properly set """
+        """ Load or prompt for environment variables. """
         if not os.path.exists(".env"):
-            token = input("Please input your telegram api token: ")
-            admins = input("Please input bot admins ids separated by space: ")
-            port = input("Please input the port that api should use")
-            open(".env", "w", encoding="utf-8")
-            dotenv.set_key(".env", "token", token)
-            dotenv.set_key(".env", "admins", admins.replace(" ", ","))
-            dotenv.set_key(".env", "api_port", port)
+            token = input("Telegram API token: ")
+            admins = input("Bot admin IDs (space-separated): ")
+            port = input("API port: ")
+            with open(".env", "w", encoding="utf-8") as _:
+                dotenv.set_key(".env", "token", token)
+                dotenv.set_key(".env", "admins", admins.replace(" ", ","))
+                dotenv.set_key(".env", "api_port", port)
         else:
-            for key in ["token", "admins", "api_port"]:
-                if dotenv.get_key(".env", key) is not None:
-                    continue
-                print(f"Please add {key} to your .env file")
-                exit(0)
+            missing_keys = [key for key in ["token", "admins", "api_port"] if dotenv.get_key(".env", key) is None]
+            if missing_keys:
+                print(f"Missing keys in .env: {', '.join(missing_keys)}")
+                exit(1)
+
         values = dotenv.dotenv_values(".env")
-        admins = values["admins"].split(",")
-        values["admins"] = set([int(admin) for admin in admins])
+        values["admins"] = {int(admin) for admin in values["admins"].split(",")}
         return values
 
     def __load_modules(self) -> None:
@@ -117,12 +116,13 @@ class DSB:
             if module.startswith("__"):
                 continue
             module_name = module.replace(".py", "").title().replace("_", "")
-            mod = importlib.import_module(f"dsb.modules.{module.replace('.py', '')}")
-            self._modules[mod] = module_name
-            module_class = getattr(mod, module_name, None)
-            if module_class is None or not issubclass(module_class, BaseModule):
-                continue
+            module_path = f"dsb.modules.{module.replace('.py', '')}"
             try:
+                module = importlib.import_module(module_path)
+                self._modules.append((module_name, module))
+                module_class = getattr(module, module_name, None)
+                if module_class is None or not issubclass(module_class, BaseModule):
+                    continue
                 module_instance = module_class(self._app, self)
             except Exception as e:
                 print(f"Failed to load module {module_name}")
@@ -134,17 +134,19 @@ class DSB:
         """ Reload modules during runtime """
         importlib.invalidate_caches()
         self.__disable_modules()
-        for mod, name in self._modules.items():
+        message = ""
+        for name, mod in self._modules:
             importlib.reload(mod)
             module_class = getattr(mod, name, None)
             try:
                 module_instance = module_class(self._app, self)
             except Exception as e:
-                self._logger.error("Failed to load module %s: %s", name, e)
+                message = f"{message}{name} failed to reload\n"
+                self._logger.error("Failed to reload module %s: %s", name, e)
                 continue
             self._active_modules[name] = module_instance
         self.__start_modules()
-        await update.message.reply_text("Reloaded.")
+        await update.message.reply_text(f"Reloaded.\n{message}")
 
     def __start_modules(self) -> None:
         """ Start all modules """
