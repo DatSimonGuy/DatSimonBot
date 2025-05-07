@@ -2,10 +2,11 @@
 
 import os
 import functools
+from functools import wraps
 import enum
 from typing import TYPE_CHECKING
 from telegram import Update
-from telegram.ext import CommandHandler, Application, ContextTypes, CallbackQueryHandler, \
+from telegram.ext import Application, ContextTypes, CallbackQueryHandler, \
     InlineQueryHandler, InvalidCallbackData
 from dsb.utils.button_picker import CallbackData
 from dsb.types.errors import DSBError
@@ -18,27 +19,6 @@ class HandlerType(enum.Enum):
     BOT_ADMIN = 1
     CALLBACK = 2
     INLINE = 3
-
-def admin_only(func):
-    """ Decorator for admin only commands """
-    @functools.wraps(func)
-    async def wrapper(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """ Wrapper function """
-        if update.effective_user.id in self._dsb.admins: # pylint: disable=protected-access
-            await func(self, update, context)
-        else:
-            await update.message.reply_text("You are not an admin")
-    return wrapper
-
-def prevent_edited(func):
-    """ Decorator for commands that won't work on edited messages """
-    @functools.wraps(func)
-    async def wrapper(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """ Wrapper function """
-        if update.edited_message:
-            return
-        await func(self, update, context)
-    return wrapper
 
 def callback_handler(func):
     """ Decorator for callback query handlers """
@@ -124,12 +104,12 @@ class BaseModule:
                     handler = AdminCommandHandler(self._dsb, command, handler[0])
                 case HandlerType.CALLBACK:
                     handler = CallbackQueryHandler(
-                        handler,
+                        handler[0],
                         pattern=lambda x, func=command: isinstance(x, InvalidCallbackData) \
                             or x[1].prefix == func
                     )
                 case HandlerType.INLINE:
-                    handler = InlineQueryHandler(handler, pattern=command)
+                    handler = InlineQueryHandler(handler[0], pattern=command)
             self._handler_list.append(handler)
             self._bot.add_handler(handler)
 

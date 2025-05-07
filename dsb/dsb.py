@@ -117,6 +117,8 @@ class DSB:
                 continue
             module_name = module.replace(".py", "").title().replace("_", "")
             module_path = f"dsb.modules.{module.replace('.py', '')}"
+            if module_name in self._active_modules:
+                continue
             try:
                 module = importlib.import_module(module_path)
                 self._modules.append((module_name, module))
@@ -134,11 +136,12 @@ class DSB:
         """ Reload modules during runtime """
         importlib.invalidate_caches()
         self.__disable_modules()
+        self.__load_modules()
         message = ""
         for name, mod in self._modules:
-            importlib.reload(mod)
-            module_class = getattr(mod, name, None)
             try:
+                importlib.reload(mod)
+                module_class = getattr(mod, name, None)
                 module_instance = module_class(self._app, self)
             except Exception as e:
                 message = f"{message}{name} failed to reload\n"
