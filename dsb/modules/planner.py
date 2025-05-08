@@ -8,7 +8,8 @@ from telegram.ext import ContextTypes
 from koleo.api import KoleoAPI
 from dsb.types.lesson import Lesson, str_to_day
 from dsb.types.plan import Plan
-from dsb.types.module import BaseModule, HandlerType, callback_handler
+from dsb.types.module import BaseModule, callback_response_decorator, command_handler, \
+    bot_admin_handler, callback_handler
 from dsb.types.errors import *
 from dsb.utils.transforms import to_index
 from dsb.utils.button_picker import ButtonPicker, CallbackData
@@ -19,40 +20,6 @@ class Planner(BaseModule):
     """ Planner module """
     def __init__(self, ptb, telebot: 'DSB') -> None:
         super().__init__(ptb, telebot)
-        self._handlers = {
-            "create_plan": (self._create_plan, HandlerType.DEFAULT),
-            "delete_plan": (self._delete_plan, HandlerType.DEFAULT),
-            "get_plan": (self._get_plan, HandlerType.DEFAULT),
-            "plan": (self._get_plan, HandlerType.DEFAULT),
-            "get_plans": (self._get_plans, HandlerType.DEFAULT),
-            "delete_all": (self._delete_all, HandlerType.BOT_ADMIN),
-            "add_lesson": (self._add_lesson, HandlerType.DEFAULT),
-            "remove_lesson": (self._remove_lesson, HandlerType.DEFAULT),
-            "edit_lesson": (self._edit_lesson, HandlerType.DEFAULT),
-            "clear_day": (self._clear_day, HandlerType.DEFAULT),
-            "clear_all": (self._clear_all, HandlerType.DEFAULT),
-            "edit_plan": (self._edit_plan, HandlerType.DEFAULT),
-            "status": (self._status, HandlerType.DEFAULT),
-            "where_next": (self._get_roomnxt, HandlerType.DEFAULT),
-            "where_now": (self._get_roomnow, HandlerType.DEFAULT),
-            "join_plan": (self._join_plan, HandlerType.DEFAULT),
-            "leave_plan": (self._leave_plan, HandlerType.DEFAULT),
-            "get_students": (self._get_students, HandlerType.DEFAULT),
-            "copy_plan": (self._copy_plan, HandlerType.DEFAULT),
-            "paste_plan": (self._paste_plan, HandlerType.DEFAULT),
-            "get_owners": (self._get_owners, HandlerType.BOT_ADMIN),
-            "transfer_plan_ownership": (self._transfer_plan_ownership, HandlerType.DEFAULT),
-            "week_info": (self._get_weekend_parity, HandlerType.DEFAULT),
-            "train": (self._get_next_train, HandlerType.DEFAULT),
-            "delete_plan_callback": (self._delete_plan_callback, HandlerType.CALLBACK),
-            "clear_day_callback": (self._clear_day_callback, HandlerType.CALLBACK),
-            "clear_all_callback": (self._clear_all_callback, HandlerType.CALLBACK),
-            "join_plan_callback": (self._join_plan_callback, HandlerType.CALLBACK),
-            "remove_lesson_callback": (self._remove_lesson_callback, HandlerType.CALLBACK),
-            "get_students_callback": (self._get_students_callback, HandlerType.CALLBACK),
-            "get_plan_callback": (self._get_plan_callback, HandlerType.CALLBACK),
-            "save_connection_callback": (self._save_connection_callback, HandlerType.CALLBACK)
-        }
         self._descriptions = {
             "create_plan": "Create a new lesson plan",
             "delete_plan": "Delete a lesson plan",
@@ -153,6 +120,7 @@ class Planner(BaseModule):
         plan = self.__get_plan(context, plan_name)
         return plan_name, plan
 
+    @command_handler("create_plan")
     async def _create_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Create a new lesson plan.
@@ -170,6 +138,8 @@ class Planner(BaseModule):
         self.__create_plan(update, context, plan_name)
         await self._like(update)
 
+    @callback_response_decorator
+    @callback_handler("delete_plan_callback")
     async def _delete_plan_callback(self, update: Update,
                                     context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Callback for plan deletion """
@@ -180,6 +150,7 @@ class Planner(BaseModule):
                                            update.effective_message.message_id)
         await context.bot.send_message(update.effective_chat.id, "Plan deleted")
 
+    @command_handler("delete_plan")
     async def _delete_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Delete a lesson plan.
@@ -195,7 +166,8 @@ class Planner(BaseModule):
             raise NoPlansFoundError()
         await update.message.reply_text("Choose a plan to delete:", reply_markup=picker)
 
-    @callback_handler
+    @callback_response_decorator
+    @callback_handler("get_plan_callback")
     async def _get_plan_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Callback for getting a plan """
         callback: CallbackData = update.callback_query.data[1]
@@ -211,13 +183,11 @@ class Planner(BaseModule):
             raise PlanEmptyError()
         await context.bot.send_photo(chat_id, photo=plan_image)
 
+    @command_handler("plan")
     async def _get_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
-        Get a lesson plan. The difference between /get_plan and /plan is that /get_plan
-        withour parameters will display a list of plans to choose from and /plan will
-        default to the plan you are currently in.
+        Get a lesson plan.
 
-        Usage: /get_plan <name> or /get_plan 
         Alias: /plan <name> or /plan
 
         Command parameters
@@ -225,10 +195,11 @@ class Planner(BaseModule):
         name : text (optional)
             Name of the plan, if not provided, will get the plan of the user
         """
+        args = self._parse_command(context)
         try:
             plan_name, plan = self.__get_plan_from_update(update, context)
         except PlanNotFoundError as e:
-            if update.message.text.startswith("/get_plan"):
+            if "b" in args:
                 plans = context.chat_data.get("plans", {})
                 if not plans:
                     raise NoPlansFoundError() from e
@@ -248,11 +219,12 @@ class Planner(BaseModule):
         plan_image = plan.to_image(plan_name)
         await update.message.reply_photo(plan_image)
 
+    @command_handler("plans")
     async def _get_plans(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Get all lesson plans in the group.
 
-        Usage: /get_plans (A list of avaible plans will be shown)
+        Usage: /plans (A list of avaible plans will be shown)
         """
         plans = self.__get_plans(context)
         plans_str = "Plans:\n"
@@ -268,6 +240,7 @@ class Planner(BaseModule):
 
         await update.message.reply_text(plans_str)
 
+    @bot_admin_handler("delete_all")
     async def _delete_all(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Delete all lesson plans in the group. (Admin only)
@@ -277,6 +250,7 @@ class Planner(BaseModule):
         context.chat_data["plans"].clear()
         await self._like(update)
 
+    @command_handler("add_lesson")
     async def _add_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Add a lesson to a plan.
@@ -314,7 +288,8 @@ class Planner(BaseModule):
         plan.add_lesson(new_lesson.day - 1, new_lesson)
         await self._like(update)
 
-    @callback_handler
+    @callback_response_decorator
+    @callback_handler("remove_lesson_callback")
     async def _remove_lesson_callback(self, update: Update,
                                       context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Callback for removing a lesson """
@@ -346,6 +321,7 @@ class Planner(BaseModule):
         await context.bot.delete_message(chat_id, update.effective_message.id)
         await context.bot.send_message(chat_id, "Lesson removed")
 
+    @command_handler("remove_lesson")
     async def _remove_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Remove a lesson from a plan.
@@ -363,6 +339,7 @@ class Planner(BaseModule):
         await update.message.reply_text("Pick a plan you want to remove a lesson from",
                                         reply_markup=picker)
 
+    @command_handler("edit_lesson")
     async def _edit_lesson(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Edit a lesson in a plan.
@@ -436,7 +413,8 @@ class Planner(BaseModule):
         plan.add_lesson(new_day - 1 if new_day else day - 1, new_lesson)
         await self._like(update)
 
-    @callback_handler
+    @callback_response_decorator
+    @callback_handler("clear_day_callback")
     async def _clear_day_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Callback for clearing a day """
         callback: CallbackData = update.callback_query.data[1]
@@ -457,6 +435,7 @@ class Planner(BaseModule):
         await context.bot.delete_message(chat_id, update.effective_message.id)
         await context.bot.send_message(chat_id, "Day cleared")
 
+    @command_handler("clear_day")
     async def _clear_day(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Clear all lessons for a day.
@@ -472,7 +451,8 @@ class Planner(BaseModule):
             raise NoPlansFoundError()
         await update.message.reply_text("Choose a plan to clear", reply_markup=picker)
 
-    @callback_handler
+    @callback_response_decorator
+    @callback_handler("clear_all_callback")
     async def _clear_all_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Callback for clearing all lessons """
         callback: CallbackData = update.callback_query.data[1]
@@ -484,6 +464,7 @@ class Planner(BaseModule):
         await context.bot.delete_message(chat_id, update.effective_message.id)
         await context.bot.send_message(chat_id, "All lessons cleared")
 
+    @command_handler("clear_all")
     async def _clear_all(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Clear all lessons for a plan.
@@ -499,6 +480,7 @@ class Planner(BaseModule):
             raise NoPlansFoundError()
         await update.message.reply_text("Choose a plan to clear", reply_markup=picker)
 
+    @command_handler("edit_plan")
     async def _edit_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Edit a plan name.
@@ -527,6 +509,7 @@ class Planner(BaseModule):
 
         await self._like(update)
 
+    @command_handler("status")
     async def _status(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Get status of all students in this group.
@@ -547,6 +530,7 @@ class Planner(BaseModule):
 
         await update.message.reply_text(student_list)
 
+    @command_handler("where_next")
     async def _get_roomnxt(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Send room you have lessons in next.
@@ -569,6 +553,7 @@ class Planner(BaseModule):
         await update.message.reply_text(f"You have your next lesson in {lesson.room}" + \
             f"\nTime left to the beginning: {h}h {m}min")
 
+    @command_handler("where_now")
     async def _get_roomnow(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Send room you have lessons in now.
@@ -587,7 +572,8 @@ class Planner(BaseModule):
             return
         await update.message.reply_text(f"You have your lesson in {lesson.room}")
 
-    @callback_handler
+    @callback_response_decorator
+    @callback_handler("join_plan_callback")
     async def _join_plan_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Callback for joining a plan """
         callback: CallbackData = update.callback_query.data[1]
@@ -607,6 +593,7 @@ class Planner(BaseModule):
         await context.bot.delete_message(chat_id, update.effective_message.id)
         await context.bot.send_message(chat_id, f"You have joined {plan_name}")
 
+    @command_handler("join_plan")
     async def _join_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Join a lesson plan. (/plan will default to this plan)
@@ -622,6 +609,7 @@ class Planner(BaseModule):
             raise NoPlansFoundError()
         await update.message.reply_text("Choose a plan to join:", reply_markup=picker)
 
+    @command_handler("leave_plan")
     async def _leave_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Leave a lesson plan you are currently in.
@@ -637,6 +625,7 @@ class Planner(BaseModule):
             return
         await update.message.reply_text("You are not in any plan")
 
+    @command_handler("copy_plan")
     async def _copy_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Copy a plan to clipboard. Use /paste_plan to copy it to the selected chat.
@@ -654,6 +643,7 @@ class Planner(BaseModule):
         context.user_data["saved_plan"] = (plan_name, copy.deepcopy(plan))
         await self._like(update)
 
+    @command_handler("paste_plan")
     async def _paste_plan(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Paste a plan from the user data and save it in the group data.
@@ -678,11 +668,12 @@ class Planner(BaseModule):
         context.user_data.pop("saved_plan")
         await self._like(update)
 
+    @bot_admin_handler("owners")
     async def _get_owners(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Get all plan owners. (Admins only)
         
-        Usage: /get_owners
+        Usage: /owners
         """
         plans = self.__get_plans(context)
         owners = "\n".join(f"{plan[0]} - {plan[1].owner}" for plan in plans.items())
@@ -690,7 +681,8 @@ class Planner(BaseModule):
             raise NoPlansFoundError()
         await update.message.reply_text(owners)
 
-    @callback_handler
+    @callback_response_decorator
+    @callback_handler("get_students_callback")
     async def _get_students_callback(self, update: Update,
                                      context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Callback for getting students """
@@ -705,11 +697,12 @@ class Planner(BaseModule):
         await context.bot.delete_message(chat_id, update.effective_message.id)
         await context.bot.send_message(chat_id, f"Students:\n{'\n'.join(students)}")
 
+    @command_handler("students")
     async def _get_students(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Get all students in a plan.
         
-        Usage: /get_students (A list of avaible plans will be shown)
+        Usage: /students (A list of avaible plans will be shown)
         """
         plans = self.__get_plans(context)
         user_id = update.effective_user.id
@@ -720,12 +713,13 @@ class Planner(BaseModule):
             raise NoPlansFoundError()
         await update.message.reply_text("Choose a plan to get students from:", reply_markup=picker)
 
+    @command_handler("transfer_plan")
     async def _transfer_plan_ownership(self, update: Update,
                                        context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Transfer plan ownership to another user.
         
-        Usage: /transfer_plan_ownership <plan_name> --new_owner <new_owner>
+        Usage: /transfer_plan <plan_name> --new_owner <new_owner>
 
         Command parameters
         -----------
@@ -750,6 +744,7 @@ class Planner(BaseModule):
         plan.owner = new_owner
         await self._like(update)
 
+    @command_handler("week_info")
     async def _get_weekend_parity(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Returns if the weekend is odd or even.
@@ -762,11 +757,12 @@ class Planner(BaseModule):
         else:
             await update.message.reply_text("odd")
 
-    async def _get_next_train(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    @command_handler("train")
+    async def _train(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Returns the next train and the train after it.
         
-        Usage: /get_next_train --from <from> --to <to> [--n <number>]
+        Usage: /train --from <from> --to <to> [--n <number>]
         
         Command parameters
         -----------
@@ -813,7 +809,8 @@ class Planner(BaseModule):
             markup = None
         await update.message.reply_text(message, reply_markup=markup)
 
-    @callback_handler
+    @callback_response_decorator
+    @callback_handler("save_connection_callback")
     async def _save_connection_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         callback: CallbackData = update.callback_query.data[1]
         context.user_data["saved_connection"] = callback.data

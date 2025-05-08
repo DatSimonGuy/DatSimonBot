@@ -20,7 +20,28 @@ class HandlerType(enum.Enum):
     CALLBACK = 2
     INLINE = 3
 
-def callback_handler(func):
+def command_handler(command: str):
+    def decorator(func):
+        func._command_name = command
+        func._handler_type = HandlerType.DEFAULT
+        return func
+    return decorator
+
+def bot_admin_handler(command: str):
+    def decorator(func):
+        func._command_name = command
+        func._handler_type = HandlerType.BOT_ADMIN
+        return func
+    return decorator
+
+def callback_handler(command: str):
+    def decorator(func):
+        func._command_name = command
+        func._handler_type = HandlerType.CALLBACK
+        return func
+    return decorator
+
+def callback_response_decorator(func):
     """ Decorator for callback query handlers """
     @functools.wraps(func)
     async def wrapper(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -49,6 +70,12 @@ class BaseModule:
         self._inline_handlers = {}
         self._dsb = dsb
         self._handler_list = []
+        for attr_name in dir(self):
+            method = getattr(self, attr_name)
+            if callable(method) and hasattr(method, "_command_name"):
+                name = method._command_name
+                handler_type = method._handler_type
+                self._handlers[name] = (method, handler_type)
 
     @property
     def handlers(self) -> dict:
@@ -59,11 +86,6 @@ class BaseModule:
     def descriptions(self) -> dict:
         """ Get the command descriptions """
         return self._descriptions
-
-    @property
-    def config(self) -> dict:
-        """ Get the bot configuration """
-        return self._dsb.config
 
     async def _like(self, update: Update) -> None:
         """ React to message with thumbs up """

@@ -56,11 +56,6 @@ class MessageHandler(BaseModule):
         super().remove_handlers()
         self._bot.remove_handler(self._message_handler)
 
-    @property
-    def messages(self) -> dict:
-        """ Returns the list of messages """
-        return self._messages
-
     async def _what_broke(self, update: Update, _) -> None:
         """
         Get last log message. (Admin only)
