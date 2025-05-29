@@ -20,7 +20,7 @@ class NotInPlanError(DSBError):
 
 class Plan:
     """ Plan class containing info about lessons """
-    _days = Literal["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+    _days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
     def __init__(self, owner: int | None = None) -> None:
         self._students = []
