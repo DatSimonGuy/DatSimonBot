@@ -32,7 +32,6 @@ class Lesson:
             self._day = day
             self._type = lesson_data["type"]
             self._room = lesson_data["room"]
-            self._teacher = lesson_data["teacher"]
             self._repeat = lesson_data.get("repeat", "not")
             if self._repeat not in ["not", "even", "odd"]:
                 raise InvalidValueError("repeat")
@@ -43,11 +42,6 @@ class Lesson:
     def subject(self) -> str:
         """ Returns the name of the lesson """
         return self._subject
-
-    @property
-    def teacher(self) -> str:
-        """ Returns the teacher of the lesson """
-        return self._teacher
 
     @property
     def room(self) -> str:
@@ -115,7 +109,6 @@ class Lesson:
         """ Returns the lesson as a dictionary """
         return {
             "subject": self._subject,
-            "teacher": self._teacher,
             "room": self._room,
             "start": self._start_time.strftime("%H:%M"),
             "end": self._end_time.strftime("%H:%M"),
@@ -130,4 +123,4 @@ class Lesson:
         s_display = datetime.strftime(s_time, "%H:%M")
         e_display = datetime.strftime(e_time, "%H:%M")
         return f"| {s_display} - {e_display} | {self.subject} | {self._type} |\n" + \
-            f" | {self._teacher} | {self._room} | "
+            f"| {self._room} | "

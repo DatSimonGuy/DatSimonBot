@@ -1,5 +1,6 @@
 """ Class for Plan """
 
+from typing import Literal
 from datetime import datetime, time
 from io import BytesIO
 import matplotlib.pyplot as plt
@@ -19,11 +20,11 @@ class NotInPlanError(DSBError):
 
 class Plan:
     """ Plan class containing info about lessons """
-    _days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+    _days = Literal["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
     def __init__(self, owner: int | None = None) -> None:
         self._students = []
-        self._week: list[list[Lesson]] = [[] for _ in range(5)]
+        self._week: list[list[Lesson]] = [[], [], [], [], []]
         self._owner: int | None = owner
 
     @property

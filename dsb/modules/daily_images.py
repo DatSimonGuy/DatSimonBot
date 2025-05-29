@@ -4,7 +4,7 @@ import random
 import asyncio
 from telegram import Update
 from telegram.ext import ContextTypes
-from dsb.types.module import BaseModule
+from dsb.types.module import BaseModule, HandlerType
 
 class DailyImages(BaseModule):
     """ Daily images module for DSB. """
@@ -12,12 +12,12 @@ class DailyImages(BaseModule):
         super().__init__(bot, dsb)
         self._daily_job = None
         self._handlers = {
-            "create_set": self._create_set,
-            "delete_set": self._delete_set,
-            "daily_image": self._daily_image,
-            "cancel_daily_image": self._cancel_daily_image,
-            "submit_image": self._submit_image,
-            "random_image": self._random_image,
+            "create_set": (self._create_set, HandlerType.DEFAULT),
+            "delete_set": (self._delete_set, HandlerType.DEFAULT),
+            "daily_image": (self._daily_image, HandlerType.DEFAULT),
+            "cancel_daily_image": (self._cancel_daily_image, HandlerType.DEFAULT),
+            "submit_image": (self._submit_image, HandlerType.DEFAULT),
+            "random_image": (self._random_image, HandlerType.DEFAULT),
         }
         self._descriptions = {
             "create_set": "Create a new set for daily images",

@@ -1,87 +1,55 @@
-""" Main module of the DSB """
+""" Main module of DSB """
 
 import os
 import time
-import asyncio
 import logging
 import threading
-import importlib.util
-from typing import Any
+import importlib
 import dotenv
-import requests
-from telegram import Update
-from telegram.ext import Application, CallbackContext
-import rich.console
-import rich.progress
 import schedule
-from dotenv import dotenv_values, set_key
-from dsb.types.module import BaseModule
-from dsb.data.persistence import CustomPersistance
+import asyncio
+from telegram import Update
+from telegram.ext import Application, CallbackContext, ContextTypes
 from dsb.data.database import Database
-from dsb.types.errors import DSBError
+from dsb.types.module import BaseModule
 from dsb.api.dsbapi import DSBApiThread
+from dsb.types.errors import DSBError
+from dsb.data.persistence import CustomPersistance
+from dsb.types.handlers import AdminCommandHandler
 
 class DSB:
-    """ DatSimonBot main class """
-    def __init__(self) -> None:
-        # Environment variables
-        self.__create_dotenv()
-        self._config = dotenv_values(".env")
-        self._config = self.__parse_config(self._config)
+    """ DatSimonBot - telegram app """
+    def __init__(self):
+        self._config = self.__get_env()
+        self.database = Database()
 
-        # Database
-        self.database = Database(self._config["database_path"])
-
-        # Modules
-        self._modules: dict[str, BaseModule] = {}
-        self._command_descriptions = {}
-        self._command_handlers = {}
-
-        # Api
+        self._modules: list[BaseModule] = []
+        self._active_modules: dict[str, BaseModule] = {}
         self._api_task = DSBApiThread(self.database, self._config["api_port"])
-
-        # Logger
-        self._logger = logging.getLogger("DSB")
-        self._logger.setLevel(logging.INFO)
-        self._logger.propagate = False
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',
-                                        datefmt='%Y-%m-%d %H:%M:%S')
-        handler = logging.FileHandler("dsb.log")
-        handler.setFormatter(formatter)
-        self._logger.addHandler(handler)
-
-        # Scheduler for the engine
+        
+        self._logger = self.__create_logger()
+        
         self._scheduler = schedule.Scheduler()
         self._ticker_thread = threading.Thread(target=self.__ticker)
         self._stop_event = threading.Event()
-
-        # Checking environment variables
-        if self._config["telebot_token"] == "<token>":
-            error_message = "Please replace the <token> in .env file with your telegram bot token"
-            self._logger.error(error_message)
-            raise ValueError(error_message)
-        if not os.path.exists(self._config["module_src"]):
-            error_message = f"Module source directory {self._config['module_src']} does not exist"
-            self._logger.error(error_message)
-            raise FileNotFoundError(error_message)
-
-        # Building the application
-        builder = Application.builder().token(self._config["telebot_token"])
+        
+        builder = Application.builder().token(self._config["token"])
         builder.persistence(CustomPersistance())
         builder.arbitrary_callback_data(True)
+        
         self._app = builder.build()
 
-        # Error handler
         self._app.add_error_handler(self.__error_handler)
+        self.__add_system_commands()
 
     @property
     def admins(self) -> list[int]:
-        """ Get the list of admins """
+        """ DSB admins """
         return self._config["admins"]
 
     @property
     def scheduler(self) -> schedule.Scheduler:
-        """ Get the scheduler """
+        """ DSB scheduler """
         return self._scheduler
 
     @property
@@ -91,28 +59,26 @@ class DSB:
             return log_file.readlines()
 
     @property
-    def config(self) -> dict[str, Any]:
-        """ Get the configuration """
-        return self._config
+    def commands(self) -> list[str]:
+        """ Get commands list """
+        commands = {}
+        for module in self._active_modules.values():
+            commands.update(module.descriptions)
+        return commands
 
-    @property
-    def commands(self) -> dict[str, str]:
-        """ Get command descriptions """
-        return self._command_descriptions
+    async def __error_handler(self, update: Update, context: CallbackContext) -> None:
+        """Log the error and send a message to the user."""
+        self._logger.error("An error occurred: %s", context.error)
+        if update.message is None:
+            return
+        if isinstance(context.error, DSBError):
+            await update.message.reply_text(str(context.error))
+        else:
+            await update.message.reply_text('Unexpected error occured. Dev skill issue.')
 
-    def get_handler(self, command:str) -> callable:
-        """ Get handler function for a command """
-        return self._command_handlers[command]
-
-    def __parse_config(self, config: dict[str, str]) -> dict[str, Any]:
-        """ Parse the environment variables """
-        try:
-            config["admins"] = list(map(int, config["admins"].split(",")))
-        except ValueError:
-            config["admins"] = []
-        config["experimental"] = config["experimental"].lower() == "true"
-        config["api_port"] = int(config["api_port"])
-        return config
+    def __add_system_commands(self) -> None:
+        self._app.add_handler(AdminCommandHandler(self, "reload", self.__reload_modules))
+        self._app.add_handler(AdminCommandHandler(self, "quit", self.__quit_handler))
 
     def __ticker(self, tick_length: int = 1) -> None:
         """ Schedule timer """
@@ -120,80 +86,103 @@ class DSB:
             self._scheduler.run_pending()
             time.sleep(tick_length)
 
-    async def __error_handler(self, update: Update, context: CallbackContext) -> None:
-        """Log the error and send a message to the user."""
-        self._logger.error("An error occurred: %s", context.error)
-        if isinstance(context.error, DSBError) and update.message is not None:
-            await update.message.reply_text(str(context.error))
-        elif isinstance(context.error, DSBError):
-            await context.bot.send_message(update.effective_chat.id, str(context.error))
-        elif update.message is not None:
-            await update.message.reply_text('An error occurred. Please try again later.')
+    def __create_logger(self) -> logging.Logger:
+        """ Create and set up logger """
+        logger = logging.getLogger("DSB")
+        logger.setLevel(logging.INFO)
+        logger.propagate = False
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s',
+                                        datefmt='%Y-%m-%d %H:%M:%S')
+        handler = logging.FileHandler("dsb.log")
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        return logger
 
-    def __check_internet_connection(self) -> bool:
-        """ Check if the internet connection is available """
-        try:
-            requests.get("https://google.com", timeout=1)
-            return True
-        except requests.ConnectionError:
-            return False
-
-    def __create_dotenv(self) -> None:
+    def __get_env(self) -> dict:
+        """ Load or prompt for environment variables. """
         if not os.path.exists(".env"):
-            config_values = {
-                "telebot_token": "<token>",
-                "admins": "<admin1>,<admin2>",
-                "module_src": "dsb/modules",
-                "experimental": "False",
-                "database_path": "dsb/database",
-            }
-            with open(".env", "w", encoding="utf-8"):
-                pass
-            for key, value in config_values.items():
-                set_key(".env", key, value)
+            token = input("Telegram API token: ")
+            admins = input("Bot admin IDs (space-separated): ")
+            port = input("API port: ")
+            with open(".env", "w", encoding="utf-8") as _:
+                dotenv.set_key(".env", "token", token)
+                dotenv.set_key(".env", "admins", admins.replace(" ", ","))
+                dotenv.set_key(".env", "api_port", port)
+        else:
+            missing_keys = [key for key in ["token", "admins", "api_port"] if dotenv.get_key(".env", key) is None]
+            if missing_keys:
+                print(f"Missing keys in .env: {', '.join(missing_keys)}")
+                exit(1)
 
-    def __load_modules(self, console: rich.console.Console) -> tuple[int, int]:
-        """ Load modules from a directory """
-        success = 0
-        modules_to_load = []
-        for dir_path, _, modules in os.walk(self._config["module_src"]):
-            for module in modules:
-                if dir_path.endswith("experimental") and not self._config["experimental"]:
-                    continue
-                if module.startswith("__"):
-                    continue
-                if dir_path.endswith("__"):
-                    continue
-                modules_to_load.append((dir_path, module))
+        values = dotenv.dotenv_values(".env")
+        values["admins"] = {int(admin) for admin in values["admins"].split(",")}
+        return values
 
-        console.print(f"[bold yellow]Found {len(modules_to_load)} modules[/bold yellow]")
-
-        with rich.progress.Progress(
-            "[progress.description]{task.fields[module]}",
-            rich.progress.BarColumn(),
-            "[progress.percentage]{task.percentage:>3.0f}%",
-            rich.progress.TimeRemainingColumn(),
-            ) as progress:
-            task = progress.add_task("Loading modules...", total=len(modules_to_load), module="")
-            for dir_path, module in modules_to_load:
-                module_name = module.replace(".py", "").title().replace("_", "")
-                progress.update(task, module=f"Loading {module_name}...")
-                module_path = os.path.join(dir_path, module.replace(".py", ""))
-                module_path = module_path.replace("/", ".").replace("\\", ".")
-                mod = importlib.import_module(module_path)
-                module_class = getattr(mod, module_name, None)
+    def __load_modules(self) -> None:
+        """ Load avaible modules """
+        for module in os.listdir("dsb/modules"):
+            if module.startswith("__"):
+                continue
+            module_name = module.replace(".py", "").title().replace("_", "")
+            module_path = f"dsb.modules.{module.replace('.py', '')}"
+            if module_name in self._active_modules:
+                continue
+            try:
+                module = importlib.import_module(module_path)
+                self._modules.append((module_name, module))
+                module_class = getattr(module, module_name, None)
                 if module_class is None or not issubclass(module_class, BaseModule):
                     continue
-                try:
-                    module_instance = module_class(self._app, self)
-                except Exception as e: # pylint: disable=broad-except
-                    self._logger.error("Failed to load module %s: %s", module_name, e)
-                    progress.advance(task)
-                    continue
-                self._modules[module_name] = module_instance
-                success += 1
-                progress.advance(task)
-        return success, len(modules_to_load) - success
+                module_instance = module_class(self._app, self)
+            except Exception as e:
+                print(f"Failed to load module {module_name}")
+                self._logger.error("Failed to load module %s: %s", module_name, e)
+                continue
+            self._active_modules[module_name] = module_instance
+
+    async def __reload_modules(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+        """ Reload modules during runtime """
+        importlib.invalidate_caches()
+        self.__disable_modules()
+        self.__load_modules()
+        message = ""
+        for name, mod in self._modules:
+            try:
+                importlib.reload(mod)
+                module_class = getattr(mod, name, None)
+                module_instance = module_class(self._app, self)
+            except Exception as e:
+                message = f"{message}{name} failed to reload\n"
+                self._logger.error("Failed to reload module %s: %s", name, e)
+                continue
+            self._active_modules[name] = module_instance
+        self.__start_modules()
+        await update.message.reply_text(f"Reloaded.\n{message}")
+
+    def __start_modules(self) -> None:
+        """ Start all modules """
+        for module in self._active_modules.values():
+            if module.prepare():
+                module.add_handlers()
+                continue
+            self._logger.error("Failed to prepare module %s", module.__class__.__name__)
+
+    def __disable_modules(self) -> None:
+        """ Disable every module """
+        for module in self._active_modules.values():
+            module.remove_handlers()
+
+    def __quit(self) -> None:
+        self._stop_event.set()
+        self._api_task.shutdown()
+        self._api_task.join()
+        self._ticker_thread.join()
+        self._logger.info("DSB stopped")
+
+    async def __quit_handler(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+        await update.message.reply_text("Bye.")
+        self._app.stop_running()
+        self.__quit()
 
     async def reload_data(self) -> None:
         """ Reload the data """
@@ -207,57 +196,20 @@ class DSB:
         event_loop = asyncio.get_event_loop()
         event_loop.create_task(self._app.persistence.update_bot_data(self._app.bot_data))
 
-    def start_modules(self) -> tuple[int, int]:
-        """ Start all modules """
-        success, fail = 0, 0
-        for module in self._modules.values():
-            if module.prepare():
-                module.add_handlers()
-                self._command_descriptions.update(module.descriptions)
-                self._command_handlers.update(module.handlers)
-                success += 1
-            else:
-                self._logger.error("Failed to prepare module %s", module.__class__.__name__)
-                fail += 1
-        return success, fail
-
     def start(self) -> None:
-        """ Start the engine """
-        if not self.__check_internet_connection():
-            print("No internet connection. Exiting...")
-            self._logger.error("No internet connection. Start failed")
-            return
-
+        """ Start the app """
         self._ticker_thread.start()
-        console = rich.console.Console()
-        self._logger.info("DSB Engine started!")
+        self._logger.info("DSB started")
 
         try:
-            console.print("[bold green]DSB Engine started[/bold green]")
-            console.print("[bold yellow]Launching api[/bold yellow]")
+            print("Starting...")
             self._api_task.start()
-            console.print("[bold green]Api running on port" + \
-                f"{dotenv.get_key(".env", "api_port")}[/bold green]")
-            success, fail = self.__load_modules(console)
-            if fail > 0:
-                console.print(f"[bold yellow]Loaded {success} modules,"+\
-                              f" {fail} failed to load[/bold yellow]")
-            else:
-                console.print(f"[bold green]Loaded {success} modules[/bold green]")
-            console.print("[bold yellow]Starting modules...[/bold yellow]")
-            success, fail = self.start_modules()
-            if fail > 0:
-                console.print(f"[bold yellow]Started {success} modules,"+\
-                              f" {fail} failed to start[/bold yellow]")
-            else:
-                console.print(f"[bold green]Started {success} modules[/bold green]")
+            print(f"Api running on port {self._config["api_port"]}")
+            self.__load_modules()
+            self.__start_modules()
+            print("Finished loading.")
             self._app.run_polling()
         except KeyboardInterrupt:
             pass
         finally:
-            self._stop_event.set()
-            self._api_task.shutdown()
-            self._api_task.join()
-            self._ticker_thread.join()
-            self._logger.info("DSB Engine stopped!")
-            console.print("\n[bold red]DSB Engine stopped![/bold red]")
+            self.__quit()

@@ -2,20 +2,18 @@
 
 from telegram import Update
 from telegram.ext import ContextTypes, Application
-from dsb.types.module import BaseModule
-from dsb.dsb import DSB
+from dsb.types.module import BaseModule, command_handler
+from dsb.old_dsb import DSB
 
 class Help(BaseModule):
     """ Help module """
     def __init__(self, ptb: Application, dsb: DSB) -> None:
         super().__init__(ptb, dsb)
-        self._handlers = {
-            "help": self._help
-        }
         self._descriptions = {
             "help": "Display help message"
         }
 
+    @command_handler("help")
     async def _help(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """
         Display help message.
