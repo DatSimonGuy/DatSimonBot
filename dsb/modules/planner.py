@@ -790,13 +790,23 @@ class Planner(BaseModule):
         amount = int(kwargs.get("n", 4))
         from_station = kwargs["from"]
         to_station = kwargs["to"]
-        date = datetime.today() - timedelta(hours=1)
-        trains = self.koleo.get_connections(from_station, to_station,
-                                            [], date)
-        if not trains:
-            raise DSBError("No connections found")
-        message = f"Trains from {from_station} to {to_station}:\n"
-        for train in trains[:amount]:
+        current_trains = []
+        i = 0
+        while len(current_trains) < amount:
+            date = datetime.today() - timedelta(hours=1) + timedelta(hours=i)
+            trains = self.koleo.get_connections(from_station, to_station,
+                                                [], date)
+            if not trains and len(current_trains) == 0:
+                raise DSBError("No connections found")
+            message = f"Trains from {from_station} to {to_station}:\n"
+            for train in trains:
+                arrival = datetime.strptime(train["arrival"], '%Y-%m-%dT%H:%M:%S.%f%z')
+                comparasion = list((t["arrival"] == train["arrival"]) for t in current_trains)
+                if arrival > datetime.now(arrival.tzinfo) and \
+                    not any(comparasion):
+                    current_trains.append(train)
+            i += 1
+        for train in current_trains[:amount]:
             departure = ''.join(list(train['departure'])[11:16])
             arrival = ''.join(list(train['arrival'])[11:16])
             message = f"{message}\n{departure} -> {arrival}"

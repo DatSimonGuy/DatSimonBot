@@ -23,7 +23,7 @@ class DSB:
         self._config = self.__get_env()
         self.database = Database()
 
-        self._modules = []
+        self._modules: list[BaseModule] = []
         self._active_modules: dict[str, BaseModule] = {}
         self._api_task = DSBApiThread(self.database, self._config["api_port"])
         
@@ -57,6 +57,14 @@ class DSB:
         """ Get the logs """
         with open("dsb.log", 'r', encoding="utf-8") as log_file:
             return log_file.readlines()
+
+    @property
+    def commands(self) -> list[str]:
+        """ Get commands list """
+        commands = {}
+        for module in self._active_modules.values():
+            commands.update(module.descriptions)
+        return commands
 
     async def __error_handler(self, update: Update, context: CallbackContext) -> None:
         """Log the error and send a message to the user."""
