@@ -122,19 +122,37 @@ class MessageHandler(BaseModule):
         query = " ".join(query.split()[1:])
         if not query:
             return
-        doubled = f"{query}\n\n{query}"
-        fire = "🔥".join(query)
-        random_cap = "".join([char.upper() if random.random() > 0.5 else char for char in query])
-        result = [
-            InlineQueryResultArticle(id="1", title="Geen_Geen",
-                                     description="Double the input",
-                                     input_message_content=InputTextMessageContent(doubled)),
-            InlineQueryResultArticle(id="2", title="Fire",
-                                     description="Add fire emojis",
-                                     input_message_content=InputTextMessageContent(fire)),
-            InlineQueryResultArticle(id="3", title="Random capitalization",
-                                     description="Randomly capitalize",
-                                     input_message_content=InputTextMessageContent(random_cap))]
+        
+        def double(input: str) -> str:
+            return f"{input}\n\n{input}"
+        
+        def fire(input: str) -> str:
+            return "🔥".join(input)
+
+        def random_capitalize(input: str) -> str:                    
+            return "".join([char.upper() if random.random() > 0.5
+                                  else char for char in input])
+        
+        def clap(input: str) -> str:
+            return "👏" + "👏".join(input.split()) + "👏"
+
+        def yapping(input: str) -> str:
+            return "🗣️" + "🗣️".join(input.split()) + "🗣️" 
+
+        formats = {
+            "Geen_Geen": double,
+            "Fire": fire,
+            "Random capitalize": random_capitalize,
+            "Clap": clap,
+            "YapYap": yapping
+        }
+
+        result = []
+        
+        for i, format in enumerate(formats.items()):
+            result.append(InlineQueryResultArticle(id=i, title=format[0],
+                                     input_message_content=InputTextMessageContent(format[1](query))))
+
         await update.inline_query.answer(result)
 
     async def _make_silly(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:

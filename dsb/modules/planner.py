@@ -8,13 +8,13 @@ from telegram.ext import ContextTypes
 from koleo.api import KoleoAPI
 from dsb.types.lesson import Lesson, str_to_day
 from dsb.types.plan import Plan
-from dsb.types.module import BaseModule, callback_response_decorator, command_handler, \
+from dsb.types.module import BaseModul, command_handler, \
     bot_admin_handler, callback_handler
 from dsb.types.errors import *
 from dsb.utils.transforms import to_index
 from dsb.utils.button_picker import ButtonPicker, CallbackData
 if TYPE_CHECKING:
-    from dsb.old_dsb import DSB
+    from dsb.dsb import DSB
 
 class Planner(BaseModule):
     """ Planner module """
@@ -138,7 +138,6 @@ class Planner(BaseModule):
         self.__create_plan(update, context, plan_name)
         await self._like(update)
 
-    @callback_response_decorator
     @callback_handler("delete_plan_callback")
     async def _delete_plan_callback(self, update: Update,
                                     context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -166,7 +165,6 @@ class Planner(BaseModule):
             raise NoPlansFoundError()
         await update.message.reply_text("Choose a plan to delete:", reply_markup=picker)
 
-    @callback_response_decorator
     @callback_handler("get_plan_callback")
     async def _get_plan_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Callback for getting a plan """
@@ -207,7 +205,7 @@ class Planner(BaseModule):
                                       "get_plan_callback", user_id=update.effective_user.id)
                 await update.message.reply_text("Choose a plan to get:", reply_markup=picker)
                 return
-            plans = context.chat_data.get("plans", {})
+            plans: dict[str, Plan] = context.chat_data.get("plans", {})
             username = update.message.from_user.username
             for plan_name, plan in plans.items():
                 if username in plan.students:
@@ -247,7 +245,8 @@ class Planner(BaseModule):
 
         Usage: /delete_all
         """
-        context.chat_data["plans"].clear()
+        if "plans" in context.chat_data:
+            context.chat_data["plans"].clear()
         await self._like(update)
 
     @command_handler("add_lesson")
@@ -288,7 +287,6 @@ class Planner(BaseModule):
         plan.add_lesson(new_lesson.day - 1, new_lesson)
         await self._like(update)
 
-    @callback_response_decorator
     @callback_handler("remove_lesson_callback")
     async def _remove_lesson_callback(self, update: Update,
                                       context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -310,7 +308,7 @@ class Planner(BaseModule):
         if data.get("idx", None) is None:
             lessons = plan.get_day(day-1)
             picker = ButtonPicker([(str(lesson), callback.add_value("idx", i)) for i,
-                                   lesson in enumerate(lessons)], "remove_lesson",
+                                   lesson in enumerate(lessons)], "remove_lesson_callback",
                                   user_id=update.effective_user.id)
             if picker.is_empty:
                 raise NoLessonsError()
@@ -413,7 +411,6 @@ class Planner(BaseModule):
         plan.add_lesson(new_day - 1 if new_day else day - 1, new_lesson)
         await self._like(update)
 
-    @callback_response_decorator
     @callback_handler("clear_day_callback")
     async def _clear_day_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Callback for clearing a day """
@@ -451,7 +448,6 @@ class Planner(BaseModule):
             raise NoPlansFoundError()
         await update.message.reply_text("Choose a plan to clear", reply_markup=picker)
 
-    @callback_response_decorator
     @callback_handler("clear_all_callback")
     async def _clear_all_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Callback for clearing all lessons """
@@ -572,7 +568,6 @@ class Planner(BaseModule):
             return
         await update.message.reply_text(f"You have your lesson in {lesson.room}")
 
-    @callback_response_decorator
     @callback_handler("join_plan_callback")
     async def _join_plan_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """ Callback for joining a plan """
@@ -681,7 +676,6 @@ class Planner(BaseModule):
             raise NoPlansFoundError()
         await update.message.reply_text(owners)
 
-    @callback_response_decorator
     @callback_handler("get_students_callback")
     async def _get_students_callback(self, update: Update,
                                      context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -819,7 +813,6 @@ class Planner(BaseModule):
             markup = None
         await update.message.reply_text(message, reply_markup=markup)
 
-    @callback_response_decorator
     @callback_handler("save_connection_callback")
     async def _save_connection_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         callback: CallbackData = update.callback_query.data[1]

@@ -2,7 +2,6 @@
 
 import os
 import functools
-from functools import wraps
 import enum
 from typing import TYPE_CHECKING
 from telegram import Update
@@ -10,9 +9,10 @@ from telegram.ext import Application, ContextTypes, CallbackQueryHandler, \
     InlineQueryHandler, InvalidCallbackData
 from dsb.utils.button_picker import CallbackData
 from dsb.types.errors import DSBError
-from dsb.types.handlers import AdminCommandHandler, DSBCommandHandler
+from dsb.types.handlers import AdminCommandHandler, DSBCommandHandler, \
+    CallbackHandler
 if TYPE_CHECKING:
-    from dsb.old_dsb import DSB
+    from dsb.dsb import DSB
 
 class HandlerType(enum.Enum):
     DEFAULT = 0
@@ -20,17 +20,19 @@ class HandlerType(enum.Enum):
     CALLBACK = 2
     INLINE = 3
 
-def command_handler(command: str):
+def command_handler(command: str, description: str = ""):
     def decorator(func):
         func._command_name = command
         func._handler_type = HandlerType.DEFAULT
+        func._description = description
         return func
     return decorator
 
-def bot_admin_handler(command: str):
+def bot_admin_handler(command: str, description: str = ""):
     def decorator(func):
         func._command_name = command
         func._handler_type = HandlerType.BOT_ADMIN
+        func._description = description
         return func
     return decorator
 
@@ -125,13 +127,13 @@ class BaseModule:
                 case HandlerType.BOT_ADMIN:
                     handler = AdminCommandHandler(self._dsb, command, handler[0])
                 case HandlerType.CALLBACK:
-                    handler = CallbackQueryHandler(
+                    handler = CallbackHandler(
                         handler[0],
                         pattern=lambda x, func=command: isinstance(x, InvalidCallbackData) \
                             or x[1].prefix == func
                     )
                 case HandlerType.INLINE:
-                    handler = InlineQueryHandler(handler[0], pattern=command)
+                    handler = InlineQueryHandler(handler[0], pattern=command + "( |$)")
             self._handler_list.append(handler)
             self._bot.add_handler(handler)
 
