@@ -1,0 +1,1511 @@
+[
+    {
+        "label": "threading",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "threading",
+        "description": "threading",
+        "detail": "threading",
+        "documentation": {}
+    },
+    {
+        "label": "Flask",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "request",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "jsonify",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "abort",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "jsonpickle",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "jsonpickle",
+        "description": "jsonpickle",
+        "detail": "jsonpickle",
+        "documentation": {}
+    },
+    {
+        "label": "make_server",
+        "importPath": "werkzeug.serving",
+        "description": "werkzeug.serving",
+        "isExtraImport": true,
+        "detail": "werkzeug.serving",
+        "documentation": {}
+    },
+    {
+        "label": "Plan",
+        "importPath": "dsb.types.plan",
+        "description": "dsb.types.plan",
+        "isExtraImport": true,
+        "detail": "dsb.types.plan",
+        "documentation": {}
+    },
+    {
+        "label": "Lesson",
+        "importPath": "dsb.types.plan",
+        "description": "dsb.types.plan",
+        "isExtraImport": true,
+        "detail": "dsb.types.plan",
+        "documentation": {}
+    },
+    {
+        "label": "Plan",
+        "importPath": "dsb.types.plan",
+        "description": "dsb.types.plan",
+        "isExtraImport": true,
+        "detail": "dsb.types.plan",
+        "documentation": {}
+    },
+    {
+        "label": "str_to_day",
+        "importPath": "dsb.utils.transforms",
+        "description": "dsb.utils.transforms",
+        "isExtraImport": true,
+        "detail": "dsb.utils.transforms",
+        "documentation": {}
+    },
+    {
+        "label": "to_index",
+        "importPath": "dsb.utils.transforms",
+        "description": "dsb.utils.transforms",
+        "isExtraImport": true,
+        "detail": "dsb.utils.transforms",
+        "documentation": {}
+    },
+    {
+        "label": "str_to_day",
+        "importPath": "dsb.utils.transforms",
+        "description": "dsb.utils.transforms",
+        "isExtraImport": true,
+        "detail": "dsb.utils.transforms",
+        "documentation": {}
+    },
+    {
+        "label": "str_to_time",
+        "importPath": "dsb.utils.transforms",
+        "description": "dsb.utils.transforms",
+        "isExtraImport": true,
+        "detail": "dsb.utils.transforms",
+        "documentation": {}
+    },
+    {
+        "label": "Database",
+        "importPath": "dsb.data.database",
+        "description": "dsb.data.database",
+        "isExtraImport": true,
+        "detail": "dsb.data.database",
+        "documentation": {}
+    },
+    {
+        "label": "Database",
+        "importPath": "dsb.data.database",
+        "description": "dsb.data.database",
+        "isExtraImport": true,
+        "detail": "dsb.data.database",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "json",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "json",
+        "description": "json",
+        "detail": "json",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "defaultdict",
+        "importPath": "collections",
+        "description": "collections",
+        "isExtraImport": true,
+        "detail": "collections",
+        "documentation": {}
+    },
+    {
+        "label": "telegram.ext",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "BasePersistence",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "BasePersistence",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "Application",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "ContextTypes",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "ContextTypes",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "ContextTypes",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "Application",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "filters",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "ContextTypes",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "ContextTypes",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "ContextTypes",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "CommandHandler",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "CallbackQueryHandler",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "\\",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "Application",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "ContextTypes",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "CallbackQueryHandler",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "\\",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "Application",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "CallbackContext",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "ContextTypes",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "Application",
+        "importPath": "telegram.ext",
+        "description": "telegram.ext",
+        "isExtraImport": true,
+        "detail": "telegram.ext",
+        "documentation": {}
+    },
+    {
+        "label": "Any",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "TYPE_CHECKING",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "TYPE_CHECKING",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Literal",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "shutil",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "shutil",
+        "description": "shutil",
+        "detail": "shutil",
+        "documentation": {}
+    },
+    {
+        "label": "Update",
+        "importPath": "telegram",
+        "description": "telegram",
+        "isExtraImport": true,
+        "detail": "telegram",
+        "documentation": {}
+    },
+    {
+        "label": "Update",
+        "importPath": "telegram",
+        "description": "telegram",
+        "isExtraImport": true,
+        "detail": "telegram",
+        "documentation": {}
+    },
+    {
+        "label": "Update",
+        "importPath": "telegram",
+        "description": "telegram",
+        "isExtraImport": true,
+        "detail": "telegram",
+        "documentation": {}
+    },
+    {
+        "label": "Update",
+        "importPath": "telegram",
+        "description": "telegram",
+        "isExtraImport": true,
+        "detail": "telegram",
+        "documentation": {}
+    },
+    {
+        "label": "InlineQueryResultArticle",
+        "importPath": "telegram",
+        "description": "telegram",
+        "isExtraImport": true,
+        "detail": "telegram",
+        "documentation": {}
+    },
+    {
+        "label": "InputTextMessageContent",
+        "importPath": "telegram",
+        "description": "telegram",
+        "isExtraImport": true,
+        "detail": "telegram",
+        "documentation": {}
+    },
+    {
+        "label": "Update",
+        "importPath": "telegram",
+        "description": "telegram",
+        "isExtraImport": true,
+        "detail": "telegram",
+        "documentation": {}
+    },
+    {
+        "label": "InlineKeyboardButton",
+        "importPath": "telegram",
+        "description": "telegram",
+        "isExtraImport": true,
+        "detail": "telegram",
+        "documentation": {}
+    },
+    {
+        "label": "InlineKeyboardMarkup",
+        "importPath": "telegram",
+        "description": "telegram",
+        "isExtraImport": true,
+        "detail": "telegram",
+        "documentation": {}
+    },
+    {
+        "label": "Update",
+        "importPath": "telegram",
+        "description": "telegram",
+        "isExtraImport": true,
+        "detail": "telegram",
+        "documentation": {}
+    },
+    {
+        "label": "Update",
+        "importPath": "telegram",
+        "description": "telegram",
+        "isExtraImport": true,
+        "detail": "telegram",
+        "documentation": {}
+    },
+    {
+        "label": "Update",
+        "importPath": "telegram",
+        "description": "telegram",
+        "isExtraImport": true,
+        "detail": "telegram",
+        "documentation": {}
+    },
+    {
+        "label": "InlineKeyboardButton",
+        "importPath": "telegram",
+        "description": "telegram",
+        "isExtraImport": true,
+        "detail": "telegram",
+        "documentation": {}
+    },
+    {
+        "label": "InlineKeyboardMarkup",
+        "importPath": "telegram",
+        "description": "telegram",
+        "isExtraImport": true,
+        "detail": "telegram",
+        "documentation": {}
+    },
+    {
+        "label": "Update",
+        "importPath": "telegram",
+        "description": "telegram",
+        "isExtraImport": true,
+        "detail": "telegram",
+        "documentation": {}
+    },
+    {
+        "label": "DSB",
+        "importPath": "dsb.old_dsb",
+        "description": "dsb.old_dsb",
+        "isExtraImport": true,
+        "detail": "dsb.old_dsb",
+        "documentation": {}
+    },
+    {
+        "label": "DSB",
+        "importPath": "dsb.old_dsb",
+        "description": "dsb.old_dsb",
+        "isExtraImport": true,
+        "detail": "dsb.old_dsb",
+        "documentation": {}
+    },
+    {
+        "label": "BaseModule",
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "isExtraImport": true,
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "HandlerType",
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "isExtraImport": true,
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "BaseModule",
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "isExtraImport": true,
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "HandlerType",
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "isExtraImport": true,
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "BaseModule",
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "isExtraImport": true,
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "command_handler",
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "isExtraImport": true,
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "BaseModule",
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "isExtraImport": true,
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "HandlerType",
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "isExtraImport": true,
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "BaseModul",
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "isExtraImport": true,
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "command_handler",
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "isExtraImport": true,
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "\\",
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "isExtraImport": true,
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "BaseModule",
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "isExtraImport": true,
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "HandlerType",
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "isExtraImport": true,
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "BaseModule",
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "isExtraImport": true,
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "random",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "random",
+        "description": "random",
+        "detail": "random",
+        "documentation": {}
+    },
+    {
+        "label": "asyncio",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "asyncio",
+        "description": "asyncio",
+        "detail": "asyncio",
+        "documentation": {}
+    },
+    {
+        "label": "pronouncing",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "pronouncing",
+        "description": "pronouncing",
+        "detail": "pronouncing",
+        "documentation": {}
+    },
+    {
+        "label": "AudioSegment",
+        "importPath": "pydub",
+        "description": "pydub",
+        "isExtraImport": true,
+        "detail": "pydub",
+        "documentation": {}
+    },
+    {
+        "label": "speech_recognition",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "speech_recognition",
+        "description": "speech_recognition",
+        "detail": "speech_recognition",
+        "documentation": {}
+    },
+    {
+        "label": "copy",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "copy",
+        "description": "copy",
+        "detail": "copy",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "datetime",
+        "description": "datetime",
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "time",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "date",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "time",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "time",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "KoleoAPI",
+        "importPath": "koleo.api",
+        "description": "koleo.api",
+        "isExtraImport": true,
+        "detail": "koleo.api",
+        "documentation": {}
+    },
+    {
+        "label": "Lesson",
+        "importPath": "dsb.types.lesson",
+        "description": "dsb.types.lesson",
+        "isExtraImport": true,
+        "detail": "dsb.types.lesson",
+        "documentation": {}
+    },
+    {
+        "label": "str_to_day",
+        "importPath": "dsb.types.lesson",
+        "description": "dsb.types.lesson",
+        "isExtraImport": true,
+        "detail": "dsb.types.lesson",
+        "documentation": {}
+    },
+    {
+        "label": "*",
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "isExtraImport": true,
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "InvalidValueError",
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "isExtraImport": true,
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "DSBError",
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "isExtraImport": true,
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "DSBError",
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "isExtraImport": true,
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "DSBError",
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "isExtraImport": true,
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "DSBError",
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "isExtraImport": true,
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "ButtonPicker",
+        "importPath": "dsb.utils.button_picker",
+        "description": "dsb.utils.button_picker",
+        "isExtraImport": true,
+        "detail": "dsb.utils.button_picker",
+        "documentation": {}
+    },
+    {
+        "label": "CallbackData",
+        "importPath": "dsb.utils.button_picker",
+        "description": "dsb.utils.button_picker",
+        "isExtraImport": true,
+        "detail": "dsb.utils.button_picker",
+        "documentation": {}
+    },
+    {
+        "label": "CallbackData",
+        "importPath": "dsb.utils.button_picker",
+        "description": "dsb.utils.button_picker",
+        "isExtraImport": true,
+        "detail": "dsb.utils.button_picker",
+        "documentation": {}
+    },
+    {
+        "label": "CallbackData",
+        "importPath": "dsb.utils.button_picker",
+        "description": "dsb.utils.button_picker",
+        "isExtraImport": true,
+        "detail": "dsb.utils.button_picker",
+        "documentation": {}
+    },
+    {
+        "label": "requests",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "requests",
+        "description": "requests",
+        "detail": "requests",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "importPath": "telegram.ext.filters",
+        "description": "telegram.ext.filters",
+        "isExtraImport": true,
+        "detail": "telegram.ext.filters",
+        "documentation": {}
+    },
+    {
+        "label": "BaseFilter",
+        "importPath": "telegram.ext.filters",
+        "description": "telegram.ext.filters",
+        "isExtraImport": true,
+        "detail": "telegram.ext.filters",
+        "documentation": {}
+    },
+    {
+        "label": "UpdateType",
+        "importPath": "telegram.ext.filters",
+        "description": "telegram.ext.filters",
+        "isExtraImport": true,
+        "detail": "telegram.ext.filters",
+        "documentation": {}
+    },
+    {
+        "label": "functools",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "functools",
+        "description": "functools",
+        "detail": "functools",
+        "documentation": {}
+    },
+    {
+        "label": "enum",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "enum",
+        "description": "enum",
+        "detail": "enum",
+        "documentation": {}
+    },
+    {
+        "label": "AdminCommandHandler",
+        "importPath": "dsb.types.handlers",
+        "description": "dsb.types.handlers",
+        "isExtraImport": true,
+        "detail": "dsb.types.handlers",
+        "documentation": {}
+    },
+    {
+        "label": "DSBCommandHandler",
+        "importPath": "dsb.types.handlers",
+        "description": "dsb.types.handlers",
+        "isExtraImport": true,
+        "detail": "dsb.types.handlers",
+        "documentation": {}
+    },
+    {
+        "label": "\\",
+        "importPath": "dsb.types.handlers",
+        "description": "dsb.types.handlers",
+        "isExtraImport": true,
+        "detail": "dsb.types.handlers",
+        "documentation": {}
+    },
+    {
+        "label": "AdminCommandHandler",
+        "importPath": "dsb.types.handlers",
+        "description": "dsb.types.handlers",
+        "isExtraImport": true,
+        "detail": "dsb.types.handlers",
+        "documentation": {}
+    },
+    {
+        "label": "BytesIO",
+        "importPath": "io",
+        "description": "io",
+        "isExtraImport": true,
+        "detail": "io",
+        "documentation": {}
+    },
+    {
+        "label": "matplotlib.pyplot",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "matplotlib.pyplot",
+        "description": "matplotlib.pyplot",
+        "detail": "matplotlib.pyplot",
+        "documentation": {}
+    },
+    {
+        "label": "matplotlib",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "matplotlib",
+        "description": "matplotlib",
+        "detail": "matplotlib",
+        "documentation": {}
+    },
+    {
+        "label": "time",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "time",
+        "description": "time",
+        "detail": "time",
+        "documentation": {}
+    },
+    {
+        "label": "logging",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "logging",
+        "description": "logging",
+        "detail": "logging",
+        "documentation": {}
+    },
+    {
+        "label": "importlib",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "importlib",
+        "description": "importlib",
+        "detail": "importlib",
+        "documentation": {}
+    },
+    {
+        "label": "dotenv",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "schedule",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "schedule",
+        "description": "schedule",
+        "detail": "schedule",
+        "documentation": {}
+    },
+    {
+        "label": "DSBApiThread",
+        "importPath": "dsb.api.dsbapi",
+        "description": "dsb.api.dsbapi",
+        "isExtraImport": true,
+        "detail": "dsb.api.dsbapi",
+        "documentation": {}
+    },
+    {
+        "label": "CustomPersistance",
+        "importPath": "dsb.data.persistence",
+        "description": "dsb.data.persistence",
+        "isExtraImport": true,
+        "detail": "dsb.data.persistence",
+        "documentation": {}
+    },
+    {
+        "label": "Database",
+        "importPath": "dsb.data.new_database",
+        "description": "dsb.data.new_database",
+        "isExtraImport": true,
+        "detail": "dsb.data.new_database",
+        "documentation": {}
+    },
+    {
+        "label": "DSB",
+        "importPath": "dsb.dsb",
+        "description": "dsb.dsb",
+        "isExtraImport": true,
+        "detail": "dsb.dsb",
+        "documentation": {}
+    },
+    {
+        "label": "DSBApiThread",
+        "kind": 6,
+        "importPath": "dsb.api.dsbapi",
+        "description": "dsb.api.dsbapi",
+        "peekOfCode": "class DSBApiThread(threading.Thread):\n    \"\"\" Api server thread\"\"\"\n    def __init__(self, database: Database, api_port: int) -> None:\n        \"\"\" Initialize the api \"\"\"\n        threading.Thread.__init__(self)\n        self._app = Flask(__name__)\n        self.__setup_routes()\n        self._database = database\n        self.server = make_server('0.0.0.0', api_port, self._app)\n        self.ctx = self._app.app_context()",
+        "detail": "dsb.api.dsbapi",
+        "documentation": {}
+    },
+    {
+        "label": "Database",
+        "kind": 6,
+        "importPath": "dsb.data.database",
+        "description": "dsb.data.database",
+        "peekOfCode": "class Database:\n    \"\"\" Class for handling the persistance data \"\"\"\n    def __init__(self, path: str = \"dsb/database\") -> None:\n        \"\"\" Initialize the database \"\"\"\n        self._path = path\n        self.__setup()\n    def __setup(self) -> None:\n        \"\"\" Create the directories for the database \"\"\"\n        os.makedirs(f\"{self._path}/user_data\", exist_ok=True)\n        os.makedirs(f\"{self._path}/chat_data\", exist_ok=True)",
+        "detail": "dsb.data.database",
+        "documentation": {}
+    },
+    {
+        "label": "Persistence",
+        "kind": 6,
+        "importPath": "dsb.data.new_database",
+        "description": "dsb.data.new_database",
+        "peekOfCode": "class Persistence(BasePersistence):\n    def __init__(self, path: str, store_data=None, update_interval = 60):\n        super().__init__(store_data, update_interval)\n        self._root_path = path\n    async def get_data(self, path: str) -> Dict[str, Any]:\n        path = f\"{self._root_path}/{path}\"\n        if not os.path.exists(path):\n            return {}\n        if os.path.isdir(path):\n            data = defaultdict(list)",
+        "detail": "dsb.data.new_database",
+        "documentation": {}
+    },
+    {
+        "label": "Database",
+        "kind": 6,
+        "importPath": "dsb.data.new_database",
+        "description": "dsb.data.new_database",
+        "peekOfCode": "class Database:\n    def __init__(self, path: str):\n        self._path = path\n        self.__setup()\n        self.persistance = Persistence(path)\n    def __setup(self) -> None:\n        \"\"\" Create the directories for the database \"\"\"        \n        for dir in [\"user_data\", \"chat_data\", \"files\"]:\n            os.makedirs(f\"{self._path}/{dir}\", exist_ok=True)",
+        "detail": "dsb.data.new_database",
+        "documentation": {}
+    },
+    {
+        "label": "CustomPersistance",
+        "kind": 6,
+        "importPath": "dsb.data.persistence",
+        "description": "dsb.data.persistence",
+        "peekOfCode": "class CustomPersistance(BasePersistence):\n    \"\"\" Custom persistence for the bot \"\"\"\n    def __init__(self, store_data = None, update_interval = 60,\n                 store_path = \"dsb/database/\"):\n        super().__init__(store_data, update_interval)\n        self._store_path = store_path\n    async def get_data(self, dir_name: str) -> dict:\n        \"\"\" Get data from the directory \"\"\"\n        data = {}\n        if not os.path.exists(os.path.join(self._store_path, dir_name)):",
+        "detail": "dsb.data.persistence",
+        "documentation": {}
+    },
+    {
+        "label": "Backup",
+        "kind": 6,
+        "importPath": "dsb.modules.backup",
+        "description": "dsb.modules.backup",
+        "peekOfCode": "class Backup(BaseModule):\n    \"\"\" Backup module \"\"\"\n    def __init__(self, bot: Application, telebot_module: DSB) -> None:\n        super().__init__(bot, telebot_module)\n        self._handlers = {\n            \"backup\": (self._backup, HandlerType.BOT_ADMIN),\n            \"restore\": (self._restore, HandlerType.BOT_ADMIN)\n        }\n        self._descriptions = {\n            \"backup\": \"Send a backup of the database\",",
+        "detail": "dsb.modules.backup",
+        "documentation": {}
+    },
+    {
+        "label": "DailyImages",
+        "kind": 6,
+        "importPath": "dsb.modules.daily_images",
+        "description": "dsb.modules.daily_images",
+        "peekOfCode": "class DailyImages(BaseModule):\n    \"\"\" Daily images module for DSB. \"\"\"\n    def __init__(self, bot, dsb):\n        super().__init__(bot, dsb)\n        self._daily_job = None\n        self._handlers = {\n            \"create_set\": (self._create_set, HandlerType.DEFAULT),\n            \"delete_set\": (self._delete_set, HandlerType.DEFAULT),\n            \"daily_image\": (self._daily_image, HandlerType.DEFAULT),\n            \"cancel_daily_image\": (self._cancel_daily_image, HandlerType.DEFAULT),",
+        "detail": "dsb.modules.daily_images",
+        "documentation": {}
+    },
+    {
+        "label": "Help",
+        "kind": 6,
+        "importPath": "dsb.modules.help",
+        "description": "dsb.modules.help",
+        "peekOfCode": "class Help(BaseModule):\n    \"\"\" Help module \"\"\"\n    def __init__(self, ptb: Application, dsb: DSB) -> None:\n        super().__init__(ptb, dsb)\n        self._descriptions = {\n            \"help\": \"Display help message\"\n        }\n    @command_handler(\"help\")\n    async def _help(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:\n        \"\"\"",
+        "detail": "dsb.modules.help",
+        "documentation": {}
+    },
+    {
+        "label": "MessageHandler",
+        "kind": 6,
+        "importPath": "dsb.modules.message_handler",
+        "description": "dsb.modules.message_handler",
+        "peekOfCode": "class MessageHandler(BaseModule):\n    \"\"\" Module for handling text messages \"\"\"\n    def __init__(self, ptb, telebot) -> None:\n        super().__init__(ptb, telebot)\n        self._handlers = {\n            \"who_am_i\": (self._user_info, HandlerType.DEFAULT),\n            \"who_are_you\": (self._sender_info, HandlerType.DEFAULT),\n            \"whoami\": (self._user_info, HandlerType.DEFAULT),\n            \"what_broke\": (self._what_broke, HandlerType.BOT_ADMIN),\n            \"stt\": (self._stt, HandlerType.DEFAULT),",
+        "detail": "dsb.modules.message_handler",
+        "documentation": {}
+    },
+    {
+        "label": "Planner",
+        "kind": 6,
+        "importPath": "dsb.modules.planner",
+        "description": "dsb.modules.planner",
+        "peekOfCode": "class Planner(BaseModule):\n    \"\"\" Planner module \"\"\"\n    def __init__(self, ptb, telebot: 'DSB') -> None:\n        super().__init__(ptb, telebot)\n        self._descriptions = {\n            \"create_plan\": \"Create a new lesson plan\",\n            \"delete_plan\": \"Delete a lesson plan\",\n            \"get_plan\": \"Get a lesson plan\",\n            \"plan\": \"Get a lesson plan\",\n            \"get_plans\": \"Get all lesson plans\",",
+        "detail": "dsb.modules.planner",
+        "documentation": {}
+    },
+    {
+        "label": "Wordle",
+        "kind": 6,
+        "importPath": "dsb.modules.wordle",
+        "description": "dsb.modules.wordle",
+        "peekOfCode": "class Wordle(BaseModule):\n    \"\"\" Module for functions related to wordle \"\"\"\n    def __init__(self, bot, dsb):\n        super().__init__(bot, dsb)\n        self._handlers = {\n            \"wordle_among_us\": (self._get_amogus, HandlerType.DEFAULT),\n            \"wordle_pattern\": (self.get_pattern, HandlerType.DEFAULT)\n        }\n        self._descriptions = {\n            \"wordle_among_us\": \"Get all words required to get amongus image in wordle\",",
+        "detail": "dsb.modules.wordle",
+        "documentation": {}
+    },
+    {
+        "label": "DSBError",
+        "kind": 6,
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "peekOfCode": "class DSBError(Exception):\n    \"\"\" Base error class for dsb \"\"\"\nclass InvalidValueError(DSBError):\n    \"\"\" Raised when invalid parameter is provided \"\"\"\n    def __init__(self, parameter: str, *args) -> None:\n        super().__init__(f\"Please provide valid {parameter} value\", *args)\nclass PlanNotFoundError(DSBError):\n    \"\"\" Raised when plan is not found \"\"\"\n    def __init__(self, plan_name: str, *args) -> None:\n        super().__init__(f\"Plan {plan_name} not found\", *args)",
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "InvalidValueError",
+        "kind": 6,
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "peekOfCode": "class InvalidValueError(DSBError):\n    \"\"\" Raised when invalid parameter is provided \"\"\"\n    def __init__(self, parameter: str, *args) -> None:\n        super().__init__(f\"Please provide valid {parameter} value\", *args)\nclass PlanNotFoundError(DSBError):\n    \"\"\" Raised when plan is not found \"\"\"\n    def __init__(self, plan_name: str, *args) -> None:\n        super().__init__(f\"Plan {plan_name} not found\", *args)\nclass PlanAlreadyExistsError(DSBError):\n    \"\"\" Raised when plan already exists \"\"\"",
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "PlanNotFoundError",
+        "kind": 6,
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "peekOfCode": "class PlanNotFoundError(DSBError):\n    \"\"\" Raised when plan is not found \"\"\"\n    def __init__(self, plan_name: str, *args) -> None:\n        super().__init__(f\"Plan {plan_name} not found\", *args)\nclass PlanAlreadyExistsError(DSBError):\n    \"\"\" Raised when plan already exists \"\"\"\n    def __init__(self, plan_name: str, *args) -> None:\n        super().__init__(f\"Plan {plan_name} already exists\", *args)\nclass PlanOwnershipError(DSBError):\n    \"\"\" Raised when plan ownership is invalid \"\"\"",
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "PlanAlreadyExistsError",
+        "kind": 6,
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "peekOfCode": "class PlanAlreadyExistsError(DSBError):\n    \"\"\" Raised when plan already exists \"\"\"\n    def __init__(self, plan_name: str, *args) -> None:\n        super().__init__(f\"Plan {plan_name} already exists\", *args)\nclass PlanOwnershipError(DSBError):\n    \"\"\" Raised when plan ownership is invalid \"\"\"\n    def __init__(self, *args) -> None:\n        super().__init__(\"This plan does not belong to you\", *args)\nclass PlanTransferError(DSBError):\n    \"\"\" Raised when plan transfer is invalid \"\"\"",
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "PlanOwnershipError",
+        "kind": 6,
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "peekOfCode": "class PlanOwnershipError(DSBError):\n    \"\"\" Raised when plan ownership is invalid \"\"\"\n    def __init__(self, *args) -> None:\n        super().__init__(\"This plan does not belong to you\", *args)\nclass PlanTransferError(DSBError):\n    \"\"\" Raised when plan transfer is invalid \"\"\"\n    def __init__(self, plan_name: str, *args) -> None:\n        super().__init__(f\"Plan {plan_name} already exists in the new group\", *args)\nclass PlanEmptyError(DSBError):\n    \"\"\" Raised when plan is empty \"\"\"",
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "PlanTransferError",
+        "kind": 6,
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "peekOfCode": "class PlanTransferError(DSBError):\n    \"\"\" Raised when plan transfer is invalid \"\"\"\n    def __init__(self, plan_name: str, *args) -> None:\n        super().__init__(f\"Plan {plan_name} already exists in the new group\", *args)\nclass PlanEmptyError(DSBError):\n    \"\"\" Raised when plan is empty \"\"\"\n    def __init__(self, *args) -> None:\n        super().__init__(\"Plan is empty\", *args)\nclass InvalidPlanNameError(DSBError):\n    \"\"\" Raised when the plan name is invalid \"\"\"",
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "PlanEmptyError",
+        "kind": 6,
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "peekOfCode": "class PlanEmptyError(DSBError):\n    \"\"\" Raised when plan is empty \"\"\"\n    def __init__(self, *args) -> None:\n        super().__init__(\"Plan is empty\", *args)\nclass InvalidPlanNameError(DSBError):\n    \"\"\" Raised when the plan name is invalid \"\"\"\n    def __init__(self, plan_name: str, *args):\n        super().__init__(f\"'{plan_name}' is not a valid plan name\", *args)\nclass DoesNotBelongError(DSBError):\n    \"\"\" Raised when user does not belong to a plan \"\"\"",
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "InvalidPlanNameError",
+        "kind": 6,
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "peekOfCode": "class InvalidPlanNameError(DSBError):\n    \"\"\" Raised when the plan name is invalid \"\"\"\n    def __init__(self, plan_name: str, *args):\n        super().__init__(f\"'{plan_name}' is not a valid plan name\", *args)\nclass DoesNotBelongError(DSBError):\n    \"\"\" Raised when user does not belong to a plan \"\"\"\n    def __init__(self, *args) -> None:\n        super().__init__(\"You do not belong to a plan, use /join_plan to join one\", *args)\nclass NoPlansFoundError(DSBError):\n    \"\"\" Raised when no plans are found \"\"\"",
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "DoesNotBelongError",
+        "kind": 6,
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "peekOfCode": "class DoesNotBelongError(DSBError):\n    \"\"\" Raised when user does not belong to a plan \"\"\"\n    def __init__(self, *args) -> None:\n        super().__init__(\"You do not belong to a plan, use /join_plan to join one\", *args)\nclass NoPlansFoundError(DSBError):\n    \"\"\" Raised when no plans are found \"\"\"\n    def __init__(self, *args) -> None:\n        super().__init__(\"No plans found\", *args)\nclass LessonNotFoundError(DSBError):\n    \"\"\" Raised when lesson is not found \"\"\"",
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "NoPlansFoundError",
+        "kind": 6,
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "peekOfCode": "class NoPlansFoundError(DSBError):\n    \"\"\" Raised when no plans are found \"\"\"\n    def __init__(self, *args) -> None:\n        super().__init__(\"No plans found\", *args)\nclass LessonNotFoundError(DSBError):\n    \"\"\" Raised when lesson is not found \"\"\"\n    def __init__(self, *args) -> None:\n        super().__init__(\"Lesson not found\", *args)\nclass NoLessonsError(DSBError):\n    \"\"\" Raised when no lessons are found \"\"\"",
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "LessonNotFoundError",
+        "kind": 6,
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "peekOfCode": "class LessonNotFoundError(DSBError):\n    \"\"\" Raised when lesson is not found \"\"\"\n    def __init__(self, *args) -> None:\n        super().__init__(\"Lesson not found\", *args)\nclass NoLessonsError(DSBError):\n    \"\"\" Raised when no lessons are found \"\"\"\n    def __init__(self, *args) -> None:\n        super().__init__(\"No lessons found\", *args)\nclass NoStudentsError(DSBError):\n    \"\"\" Raised when no students are found \"\"\"",
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "NoLessonsError",
+        "kind": 6,
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "peekOfCode": "class NoLessonsError(DSBError):\n    \"\"\" Raised when no lessons are found \"\"\"\n    def __init__(self, *args) -> None:\n        super().__init__(\"No lessons found\", *args)\nclass NoStudentsError(DSBError):\n    \"\"\" Raised when no students are found \"\"\"\n    def __init__(self, *args) -> None:\n        super().__init__(\"No students found\", *args)",
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "NoStudentsError",
+        "kind": 6,
+        "importPath": "dsb.types.errors",
+        "description": "dsb.types.errors",
+        "peekOfCode": "class NoStudentsError(DSBError):\n    \"\"\" Raised when no students are found \"\"\"\n    def __init__(self, *args) -> None:\n        super().__init__(\"No students found\", *args)",
+        "detail": "dsb.types.errors",
+        "documentation": {}
+    },
+    {
+        "label": "DSBCommandHandler",
+        "kind": 6,
+        "importPath": "dsb.types.handlers",
+        "description": "dsb.types.handlers",
+        "peekOfCode": "class DSBCommandHandler(CommandHandler):\n    def __init__(self, command, callback, filters = None, block = ..., has_args = None):\n        if isinstance(filters, BaseFilter):\n            filters = filters & ~UpdateType.EDITED_MESSAGE\n        else:\n            filters = ~UpdateType.EDITED_MESSAGE\n        super().__init__(command, callback, filters, block, has_args)\nclass AdminCommandHandler(DSBCommandHandler):\n    def __init__(self, dsb, command, callback, filters = None, block = ..., has_args = None):\n        for admin in dsb.admins:",
+        "detail": "dsb.types.handlers",
+        "documentation": {}
+    },
+    {
+        "label": "AdminCommandHandler",
+        "kind": 6,
+        "importPath": "dsb.types.handlers",
+        "description": "dsb.types.handlers",
+        "peekOfCode": "class AdminCommandHandler(DSBCommandHandler):\n    def __init__(self, dsb, command, callback, filters = None, block = ..., has_args = None):\n        for admin in dsb.admins:\n            if isinstance(filters, BaseFilter):\n                filters = filters & User(admin)\n            else:\n                filters = User(admin)\n        super().__init__(command, callback, filters, block, has_args)\nclass CallbackHandler(CallbackQueryHandler):\n    async def handle_update(self, update: Update, application,",
+        "detail": "dsb.types.handlers",
+        "documentation": {}
+    },
+    {
+        "label": "CallbackHandler",
+        "kind": 6,
+        "importPath": "dsb.types.handlers",
+        "description": "dsb.types.handlers",
+        "peekOfCode": "class CallbackHandler(CallbackQueryHandler):\n    async def handle_update(self, update: Update, application,\n                            check_result, context: ContextTypes.DEFAULT_TYPE):\n        if isinstance(update.callback_query.data, InvalidCallbackData):\n            await update.effective_message.delete()\n            await update.callback_query.answer(text=\"This request was too old\", show_alert=True)\n            return\n        callback : CallbackData = update.callback_query.data[1]\n        if update.effective_user.id != callback.caller:\n            return",
+        "detail": "dsb.types.handlers",
+        "documentation": {}
+    },
+    {
+        "label": "NameTooLongError",
+        "kind": 6,
+        "importPath": "dsb.types.lesson",
+        "description": "dsb.types.lesson",
+        "peekOfCode": "class NameTooLongError(DSBError):\n    \"\"\" Raised when the name of the lesson is too long \"\"\"\n    def __init__(self) -> None:\n        super().__init__(\"Subject name cannot be more than 20 characters long\")\nclass Lesson:\n    \"\"\" Lesson class containing info about a lesson \"\"\"\n    def __init__(self, lesson_data: dict[str, str]) -> None:\n        try:\n            day = lesson_data[\"day\"]\n            start = lesson_data[\"start\"]",
+        "detail": "dsb.types.lesson",
+        "documentation": {}
+    },
+    {
+        "label": "Lesson",
+        "kind": 6,
+        "importPath": "dsb.types.lesson",
+        "description": "dsb.types.lesson",
+        "peekOfCode": "class Lesson:\n    \"\"\" Lesson class containing info about a lesson \"\"\"\n    def __init__(self, lesson_data: dict[str, str]) -> None:\n        try:\n            day = lesson_data[\"day\"]\n            start = lesson_data[\"start\"]\n            end = lesson_data[\"end\"]\n            subject = lesson_data[\"subject\"]\n            day = str_to_day(day)\n            if not day:",
+        "detail": "dsb.types.lesson",
+        "documentation": {}
+    },
+    {
+        "label": "HandlerType",
+        "kind": 6,
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "peekOfCode": "class HandlerType(enum.Enum):\n    DEFAULT = 0\n    BOT_ADMIN = 1\n    CALLBACK = 2\n    INLINE = 3\ndef command_handler(command: str, description: str = \"\"):\n    def decorator(func):\n        func._command_name = command\n        func._handler_type = HandlerType.DEFAULT\n        func._description = description",
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "BaseModule",
+        "kind": 6,
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "peekOfCode": "class BaseModule:\n    \"\"\" Base module for all telegram bot modules. \"\"\"\n    def __init__(self, bot: Application, dsb: 'DSB') -> None:\n        self._bot = bot\n        self._handlers = {}\n        self._descriptions = {}\n        self._callback_handlers = {}\n        self._inline_handlers = {}\n        self._dsb = dsb\n        self._handler_list = []",
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "command_handler",
+        "kind": 2,
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "peekOfCode": "def command_handler(command: str, description: str = \"\"):\n    def decorator(func):\n        func._command_name = command\n        func._handler_type = HandlerType.DEFAULT\n        func._description = description\n        return func\n    return decorator\ndef bot_admin_handler(command: str, description: str = \"\"):\n    def decorator(func):\n        func._command_name = command",
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "bot_admin_handler",
+        "kind": 2,
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "peekOfCode": "def bot_admin_handler(command: str, description: str = \"\"):\n    def decorator(func):\n        func._command_name = command\n        func._handler_type = HandlerType.BOT_ADMIN\n        func._description = description\n        return func\n    return decorator\ndef callback_handler(command: str):\n    def decorator(func):\n        func._command_name = command",
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "callback_handler",
+        "kind": 2,
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "peekOfCode": "def callback_handler(command: str):\n    def decorator(func):\n        func._command_name = command\n        func._handler_type = HandlerType.CALLBACK\n        return func\n    return decorator\ndef callback_response_decorator(func):\n    \"\"\" Decorator for callback query handlers \"\"\"\n    @functools.wraps(func)\n    async def wrapper(self, update: Update, context: ContextTypes.DEFAULT_TYPE):",
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "callback_response_decorator",
+        "kind": 2,
+        "importPath": "dsb.types.module",
+        "description": "dsb.types.module",
+        "peekOfCode": "def callback_response_decorator(func):\n    \"\"\" Decorator for callback query handlers \"\"\"\n    @functools.wraps(func)\n    async def wrapper(self, update: Update, context: ContextTypes.DEFAULT_TYPE):\n        \"\"\" Wrapper function \"\"\"\n        if isinstance(update.callback_query.data, InvalidCallbackData):\n            await update.effective_message.delete()\n            await update.callback_query.answer(text=\"This request was too old\", show_alert=True)\n            return\n        callback : CallbackData = update.callback_query.data[1]",
+        "detail": "dsb.types.module",
+        "documentation": {}
+    },
+    {
+        "label": "AlreadyInPlanError",
+        "kind": 6,
+        "importPath": "dsb.types.plan",
+        "description": "dsb.types.plan",
+        "peekOfCode": "class AlreadyInPlanError(DSBError):\n    \"\"\" Raised when the student is already in the plan \"\"\"\n    def __init__(self) -> None:\n        super().__init__(\"You are already in the plan\")\nclass NotInPlanError(DSBError):\n    \"\"\" Raised when the student is not in the plan \"\"\"\n    def __init__(self) -> None:\n        super().__init__(\"You are not in the plan\")\nclass Plan:\n    \"\"\" Plan class containing info about lessons \"\"\"",
+        "detail": "dsb.types.plan",
+        "documentation": {}
+    },
+    {
+        "label": "NotInPlanError",
+        "kind": 6,
+        "importPath": "dsb.types.plan",
+        "description": "dsb.types.plan",
+        "peekOfCode": "class NotInPlanError(DSBError):\n    \"\"\" Raised when the student is not in the plan \"\"\"\n    def __init__(self) -> None:\n        super().__init__(\"You are not in the plan\")\nclass Plan:\n    \"\"\" Plan class containing info about lessons \"\"\"\n    _days = [\"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\", \"Friday\"]\n    def __init__(self, owner: int | None = None) -> None:\n        self._students = []\n        self._week: list[list[Lesson]] = [[], [], [], [], []]",
+        "detail": "dsb.types.plan",
+        "documentation": {}
+    },
+    {
+        "label": "Plan",
+        "kind": 6,
+        "importPath": "dsb.types.plan",
+        "description": "dsb.types.plan",
+        "peekOfCode": "class Plan:\n    \"\"\" Plan class containing info about lessons \"\"\"\n    _days = [\"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\", \"Friday\"]\n    def __init__(self, owner: int | None = None) -> None:\n        self._students = []\n        self._week: list[list[Lesson]] = [[], [], [], [], []]\n        self._owner: int | None = owner\n    @property\n    def owner(self) -> int | None:\n        \"\"\" Returns the owner of the plan \"\"\"",
+        "detail": "dsb.types.plan",
+        "documentation": {}
+    },
+    {
+        "label": "CallbackData",
+        "kind": 6,
+        "importPath": "dsb.utils.button_picker",
+        "description": "dsb.utils.button_picker",
+        "peekOfCode": "class CallbackData:\n    \"\"\" Data passed in button callback \"\"\"\n    def __init__(self, prefix: str, user_id: int, data: dict):\n        self._function = prefix\n        self._data = data\n        self._user_id = user_id\n    @property\n    def prefix(self) -> str:\n        \"\"\" Get function prefix \"\"\"\n        return self._function",
+        "detail": "dsb.utils.button_picker",
+        "documentation": {}
+    },
+    {
+        "label": "ButtonPicker",
+        "kind": 6,
+        "importPath": "dsb.utils.button_picker",
+        "description": "dsb.utils.button_picker",
+        "peekOfCode": "class ButtonPicker(InlineKeyboardMarkup):\n    \"\"\" Button picker class \"\"\"\n    def __init__(self, buttons: list,\n                 prefix: str, user_id: int) -> None:\n        \"\"\" Initialize the button picker \"\"\"\n        inline_buttons = []\n        buttons.append([\"Cancel\", {\"cancel\": True}])\n        for i, button in enumerate(buttons):\n            inline_buttons.append([InlineKeyboardButton(button[0],\n                                  callback_data=(i, CallbackData(prefix,",
+        "detail": "dsb.utils.button_picker",
+        "documentation": {}
+    },
+    {
+        "label": "to_index",
+        "kind": 2,
+        "importPath": "dsb.utils.transforms",
+        "description": "dsb.utils.transforms",
+        "peekOfCode": "def to_index(value: str | int) -> Optional[int]:\n    \"\"\" Get integer from string \"\"\"\n    if isinstance(value, int):\n        return value\n    if not value.isdigit():\n        return None\n    return int(value)\ndef str_to_day(string: str) -> Optional[int]:\n    \"\"\" Convert string to a valid day value \"\"\"\n    if string.isdigit():",
+        "detail": "dsb.utils.transforms",
+        "documentation": {}
+    },
+    {
+        "label": "str_to_day",
+        "kind": 2,
+        "importPath": "dsb.utils.transforms",
+        "description": "dsb.utils.transforms",
+        "peekOfCode": "def str_to_day(string: str) -> Optional[int]:\n    \"\"\" Convert string to a valid day value \"\"\"\n    if string.isdigit():\n        day = int(string)\n        if day not in range(1, 6):\n            return None\n        return day\n    days = {\n        \"monday\": 1,\n        \"tuesday\": 2,",
+        "detail": "dsb.utils.transforms",
+        "documentation": {}
+    },
+    {
+        "label": "str_to_time",
+        "kind": 2,
+        "importPath": "dsb.utils.transforms",
+        "description": "dsb.utils.transforms",
+        "peekOfCode": "def str_to_time(string: str) -> time:\n    \"\"\" Get valid datetime.time from string \"\"\"\n    try:\n        return datetime.strptime(string, \"%H:%M\").time()\n    except Exception: #pylint: disable=broad-exception-caught\n        return None",
+        "detail": "dsb.utils.transforms",
+        "documentation": {}
+    },
+    {
+        "label": "DSB",
+        "kind": 6,
+        "importPath": "dsb.dsb",
+        "description": "dsb.dsb",
+        "peekOfCode": "class DSB:\n    \"\"\" DatSimonBot - telegram app \"\"\"\n    def __init__(self):\n        self._config = self.__get_env()\n        self.database = Database()\n        self._modules: list[BaseModule] = []\n        self._active_modules: dict[str, BaseModule] = {}\n        self._api_task = DSBApiThread(self.database, self._config[\"api_port\"])\n        self._logger = self.__create_logger()\n        self._scheduler = schedule.Scheduler()",
+        "detail": "dsb.dsb",
+        "documentation": {}
+    },
+    {
+        "label": "DSB",
+        "kind": 6,
+        "importPath": "dsb.new_dsb",
+        "description": "dsb.new_dsb",
+        "peekOfCode": "class DSB:\n    \"\"\" DatSimonBot class \"\"\"\n    def __init__(self):\n        self._config = self.__get_env()\n        self.database = Database(DATABASE_PATH)\n        builder = Application.\n    def __get_env(self) -> dict:\n        \"\"\" Load or prompt for environment variables. \"\"\"\n        required_values = {\n            \"token\": \"Telegram API token: \",",
+        "detail": "dsb.new_dsb",
+        "documentation": {}
+    },
+    {
+        "label": "ENV_PATH",
+        "kind": 5,
+        "importPath": "dsb.new_dsb",
+        "description": "dsb.new_dsb",
+        "peekOfCode": "ENV_PATH = \".env\"\nDATABASE_PATH = \"dsb/database\"\nclass DSB:\n    \"\"\" DatSimonBot class \"\"\"\n    def __init__(self):\n        self._config = self.__get_env()\n        self.database = Database(DATABASE_PATH)\n        builder = Application.\n    def __get_env(self) -> dict:\n        \"\"\" Load or prompt for environment variables. \"\"\"",
+        "detail": "dsb.new_dsb",
+        "documentation": {}
+    },
+    {
+        "label": "DATABASE_PATH",
+        "kind": 5,
+        "importPath": "dsb.new_dsb",
+        "description": "dsb.new_dsb",
+        "peekOfCode": "DATABASE_PATH = \"dsb/database\"\nclass DSB:\n    \"\"\" DatSimonBot class \"\"\"\n    def __init__(self):\n        self._config = self.__get_env()\n        self.database = Database(DATABASE_PATH)\n        builder = Application.\n    def __get_env(self) -> dict:\n        \"\"\" Load or prompt for environment variables. \"\"\"\n        required_values = {",
+        "detail": "dsb.new_dsb",
+        "documentation": {}
+    }
+]
